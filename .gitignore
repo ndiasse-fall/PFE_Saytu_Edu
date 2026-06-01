@@ -1,0 +1,4 @@
+# .gitignore à la racine
+   **/node_modules/
+   **/dist/
+   **/.env
