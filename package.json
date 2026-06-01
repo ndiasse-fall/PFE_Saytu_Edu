@@ -4,9 +4,9 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "dev:backend": "cd backend && npm run dev",
+        "dev:backend": "cd backend && php artisan serve",
         "dev:frontend": "cd frontend && npm run dev",
-        "start": "concurrently \"php artisan serve\" \"ng serve\""
+        "start": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
     },
     "keywords": [],
     "author": "",
