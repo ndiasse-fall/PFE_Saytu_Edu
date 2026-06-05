@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    /** @use HasFactory<\Database\Factories\UserFactory> */
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -22,6 +21,15 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'statut',
+        'id_parent_createur',
+        'matricule_enseignant',
+        'specialite',
+        'date_embauche',
+        'matricule_eleve',
+        'date_naissance',
+        'adresse',
+        'telephone_parent'
     ];
 
     /**
@@ -45,5 +53,28 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    // Relations
+    public function createur()
+    {
+        return $this->belongsTo(User::class, 'id_parent_createur');
+    }
+
+    public function classes()
+    {
+        return $this->statut === 'ELEVE'
+            ? $this->belongsToMany(Classe::class, 'classe_eleve', 'id_eleve', 'id_classe')
+            : $this->belongsToMany(Classe::class, 'classe_enseignant', 'id_enseignant', 'id_classe');
+    }
+
+    public function notes()
+    {
+        return $this->hasMany(Note::class, 'id_eleve');
+    }
+
+    public function absences()
+    {
+        return $this->hasMany(Absence::class, 'id_eleve');
     }
 }
