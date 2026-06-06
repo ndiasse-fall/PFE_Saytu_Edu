@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\SuperAdminController;
 
-<<<<<<< HEAD
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -35,7 +35,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/users/{id}', [SuperAdminController::class, 'deleteUser']);
 });
 });
-=======
+
 use App\Http\Controllers\Api\ClasseController;
 use App\Http\Controllers\Api\MatiereController;
 
@@ -55,4 +55,4 @@ Route::post(
 
 // Routes CRUD Matières
 Route::apiResource('matieres', MatiereController::class);
->>>>>>> af179431315b96e83c314dbeea19868caf11ab0f
+
