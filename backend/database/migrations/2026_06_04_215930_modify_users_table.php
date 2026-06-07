@@ -11,23 +11,61 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
+        $hasStatut = Schema::hasColumn('users', 'statut');
+        $hasMatriculeEnseignant = Schema::hasColumn('users', 'matricule_enseignant');
+        $hasSpecialite = Schema::hasColumn('users', 'specialite');
+        $hasDateEmbauche = Schema::hasColumn('users', 'date_embauche');
+        $hasMatriculeEleve = Schema::hasColumn('users', 'matricule_eleve');
+        $hasDateNaissance = Schema::hasColumn('users', 'date_naissance');
+        $hasAdresse = Schema::hasColumn('users', 'adresse');
+        $hasTelephoneParent = Schema::hasColumn('users', 'telephone_parent');
+        $hasParentCreateur = Schema::hasColumn('users', 'id_parent_createur');
+
+        Schema::table('users', function (Blueprint $table) use (
+            $hasStatut,
+            $hasMatriculeEnseignant,
+            $hasSpecialite,
+            $hasDateEmbauche,
+            $hasMatriculeEleve,
+            $hasDateNaissance,
+            $hasAdresse,
+            $hasTelephoneParent,
+            $hasParentCreateur,
+        ) {
             // Statut/Rôle de l'utilisateur
-            $table->enum('statut', ['SUPER_ADMIN', 'ADMIN', 'ENSEIGNANT', 'ELEVE'])->default('ELEVE');
+            if (! $hasStatut) {
+                $table->enum('statut', ['SUPER_ADMIN', 'ADMIN', 'ENSEIGNANT', 'ELEVE'])->default('ELEVE');
+            }
 
             // Champs spécifiques Enseignant
-            $table->string('matricule_enseignant')->unique()->nullable();
-            $table->string('specialite')->nullable();
-            $table->date('date_embauche')->nullable();
+            if (! $hasMatriculeEnseignant) {
+                $table->string('matricule_enseignant')->unique()->nullable();
+            }
+            if (! $hasSpecialite) {
+                $table->string('specialite')->nullable();
+            }
+            if (! $hasDateEmbauche) {
+                $table->date('date_embauche')->nullable();
+            }
 
             // Champs spécifiques Élève
-            $table->string('matricule_eleve')->unique()->nullable();
-            $table->date('date_naissance')->nullable();
-            $table->string('adresse')->nullable();
-            $table->string('telephone_parent')->nullable();
+            if (! $hasMatriculeEleve) {
+                $table->string('matricule_eleve')->unique()->nullable();
+            }
+            if (! $hasDateNaissance) {
+                $table->date('date_naissance')->nullable();
+            }
+            if (! $hasAdresse) {
+                $table->string('adresse')->nullable();
+            }
+            if (! $hasTelephoneParent) {
+                $table->string('telephone_parent')->nullable();
+            }
 
             // Auto-jointure pour l'exclusivité du Super Admin
-            $table->foreignId('id_parent_createur')->nullable()->constrained('users')->onDelete('set null');
+            if (! $hasParentCreateur) {
+                $table->foreignId('id_parent_createur')->nullable()->constrained('users')->onDelete('set null');
+            }
         });
     }
 
