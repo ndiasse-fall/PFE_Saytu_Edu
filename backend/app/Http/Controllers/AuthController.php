@@ -2,56 +2,41 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\LoginRequest;
-use App\Models\User;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    public function login(LoginRequest $request): JsonResponse
+    public function login(Request $request)
     {
-        $credentials = $request->validated();
-        $user = User::query()
-            ->where('email', $credentials['email'])
-            ->first();
+        $request->validate([
+            'email' => 'required|email',
+            'password' => 'required'
+        ]);
 
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+        $user = User::where('email', $request->email)->first();
+
+        if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Email ou mot de passe incorrect.',
-            ], 422);
+                'message' => 'Identifiants invalides'
+            ], 401);
         }
 
-        if ($user->getAttribute('actif') !== null && ! $user->actif) {
-            return response()->json([
-                'message' => 'Ce compte est désactivé.',
-            ], 403);
-        }
-
-        $token = $user->createToken('saytou-edu-web')->plainTextToken;
+        $token = $user->createToken('token')->plainTextToken;
 
         return response()->json([
-            'message' => 'Connexion réussie.',
-            'token' => $token,
             'user' => $user,
-            'role' => $user->role?->value ?? $user->role,
+            'token' => $token
         ]);
     }
 
-    public function me(Request $request): JsonResponse
+    public function logout(Request $request)
     {
-        return response()->json([
-            'data' => $request->user(),
-        ]);
-    }
-
-    public function logout(Request $request): JsonResponse
-    {
-        $request->user()?->currentAccessToken()?->delete();
+        $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Déconnexion réussie.',
+            'message' => 'Déconnexion réussie'
         ]);
     }
 }
