@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\MatiereController;
 use App\Http\Controllers\Api\SuperAdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -39,3 +40,15 @@ Route::apiResource('classes', ClasseController::class);
 Route::post('classes/{id}/inscrire-eleve', [ClasseController::class, 'inscrireEleve']);
 Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
 Route::apiResource('matieres', MatiereController::class);
+
+// Routes CRUD Enseignants
+Route::get('/enseignants',         [AdminController::class, 'indexEnseignants']);
+Route::post('/enseignants',        [AdminController::class, 'storeEnseignant']);
+Route::put('/enseignants/{id}',    [AdminController::class, 'updateEnseignant']);
+Route::delete('/enseignants/{id}', [AdminController::class, 'destroyEnseignant']);
+
+// Routes CRUD Élèves
+Route::get('/eleves',         [AdminController::class, 'indexEleves']);
+Route::post('/eleves',        [AdminController::class, 'storeEleve']);
+Route::put('/eleves/{id}',    [AdminController::class, 'updateEleve']);
+Route::delete('/eleves/{id}', [AdminController::class, 'destroyEleve']);
