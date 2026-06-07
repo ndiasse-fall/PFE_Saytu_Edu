@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * @extends Factory<User>
@@ -24,22 +25,21 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            'name' => fake()->name(),
+        $data = [
+            'nom' => fake()->lastName(),
+            'prenom' => fake()->firstName(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'telephone' => fake()->numerify('##########'),
+            'adresse' => fake()->address(),
+            'role' => fake()->randomElement(RoleEnum::cases()),
+            'actif' => true,
         ];
-    }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
-    {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
-        ]);
+        if (Schema::hasColumn('users', 'name')) {
+            $data['name'] = "{$data['prenom']} {$data['nom']}";
+        }
+
+        return $data;
     }
 }
