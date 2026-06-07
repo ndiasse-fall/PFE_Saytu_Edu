@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Enseignant;
-use App\Models\Eleve;
+use App\Models\User;
 use App\Http\Requests\RegisterEnseignantRequest;
 use App\Http\Requests\RegisterEleveRequest;
 use Illuminate\Support\Facades\Hash;
@@ -14,17 +13,16 @@ class AdminController extends Controller
 
     public function indexEnseignants()
     {
-        return response()->json(Enseignant::all(), 200);
+        return response()->json(User::where('statut', 'ENSEIGNANT')->get(), 200);
     }
 
     public function storeEnseignant(RegisterEnseignantRequest $request)
     {
-        $enseignant = Enseignant::create([
-            'nom'                  => $request->nom,
-            'prenom'               => $request->prenom,
+        $enseignant = User::create([
+            'name'                 => $request->nom . ' ' . $request->prenom,
             'email'                => $request->email,
-            'mot_de_passe'         => Hash::make($request->mot_de_passe),
-            'statut'               => $request->statut ?? 'actif',
+            'password'             => Hash::make($request->mot_de_passe),
+            'statut'               => 'ENSEIGNANT',
             'matricule_enseignant' => $request->matricule_enseignant,
             'specialite'           => $request->specialite,
             'date_embauche'        => $request->date_embauche,
@@ -35,11 +33,12 @@ class AdminController extends Controller
 
     public function updateEnseignant(RegisterEnseignantRequest $request, $id)
     {
-        $enseignant = Enseignant::findOrFail($id);
+        $enseignant = User::where('statut', 'ENSEIGNANT')->findOrFail($id);
         $data = $request->validated();
 
         if (isset($data['mot_de_passe'])) {
-            $data['mot_de_passe'] = Hash::make($data['mot_de_passe']);
+            $data['password'] = Hash::make($data['mot_de_passe']);
+            unset($data['mot_de_passe']);
         }
 
         $enseignant->update($data);
@@ -48,7 +47,7 @@ class AdminController extends Controller
 
     public function destroyEnseignant($id)
     {
-        Enseignant::findOrFail($id)->delete();
+        User::where('statut', 'ENSEIGNANT')->findOrFail($id)->delete();
         return response()->json(['message' => 'Enseignant supprimé'], 200);
     }
 
@@ -56,17 +55,16 @@ class AdminController extends Controller
 
     public function indexEleves()
     {
-        return response()->json(Eleve::all(), 200);
+        return response()->json(User::where('statut', 'ELEVE')->get(), 200);
     }
 
     public function storeEleve(RegisterEleveRequest $request)
     {
-        $eleve = Eleve::create([
-            'nom'              => $request->nom,
-            'prenom'           => $request->prenom,
+        $eleve = User::create([
+            'name'             => $request->nom . ' ' . $request->prenom,
             'email'            => $request->email,
-            'mot_de_passe'     => Hash::make($request->mot_de_passe),
-            'statut'           => $request->statut ?? 'actif',
+            'password'         => Hash::make($request->mot_de_passe),
+            'statut'           => 'ELEVE',
             'matricule_eleve'  => $request->matricule_eleve,
             'date_naissance'   => $request->date_naissance,
             'adresse'          => $request->adresse,
@@ -78,11 +76,12 @@ class AdminController extends Controller
 
     public function updateEleve(RegisterEleveRequest $request, $id)
     {
-        $eleve = Eleve::findOrFail($id);
+        $eleve = User::where('statut', 'ELEVE')->findOrFail($id);
         $data = $request->validated();
 
         if (isset($data['mot_de_passe'])) {
-            $data['mot_de_passe'] = Hash::make($data['mot_de_passe']);
+            $data['password'] = Hash::make($data['mot_de_passe']);
+            unset($data['mot_de_passe']);
         }
 
         $eleve->update($data);
@@ -91,7 +90,7 @@ class AdminController extends Controller
 
     public function destroyEleve($id)
     {
-        Eleve::findOrFail($id)->delete();
+        User::where('statut', 'ELEVE')->findOrFail($id)->delete();
         return response()->json(['message' => 'Élève supprimé'], 200);
     }
 }
