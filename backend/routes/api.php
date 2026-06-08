@@ -8,6 +8,12 @@ use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
+
+use App\Http\Controllers\EmploiDuTempsController;
+
+Route::get('/emplois-du-temps', [EmploiDuTempsController::class, 'index']);
+Route::post('/emplois-du-temps', [EmploiDuTempsController::class, 'store']);
+
 Route::post('login', [AuthController::class, 'login']);
 Route::post('auth/login', [AuthController::class, 'login']);
 
@@ -39,3 +45,4 @@ Route::apiResource('classes', ClasseController::class);
 Route::post('classes/{id}/inscrire-eleve', [ClasseController::class, 'inscrireEleve']);
 Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
 Route::apiResource('matieres', MatiereController::class);
+
