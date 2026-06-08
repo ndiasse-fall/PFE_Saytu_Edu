@@ -52,7 +52,7 @@ class SuperAdminController extends Controller
     /**
      * Modifier le rôle d'un utilisateur
      */
-    public function updateRole(Request $request, $id)
+    public function updateRole(Request $request, string $id)
     {
         $user = User::findOrFail($id);
 
@@ -73,7 +73,7 @@ class SuperAdminController extends Controller
     /**
      * Supprimer un utilisateur
      */
-    public function deleteUser($id)
+    public function deleteUser(string $id)
     {
         $user = User::findOrFail($id);
 

@@ -14,7 +14,7 @@ Avant de commencer, assurez-vous d'avoir installé :
 
 ### 1. Clonage du projet
 ```bash
-git clone <url-du-depot>
+git clone https://github.com/ndiasse-fall/PFE_Saytu_Edu.git
 cd PFE_Saytu_Edu
 ```
 
