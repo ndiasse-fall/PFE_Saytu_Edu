@@ -32,10 +32,10 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
     Route::middleware('check.role:SUPER_ADMIN,ADMIN')->group(function (): void {
         Route::apiResource('users', UserController::class);
         Route::patch('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
+
+        Route::apiResource('classes', ClasseController::class);
+        Route::post('classes/{id}/inscrire-eleve', [ClasseController::class, 'inscrireEleve']);
+        Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
+        Route::apiResource('matieres', MatiereController::class);
     });
 });
-
-Route::apiResource('classes', ClasseController::class);
-Route::post('classes/{id}/inscrire-eleve', [ClasseController::class, 'inscrireEleve']);
-Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
-Route::apiResource('matieres', MatiereController::class);
