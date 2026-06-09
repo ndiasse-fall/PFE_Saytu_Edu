@@ -36,10 +36,12 @@ class SuperAdminController extends Controller
     public function storeAdmin(StoreAdminRequest $request)
     {
         $admin = User::create([
-            'name' => $request->name,
+            'nom' => $request->nom,
+            'prenom' => $request->prenom,
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'statut' => 'ADMIN',
+            'role' => 'ADMIN',
             'id_parent_createur' => $request->user()->id,
         ]);
 
@@ -52,7 +54,7 @@ class SuperAdminController extends Controller
     /**
      * Modifier le rôle d'un utilisateur
      */
-    public function updateRole(Request $request, $id)
+    public function updateRole(Request $request, int $id)
     {
         $user = User::findOrFail($id);
 
@@ -73,7 +75,7 @@ class SuperAdminController extends Controller
     /**
      * Supprimer un utilisateur
      */
-    public function deleteUser($id)
+    public function deleteUser(int $id)
     {
         $user = User::findOrFail($id);
 
