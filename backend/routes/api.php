@@ -7,6 +7,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\EnseignantController;
 
 
 // Routes publiques
@@ -36,7 +37,7 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         });
     });
 
-    
+
     // --- ACCÈS PÉDAGOGIE (SUPER ADMIN & ADMIN) ---
     Route::middleware('check.role:SUPER_ADMIN,ADMIN')->group(function (): void {
         Route::apiResource('users', UserController::class);
@@ -48,5 +49,10 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         // Gestion Matières
         Route::apiResource('matieres', MatiereController::class);
         // Emploi du Temps (Full CRUD)
+    });
+
+    //Route enseignat pour saisir note
+    Route::middleware('check.role:ENSEIGNANT,SUPER_ADMIN,ADMIN')->group(function (): void {
+        Route::post('notes/saisir', [EnseignantController::class, 'saisirNotes']);
     });
 });
