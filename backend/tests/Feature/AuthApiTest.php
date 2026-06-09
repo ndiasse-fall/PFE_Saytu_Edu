@@ -30,6 +30,26 @@ class AuthApiTest extends TestCase
             ->assertJsonPath('role', RoleEnum::ADMIN->value);
     }
 
+    public function test_user_can_login_with_full_name_identifier(): void
+    {
+        $user = User::factory()->create([
+            'nom' => 'Diallo',
+            'prenom' => 'Aminata',
+            'email' => 'aminata@saytou.test',
+            'password' => Hash::make('password123'),
+            'role' => RoleEnum::ADMIN,
+            'actif' => true,
+        ]);
+
+        $this->postJson('/api/login', [
+            'email' => 'Aminata Diallo',
+            'password' => 'password123',
+        ])
+            ->assertOk()
+            ->assertJsonPath('user.id', $user->id)
+            ->assertJsonPath('role', RoleEnum::ADMIN->value);
+    }
+
     public function test_login_is_rejected_with_invalid_password(): void
     {
         User::factory()->create([

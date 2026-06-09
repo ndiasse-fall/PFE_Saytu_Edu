@@ -20,9 +20,9 @@ class CheckRole
             ], 401);
         }
 
-        $currentRole = $user->role instanceof RoleEnum
-            ? $user->role->value
-            : (string) $user->role;
+        $currentRole = method_exists($user, 'resolvedRole')
+            ? $user->resolvedRole()
+            : ($user->role instanceof RoleEnum ? $user->role->value : (string) $user->role);
 
         if (! in_array($currentRole, $roles, true)) {
             return new JsonResponse([

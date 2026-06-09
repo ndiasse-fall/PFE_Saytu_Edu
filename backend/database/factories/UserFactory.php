@@ -37,7 +37,13 @@ class UserFactory extends Factory
         ];
 
         if (Schema::hasColumn('users', 'name')) {
-            $data['name'] = "{$data['prenom']} {$data['nom']}";
+            $data['name'] = fn (array $attributes): string => "{$attributes['prenom']} {$attributes['nom']}";
+        }
+
+        if (Schema::hasColumn('users', 'statut')) {
+            $data['statut'] = fn (array $attributes): string => $attributes['role'] instanceof RoleEnum
+                ? $attributes['role']->value
+                : (string) $attributes['role'];
         }
 
         return $data;

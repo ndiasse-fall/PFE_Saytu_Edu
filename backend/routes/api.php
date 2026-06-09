@@ -21,17 +21,17 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         return $request->user();
     });
 
-    Route::prefix('superadmin')->group(function (): void {
+    Route::middleware('check.role:SUPER_ADMIN,ADMIN')->group(function (): void {
+        Route::apiResource('users', UserController::class);
+        Route::patch('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
+    });
+
+    Route::middleware('check.role:SUPER_ADMIN')->prefix('superadmin')->group(function (): void {
         Route::get('/dashboard', [SuperAdminController::class, 'dashboard']);
         Route::get('/users', [SuperAdminController::class, 'users']);
         Route::post('/admins', [SuperAdminController::class, 'storeAdmin']);
         Route::put('/users/{id}/role', [SuperAdminController::class, 'updateRole']);
         Route::delete('/users/{id}', [SuperAdminController::class, 'deleteUser']);
-    });
-
-    Route::middleware('check.role:SUPER_ADMIN,ADMIN')->group(function (): void {
-        Route::apiResource('users', UserController::class);
-        Route::patch('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
     });
 });
 

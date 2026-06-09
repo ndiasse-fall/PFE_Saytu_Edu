@@ -5,16 +5,40 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class AuthController extends Controller
 {
     public function login(LoginRequest $request): JsonResponse
     {
         $credentials = $request->validated();
+        $identifier = trim((string) $credentials['email']);
+
         $user = User::query()
-            ->where('email', $credentials['email'])
+            ->where(function (Builder $query) use ($identifier): void {
+                $query->where('email', $identifier);
+
+                if (Schema::hasColumn('users', 'name')) {
+                    $query->orWhere('name', $identifier);
+                }
+
+                if (Schema::hasColumn('users', 'prenom') && Schema::hasColumn('users', 'nom')) {
+                    $fullNameSql = DB::connection()->getDriverName() === 'sqlite'
+                        ? "prenom || ' ' || nom"
+                        : "CONCAT(prenom, ' ', nom)";
+                    $reverseFullNameSql = DB::connection()->getDriverName() === 'sqlite'
+                        ? "nom || ' ' || prenom"
+                        : "CONCAT(nom, ' ', prenom)";
+
+                    $query
+                        ->orWhereRaw("{$fullNameSql} = ?", [$identifier])
+                        ->orWhereRaw("{$reverseFullNameSql} = ?", [$identifier]);
+                }
+            })
             ->first();
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
@@ -35,7 +59,7 @@ class AuthController extends Controller
             'message' => 'Connexion réussie.',
             'token' => $token,
             'user' => $user,
-            'role' => $user->role?->value ?? $user->role,
+            'role' => method_exists($user, 'resolvedRole') ? $user->resolvedRole() : ($user->role?->value ?? $user->role),
         ]);
     }
 
