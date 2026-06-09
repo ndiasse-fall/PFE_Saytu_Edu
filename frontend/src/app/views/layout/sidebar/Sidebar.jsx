@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../core/context/useAuth'
 import { menuItems } from '../../../util/menu'
-import { BrandLogo } from '../../../shared/components/branding/BrandLogo'
 
 export function Sidebar({ isOpen, onClose }) {
   const { user, signOut } = useAuth()
@@ -31,6 +30,12 @@ export function Sidebar({ isOpen, onClose }) {
     await signOut()
   }
 
+  function handleNavigationClick() {
+    if (typeof window !== 'undefined' && window.innerWidth < 992) {
+      onClose()
+    }
+  }
+
   return (
     <>
       <button
@@ -40,13 +45,6 @@ export function Sidebar({ isOpen, onClose }) {
         aria-label="Fermer le menu"
       />
       <aside id="main-sidebar" className={`sidebar${isOpen ? ' is-open' : ''}`}>
-        <div className="sidebar-brand">
-          <BrandLogo size="md" light />
-          <button type="button" className="sidebar-close" onClick={onClose} aria-label="Fermer le menu">
-            <i className="bi bi-arrow-left-short" aria-hidden="true" />
-          </button>
-        </div>
-
         <nav className="sidebar-nav">
           {sections.map((section) => (
             <div key={section.section} className="sidebar-section">
@@ -56,10 +54,10 @@ export function Sidebar({ isOpen, onClose }) {
                   key={item.path}
                   to={item.path}
                   className={({ isActive }) => `sidebar-link${isActive ? ' active' : ''}`}
-                  onClick={onClose}
+                  onClick={handleNavigationClick}
                 >
                   {item.icon ? <i className={`sidebar-link-icon bi ${item.icon}`} aria-hidden="true" /> : null}
-                  {item.label}
+                  <span className="sidebar-link-label">{item.label}</span>
                 </NavLink>
               ))}
             </div>

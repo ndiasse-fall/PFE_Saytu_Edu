@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { useLocation } from 'react-router-dom'
+import { BrandLogo } from '../../../shared/components/branding/BrandLogo'
 
 export function Navbar({ isSidebarOpen, onToggleSidebar }) {
   const location = useLocation()
@@ -23,12 +24,16 @@ export function Navbar({ isSidebarOpen, onToggleSidebar }) {
           type="button"
           className="sidebar-toggle"
           onClick={onToggleSidebar}
-          aria-label="Ouvrir le menu"
+          aria-label={isSidebarOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
           aria-expanded={isSidebarOpen}
           aria-controls="main-sidebar"
         >
-          <i className="bi bi-list" aria-hidden="true" />
+          <i className={`bi sidebar-toggle-desktop-icon ${isSidebarOpen ? 'bi-list' : 'bi-chevron-right'}`} aria-hidden="true" />
+          <i className={`bi sidebar-toggle-mobile-icon ${isSidebarOpen ? 'bi-x-lg' : 'bi-list'}`} aria-hidden="true" />
         </button>
+        <div className="topbar-brand">
+          <BrandLogo size="md" />
+        </div>
         <h1>{title}</h1>
       </div>
       <div className="topbar-actions">

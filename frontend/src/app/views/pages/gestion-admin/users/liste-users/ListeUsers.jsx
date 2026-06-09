@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-
 const roles = ['SUPER_ADMIN', 'ADMIN', 'ENSEIGNANT', 'ELEVE']
+import { ActionMenu } from '../../../../../shared/components/ui/ActionMenu'
+import { FilterToolbar } from '../../../../../shared/components/ui/FilterToolbar'
 
 export function ListeUsers({
   users,
@@ -17,40 +17,9 @@ export function ListeUsers({
   onCreate,
   canCreate,
 }) {
-  const [activeMenuId, setActiveMenuId] = useState(null)
-
-  useEffect(() => {
-    function handlePointerDown(event) {
-      if (!event.target.closest('.users-actions-menu')) {
-        setActiveMenuId(null)
-      }
-    }
-
-    document.addEventListener('pointerdown', handlePointerDown)
-
-    return () => {
-      document.removeEventListener('pointerdown', handlePointerDown)
-    }
-  }, [])
-
-  function toggleMenu(userId) {
-    setActiveMenuId((current) => (current === userId ? null : userId))
-  }
-
-  function handleAction(action) {
-    setActiveMenuId(null)
-    action()
-  }
-
   return (
     <section className="panel users-table-panel">
-      <div className="panel-header users-table-header">
-        <div className="users-table-title">
-          <h2>Liste des utilisateurs</h2>
-          <span className="muted">
-            {pagination?.total ?? users.length} enregistrements
-          </span>
-        </div>
+      <FilterToolbar title="Liste des utilisateurs" subtitle={`${pagination?.total ?? users.length} enregistrements`}>
         <form className="users-filter-toolbar" onSubmit={onApplyFilters}>
           <label className="users-toolbar-field users-toolbar-search">
             <i className="bi bi-search" aria-hidden="true" />
@@ -92,7 +61,7 @@ export function ListeUsers({
             ) : null}
           </div>
         </form>
-      </div>
+      </FilterToolbar>
 
       {loading ? (
         <div className="screen-state users-table-state">Chargement des utilisateurs...</div>
@@ -133,33 +102,15 @@ export function ListeUsers({
                     </span>
                   </td>
                   <td>
-                    <div className="users-actions-menu">
-                      <button
-                        type="button"
-                        className="users-actions-trigger"
-                        aria-label={`Ouvrir les actions pour ${user.prenom} ${user.nom}`}
-                        aria-expanded={activeMenuId === user.id}
-                        onClick={() => toggleMenu(user.id)}
-                      >
-                        <i className="bi bi-three-dots-vertical" aria-hidden="true" />
-                      </button>
-                      {activeMenuId === user.id ? (
-                        <div className="users-actions-dropdown">
-                          <button type="button" className="users-actions-item" onClick={() => void handleAction(() => onShow(user.id))}>
-                            Voir
-                          </button>
-                          <button type="button" className="users-actions-item" onClick={() => handleAction(() => onEdit(user))}>
-                            Modifier
-                          </button>
-                          <button type="button" className="users-actions-item" onClick={() => void handleAction(() => onToggle(user.id))}>
-                            {user.actif ? 'Désactiver' : 'Activer'}
-                          </button>
-                          <button type="button" className="users-actions-item danger" onClick={() => void handleAction(() => onDelete(user.id))}>
-                            Supprimer
-                          </button>
-                        </div>
-                      ) : null}
-                    </div>
+                    <ActionMenu
+                      ariaLabel={`Ouvrir les actions pour ${user.prenom} ${user.nom}`}
+                      items={[
+                        { label: 'Voir', onClick: () => void onShow(user.id) },
+                        { label: 'Modifier', onClick: () => onEdit(user) },
+                        { label: user.actif ? 'Désactiver' : 'Activer', onClick: () => void onToggle(user.id) },
+                        { label: 'Supprimer', onClick: () => void onDelete(user.id), danger: true },
+                      ]}
+                    />
                   </td>
                 </tr>
               ))}

@@ -4,16 +4,24 @@ import { Navbar } from '../navbar/Navbar'
 import { Sidebar } from '../sidebar/Sidebar'
 
 export function BaseLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    if (typeof window === 'undefined') {
+      return true
+    }
+
+    return window.innerWidth >= 992
+  })
 
   return (
-    <div className="app-shell">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="app-main">
-        <Navbar isSidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen((current) => !current)} />
-        <main className="app-content">
-          <Outlet />
-        </main>
+    <div className={`app-shell${sidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`}>
+      <Navbar isSidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen((current) => !current)} />
+      <div className="app-body">
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <div className="app-main">
+          <main className="app-content">
+            <Outlet />
+          </main>
+        </div>
       </div>
     </div>
   )

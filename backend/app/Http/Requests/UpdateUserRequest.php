@@ -34,6 +34,13 @@ class UpdateUserRequest extends FormRequest
             'adresse' => ['nullable', 'string'],
             'role' => ['sometimes', 'required', new Enum(RoleEnum::class)],
             'actif' => ['nullable', 'boolean'],
+            'matricule_enseignant' => ['nullable', 'string', Rule::unique('users', 'matricule_enseignant')->ignore($userId)],
+            'specialite' => ['nullable', 'string', 'max:255'],
+            'date_embauche' => ['nullable', 'date'],
+            'matricule_eleve' => ['nullable', 'string', Rule::unique('users', 'matricule_eleve')->ignore($userId)],
+            'date_naissance' => ['nullable', 'date'],
+            'telephone_parent' => ['nullable', 'string', 'max:20'],
+            'statut' => ['nullable', 'string'],
         ];
     }
 }

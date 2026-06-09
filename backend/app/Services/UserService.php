@@ -31,32 +31,9 @@ class UserService
     {
         $data['password'] = Hash::make($data['password']);
         $data['actif'] = $data['actif'] ?? true;
-        $data = $this->syncLegacyFields($data);
+        $data = $this->syncLegacyName($data);
 
         return User::create($data);
-    }
-
-    public function createAdmin(array $data, ?User $creator = null): User
-    {
-        $name = trim((string) ($data['name'] ?? ''));
-        $nameParts = preg_split('/\s+/', $name, 2, PREG_SPLIT_NO_EMPTY) ?: [];
-
-        $payload = [
-            'nom' => $data['nom'] ?? ($nameParts[1] ?? $nameParts[0] ?? 'Admin'),
-            'prenom' => $data['prenom'] ?? ($nameParts[0] ?? 'Saytou'),
-            'email' => $data['email'],
-            'password' => $data['password'],
-            'telephone' => $data['telephone'] ?? null,
-            'adresse' => $data['adresse'] ?? null,
-            'role' => RoleEnum::ADMIN,
-            'actif' => true,
-        ];
-
-        if ($creator) {
-            $payload['id_parent_createur'] = $creator->id;
-        }
-
-        return $this->createUser($payload);
     }
 
     public function showUser(User $user): User
@@ -72,17 +49,8 @@ class UserService
             unset($data['password']);
         }
 
-        $data = $this->syncLegacyFields($data, $user);
+        $data = $this->syncLegacyName($data, $user);
         $user->update($data);
-
-        return $user->fresh();
-    }
-
-    public function updateUserRole(User $user, RoleEnum|string $role): User
-    {
-        $user->forceFill($this->syncLegacyFields([
-            'role' => $role instanceof RoleEnum ? $role : RoleEnum::from($role),
-        ], $user))->save();
 
         return $user->fresh();
     }
@@ -99,20 +67,9 @@ class UserService
         return $user->fresh();
     }
 
-    public function getDashboardMetrics(): array
-    {
-        return [
-            'total_users' => User::query()->count(),
-            'admins' => User::query()->byRole(RoleEnum::ADMIN)->count(),
-            'enseignants' => User::query()->byRole(RoleEnum::ENSEIGNANT)->count(),
-            'eleves' => User::query()->byRole(RoleEnum::ELEVE)->count(),
-        ];
-    }
-
-    private function syncLegacyFields(array $data, ?User $user = null): array
+    private function syncLegacyName(array $data, ?User $user = null): array
     {
         if (! Schema::hasColumn('users', 'name')) {
-            $data = $this->syncLegacyRole($data, $user);
             return $data;
         }
 
@@ -121,27 +78,6 @@ class UserService
         $fullName = trim("{$prenom} {$nom}");
 
         $data['name'] = $fullName !== '' ? $fullName : 'Utilisateur';
-        $data = $this->syncLegacyRole($data, $user);
-
-        return $data;
-    }
-
-    private function syncLegacyRole(array $data, ?User $user = null): array
-    {
-        if (! Schema::hasColumn('users', 'statut')) {
-            return $data;
-        }
-
-        $role = $data['role'] ?? $user?->resolvedRole();
-
-        if ($role instanceof RoleEnum) {
-            $data['statut'] = $role->value;
-            return $data;
-        }
-
-        if (filled($role)) {
-            $data['statut'] = (string) $role;
-        }
 
         return $data;
     }

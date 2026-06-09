@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAdminRequest;
-use App\Enums\RoleEnum;
 use App\Models\User;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
@@ -18,17 +18,11 @@ class SuperAdminController extends Controller
     ) {
     }
 
-    /**
-     * Tableau de bord Super Admin
-     */
     public function dashboard(): JsonResponse
     {
         return response()->json($this->userService->getDashboardMetrics());
     }
 
-    /**
-     * Liste des utilisateurs
-     */
     public function users(): JsonResponse
     {
         return response()->json(
@@ -38,9 +32,6 @@ class SuperAdminController extends Controller
         );
     }
 
-    /**
-     * Création d'un administrateur
-     */
     public function storeAdmin(StoreAdminRequest $request): JsonResponse
     {
         $admin = $this->userService->createAdmin($request->validated(), $request->user());
@@ -51,9 +42,6 @@ class SuperAdminController extends Controller
         ], 201);
     }
 
-    /**
-     * Modifier le rôle d'un utilisateur
-     */
     public function updateRole(Request $request, int $id): JsonResponse
     {
         $user = User::findOrFail($id);
@@ -72,9 +60,6 @@ class SuperAdminController extends Controller
         ]);
     }
 
-    /**
-     * Supprimer un utilisateur
-     */
     public function deleteUser(int $id): JsonResponse
     {
         $user = User::findOrFail($id);

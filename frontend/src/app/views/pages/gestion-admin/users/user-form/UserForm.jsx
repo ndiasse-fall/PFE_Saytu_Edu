@@ -10,20 +10,11 @@ export function UserForm({
   onCancel,
 }) {
   const isEditing = mode === 'edit'
-  const title = isEditing ? 'Modifier un utilisateur' : 'Ajouter un utilisateur'
   const submitLabel = isEditing ? 'Mettre à jour' : 'Créer'
   const passwordLabel = isEditing ? 'Mot de passe (optionnel)' : 'Mot de passe'
 
   return (
-    <section className="panel">
-      <div className="panel-header">
-        <h2>{title}</h2>
-        <button type="button" className="ghost-button" onClick={onCancel}>
-          Fermer
-        </button>
-      </div>
-
-      <form className="form-grid" onSubmit={onSubmit}>
+    <form className="form-grid" onSubmit={onSubmit}>
         <label>
           <span>Nom</span>
           <input name="nom" value={form.nom} onChange={onInputChange} required />
@@ -73,11 +64,13 @@ export function UserForm({
           <span>Utilisateur actif</span>
         </label>
         <div className="form-actions full-width">
+          <button type="button" className="ghost-button" onClick={onCancel}>
+            Annuler
+          </button>
           <button type="submit" disabled={submitting}>
             {submitting ? 'Enregistrement...' : submitLabel}
           </button>
         </div>
       </form>
-    </section>
   )
 }

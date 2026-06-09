@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\RoleEnum;
-use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,17 +12,12 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<UserFactory> */
     use HasApiTokens;
     use HasFactory;
     use Notifiable;
     use SoftDeletes;
 
-    /**
-     * @var list<string>
-     */
     protected $fillable = [
-        'name',
         'nom',
         'prenom',
         'email',
@@ -42,16 +36,10 @@ class User extends Authenticatable
         'actif',
     ];
 
-    /**
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
     ];
 
-    /**
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -88,13 +76,7 @@ class User extends Authenticatable
 
         $roleValue = $role instanceof RoleEnum ? $role->value : $role;
 
-        return $query->where(function (Builder $builder) use ($roleValue): void {
-            $builder->where('role', $roleValue);
-
-            if ($this->hasLegacyStatutColumn()) {
-                $builder->orWhere('statut', $roleValue);
-            }
-        });
+        return $query->where('role', $roleValue);
     }
 
     public function scopeActive(Builder $query, ?bool $actif): Builder
@@ -113,7 +95,7 @@ class User extends Authenticatable
 
     public function classes()
     {
-        return $this->resolvedRole() === RoleEnum::ELEVE->value
+        return $this->statut === 'ELEVE'
             ? $this->belongsToMany(Classe::class, 'classe_eleve', 'id_eleve', 'id_classe')
             : $this->belongsToMany(Classe::class, 'classe_enseignant', 'id_enseignant', 'id_classe');
     }
@@ -130,35 +112,22 @@ class User extends Authenticatable
 
     public function isSuperAdministrateur(): bool
     {
-        return $this->resolvedRole() === RoleEnum::SUPER_ADMIN->value;
+        return $this->role === RoleEnum::SUPER_ADMIN;
     }
 
     public function isAdministrateur(): bool
     {
-        return $this->resolvedRole() === RoleEnum::ADMIN->value;
+        return $this->role === RoleEnum::ADMIN;
     }
 
     public function isEnseignant(): bool
     {
-        return $this->resolvedRole() === RoleEnum::ENSEIGNANT->value;
+        return $this->role === RoleEnum::ENSEIGNANT;
     }
 
     public function isEleve(): bool
     {
-        return $this->resolvedRole() === RoleEnum::ELEVE->value;
-    }
-
-    public function resolvedRole(): ?string
-    {
-        if ($this->role instanceof RoleEnum) {
-            return $this->role->value;
-        }
-
-        if (filled($this->role)) {
-            return (string) $this->role;
-        }
-
-        return filled($this->statut) ? (string) $this->statut : null;
+        return $this->role === RoleEnum::ELEVE;
     }
 
     public function fullName(): string
@@ -172,10 +141,12 @@ class User extends Authenticatable
         return (string) ($this->name ?? 'Utilisateur');
     }
 
-    private function hasLegacyStatutColumn(): bool
+    public function resolvedRole(): string
     {
-        static $hasLegacyStatutColumn;
+        if ($this->role instanceof RoleEnum) {
+            return $this->role->value;
+        }
 
-        return $hasLegacyStatutColumn ??= \Illuminate\Support\Facades\Schema::hasColumn('users', 'statut');
+        return (string) ($this->role ?? $this->statut);
     }
 }

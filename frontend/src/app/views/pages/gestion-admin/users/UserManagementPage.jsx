@@ -7,6 +7,8 @@ import {
   toggleUserStatus,
   updateUser,
 } from '../../../../services/user/userService'
+import { DrawerPanel } from '../../../../shared/components/ui/DrawerPanel'
+import { KpiCard } from '../../../../shared/components/ui/KpiCard'
 import { ListeUsers } from './liste-users/ListeUsers'
 import { UserForm } from './user-form/UserForm'
 
@@ -227,15 +229,7 @@ export function UserManagementPage() {
 
       <section className="users-kpi-grid" aria-label="Indicateurs utilisateur">
         {kpis.map((kpi) => (
-          <article key={kpi.label} className="panel users-kpi-card">
-            <span className="users-kpi-icon" aria-hidden="true">
-              <i className={`bi ${kpi.icon}`} />
-            </span>
-            <div className="users-kpi-copy">
-              <strong>{kpi.value}</strong>
-              <span>{kpi.label}</span>
-            </div>
-          </article>
+          <KpiCard key={kpi.label} {...kpi} />
         ))}
       </section>
 
@@ -255,55 +249,51 @@ export function UserManagementPage() {
         canCreate={!isFormOpen}
       />
 
-      {(isFormOpen || selectedUser) ? (
-        <>
-          <button
-            type="button"
-            className="users-drawer-backdrop"
-            aria-label="Fermer le panneau"
-            onClick={isFormOpen ? resetForm : closeDetails}
-          />
+      <DrawerPanel
+        open={isFormOpen}
+        onClose={resetForm}
+        width={520}
+        title={isEditing ? 'Modifier un utilisateur' : 'Ajouter un utilisateur'}
+        headerAction={
+          <button type="button" className="ghost-button" onClick={resetForm}>
+            Fermer
+          </button>
+        }
+      >
+        <UserForm
+          mode={formMode}
+          form={form}
+          fieldErrors={fieldErrors}
+          submitting={submitting}
+          onInputChange={handleInputChange}
+          onSubmit={handleSubmit}
+          onCancel={resetForm}
+        />
+      </DrawerPanel>
 
-          {isFormOpen ? (
-            <aside className="users-drawer users-drawer-form" aria-label={isEditing ? 'Modifier un utilisateur' : 'Ajouter un utilisateur'}>
-              <UserForm
-                mode={formMode}
-                form={form}
-                fieldErrors={fieldErrors}
-                submitting={submitting}
-                onInputChange={handleInputChange}
-                onSubmit={handleSubmit}
-                onCancel={resetForm}
-              />
-            </aside>
-          ) : null}
-
-          {selectedUser ? (
-            <aside className="users-drawer users-drawer-details" aria-label="Détails utilisateur">
-              <section className="panel users-drawer-panel">
-                <div className="panel-header">
-                  <div>
-                    <h2>Détails utilisateur</h2>
-                    <p className="muted">Consultation rapide sans quitter le tableau.</p>
-                  </div>
-                  <button type="button" className="ghost-button" onClick={closeDetails}>
-                    Fermer
-                  </button>
-                </div>
-                <div className="users-details-grid">
-                  <div><span className="detail-label">Identifiant</span><strong>#{selectedUser.id}</strong></div>
-                  <div><span className="detail-label">Nom complet</span><strong>{selectedUser.prenom} {selectedUser.nom}</strong></div>
-                  <div><span className="detail-label">Email</span><strong>{selectedUser.email}</strong></div>
-                  <div><span className="detail-label">Téléphone</span><strong>{selectedUser.telephone || 'Non renseigné'}</strong></div>
-                  <div><span className="detail-label">Adresse</span><strong>{selectedUser.adresse || 'Non renseignée'}</strong></div>
-                  <div><span className="detail-label">Rôle</span><strong>{selectedUser.role}</strong></div>
-                  <div><span className="detail-label">Statut</span><strong>{selectedUser.actif ? 'Actif' : 'Inactif'}</strong></div>
-                </div>
-              </section>
-            </aside>
-          ) : null}
-        </>
-      ) : null}
+      <DrawerPanel
+        open={Boolean(selectedUser)}
+        onClose={closeDetails}
+        title="Détails utilisateur"
+        subtitle="Consultation rapide sans quitter le tableau."
+        headerAction={
+          <button type="button" className="ghost-button" onClick={closeDetails}>
+            Fermer
+          </button>
+        }
+      >
+        {selectedUser ? (
+          <div className="users-details-grid">
+            <div><span className="detail-label">Identifiant</span><strong>#{selectedUser.id}</strong></div>
+            <div><span className="detail-label">Nom complet</span><strong>{selectedUser.prenom} {selectedUser.nom}</strong></div>
+            <div><span className="detail-label">Email</span><strong>{selectedUser.email}</strong></div>
+            <div><span className="detail-label">Téléphone</span><strong>{selectedUser.telephone || 'Non renseigné'}</strong></div>
+            <div><span className="detail-label">Adresse</span><strong>{selectedUser.adresse || 'Non renseignée'}</strong></div>
+            <div><span className="detail-label">Rôle</span><strong>{selectedUser.role}</strong></div>
+            <div><span className="detail-label">Statut</span><strong>{selectedUser.actif ? 'Actif' : 'Inactif'}</strong></div>
+          </div>
+        ) : null}
+      </DrawerPanel>
     </section>
   )
 }
