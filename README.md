@@ -5,6 +5,7 @@ Projet PFE - Plateforme éducative avec Laravel (Backend) et React (Frontend).
 ## Prérequis
 
 Avant de commencer, assurez-vous d'avoir installé :
+
 - [PHP](https://www.php.net/downloads.php) (>= 8.2)
 - [Composer](https://getcomposer.org/)
 - [Node.js & npm](https://nodejs.org/)
@@ -13,31 +14,43 @@ Avant de commencer, assurez-vous d'avoir installé :
 ## Installation
 
 ### 1. Clonage du projet
+
 ```bash
-git clone <url-du-depot>
+git clone https://github.com/ndiasse-fall/PFE_Saytu_Edu.git
 cd PFE_Saytu_Edu
 ```
 
 ### 2. Installation des dépendances de la racine
+
 ```bash
 npm install
 ```
 
 ### 3. Configuration du Backend (Laravel)
+
 ```bash
 cd backend
 composer install
 cp .env.example .env
 php artisan key:generate
 ```
-*Note : Configurez votre base de données dans le fichier `.env` (DB_DATABASE, DB_USERNAME, DB_PASSWORD).*
+
+_Note : Configurez votre base de données dans le fichier `.env` (DB_DATABASE, DB_USERNAME, DB_PASSWORD)._
 
 Ensuite, créez la base de données (si elle n'existe pas déjà) et lancez les migrations :
+
 ```bash
 php artisan migrate
 ```
 
+Vous Pouvez peuplé la base de données
+
+```bash
+php artisan db:seed
+```
+
 ### 4. Configuration du Frontend (React)
+
 ```bash
 cd ../frontend
 npm install
