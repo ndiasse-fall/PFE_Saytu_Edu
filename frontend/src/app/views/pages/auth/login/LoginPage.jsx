@@ -79,10 +79,11 @@ export function LoginPage() {
                 <TextField
                   label="Email ou Nom d’utilisateur"
                   name="email"
-                  type="email"
+                  type="text"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="Email ou Nom d’utilisateur"
+                  placeholder="Entrez votre email ou nom d’utilisateur"
+                  autoComplete="username"
                   required
                 />
 
@@ -93,6 +94,7 @@ export function LoginPage() {
                   value={form.password}
                   onChange={handleChange}
                   placeholder="Entrez votre mot de passe"
+                  autoComplete="current-password"
                   required
                 />
 
@@ -108,7 +110,7 @@ export function LoginPage() {
                   </button>
                 </div>
 
-                <PrimaryButton type="submit" disabled={loading} block>
+                <PrimaryButton type="submit" disabled={loading} block className="auth-submit-button">
                   {loading ? 'Connexion...' : 'Se connecter'}
                 </PrimaryButton>
               </form>
