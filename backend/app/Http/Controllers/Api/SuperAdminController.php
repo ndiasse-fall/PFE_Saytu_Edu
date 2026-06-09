@@ -10,20 +10,24 @@ use App\Models\User;
 class SuperAdminController extends Controller
 {
     /**
-     * Tableau de bord Super Admin
+     * Affiche les statistiques globales sur le tableau de bord.
+     * 
+     * @return JsonResponse
      */
     public function dashboard()
     {
         return response()->json([
             'total_users' => User::count(),
-            'admins' => User::where('statut', 'ADMIN')->count(),
-            'enseignants' => User::where('statut', 'ENSEIGNANT')->count(),
-            'eleves' => User::where('statut', 'ELEVE')->count(),
+            'admins' => User::where('role', 'ADMIN')->count(),
+            'enseignants' => User::where('role', 'ENSEIGNANT')->count(),
+            'eleves' => User::where('role', 'ELEVE')->count(),
         ]);
     }
 
     /**
-     * Liste des utilisateurs
+     * Liste tous les utilisateurs du système.
+     * 
+     * @return JsonResponse
      */
     public function users()
     {
@@ -31,7 +35,10 @@ class SuperAdminController extends Controller
     }
 
     /**
-     * Création d'un administrateur
+     * Crée un nouvel utilisateur avec le rôle ADMIN.
+     * 
+     * @param StoreAdminRequest $request
+     * @return JsonResponse
      */
     public function storeAdmin(StoreAdminRequest $request)
     {
@@ -52,7 +59,11 @@ class SuperAdminController extends Controller
     }
 
     /**
-     * Modifier le rôle d'un utilisateur
+     * Modifie le rôle (ou statut) d'un utilisateur.
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return JsonResponse
      */
     public function updateRole(Request $request, int $id)
     {
@@ -63,7 +74,8 @@ class SuperAdminController extends Controller
         ]);
 
         $user->update([
-            'statut' => $request->statut
+            'statut' => $request->statut,
+            'role' => $request->statut // Assure la cohérence entre statut et role
         ]);
 
         return response()->json([
@@ -73,7 +85,10 @@ class SuperAdminController extends Controller
     }
 
     /**
-     * Supprimer un utilisateur
+     * Supprime définitivement un utilisateur du système.
+     * 
+     * @param int $id
+     * @return JsonResponse
      */
     public function deleteUser(int $id)
     {
