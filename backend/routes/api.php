@@ -1,5 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\ClasseController;
+use App\Http\Controllers\Api\MatiereController;
+use App\Http\Controllers\Api\SuperAdminController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\EnseignantController;
