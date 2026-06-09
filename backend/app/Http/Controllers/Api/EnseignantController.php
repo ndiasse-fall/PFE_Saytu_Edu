@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\DB;
 
 class EnseignantController extends Controller
 {
+    /**
+     * Permet à un enseignant (ou admin) de saisir les notes pour une classe et une matière.
+     * 
+     * @param StoreNoteRequest $request
+     * @return JsonResponse
+     */
     public function saisirNotes(StoreNoteRequest $request): JsonResponse
     {
         $validated = $request->validated();
@@ -17,6 +23,7 @@ class EnseignantController extends Controller
 
         $classe = Classe::query()->findOrFail($validated['id_classe']);
 
+        // Vérification que l'enseignant est bien affecté à cette classe
         if (
             $enseignant->resolvedRole() === 'ENSEIGNANT'
             && ! $classe->enseignants()->whereKey($enseignant->id)->exists()
@@ -26,6 +33,7 @@ class EnseignantController extends Controller
             ], 403);
         }
 
+        // Vérification que tous les élèves saisis sont bien dans la classe
         $elevesDansLaClasse = $classe->eleves()->pluck('users.id')->all();
         $idsElevesSaisis = collect($validated['notes'])
             ->pluck('id_eleve')
@@ -45,6 +53,7 @@ class EnseignantController extends Controller
             ], 422);
         }
 
+        // Enregistrement des notes en base de données
         $savedNotes = DB::transaction(function () use ($validated) {
             return collect($validated['notes'])->map(function (array $noteData) use ($validated) {
                 return Note::query()->updateOrCreate(
@@ -62,6 +71,7 @@ class EnseignantController extends Controller
             });
         });
 
+        // Récupération des notes avec relations pour la réponse
         $notes = Note::query()
             ->with(['eleve:id,nom,prenom,email', 'matiere:id,nom_matiere', 'classe:id,nom_classe,niveau'])
             ->whereIn('id', $savedNotes->pluck('id'))

@@ -3,31 +3,39 @@
 use App\Http\Controllers\Api\ClasseController;
 use App\Http\Controllers\Api\MatiereController;
 use App\Http\Controllers\Api\SuperAdminController;
+use App\Http\Controllers\Api\EnseignantController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\EmploiDuTempsController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\EnseignantController;
 
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Ici se trouvent les routes de l'API de Saytu Edu.
+| Elles sont protégées par le middleware Sanctum.
+|
+*/
 
-// Routes publiques
+// --- ROUTES PUBLIQUES ---
+// Authentification
 Route::post('login', [AuthController::class, 'login']);
-Route::post('auth/login', [AuthController::class, 'login']);
+Route::post('auth/login', [AuthController::class, 'login']); // Alias pour compatibilité
 
 
-// Routes protégées
+// --- ROUTES PROTÉGÉES ---
 Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
+
+    // Informations utilisateur connecté
     Route::get('me', [AuthController::class, 'me']);
     Route::get('auth/me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('auth/logout', [AuthController::class, 'logout']);
-    Route::get('/user', function (Request $request) {
-        return $request->user();
-    });
-
 
     // --- ACCÈS EXCLUSIF SUPER ADMIN ---
-    Route::middleware('role:SUPER_ADMIN')->group(function () {
+    Route::middleware('check.role:SUPER_ADMIN')->group(function () {
         Route::prefix('superadmin')->group(function (): void {
             Route::get('/dashboard', [SuperAdminController::class, 'dashboard']);
             Route::get('/users', [SuperAdminController::class, 'users']);
@@ -37,22 +45,35 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         });
     });
 
-
     // --- ACCÈS PÉDAGOGIE (SUPER ADMIN & ADMIN) ---
     Route::middleware('check.role:SUPER_ADMIN,ADMIN')->group(function (): void {
+        // Gestion des Utilisateurs (CRUD complet)
         Route::apiResource('users', UserController::class);
         Route::patch('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
-        // Gestion Classes
+
+        // Gestion des Classes
         Route::apiResource('classes', ClasseController::class);
         Route::post('classes/{id}/inscrire-eleve', [ClasseController::class, 'inscrireEleve']);
         Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
-        // Gestion Matières
+
+        // Gestion des Matières
         Route::apiResource('matieres', MatiereController::class);
-        // Emploi du Temps (Full CRUD)
+
+        // Gestion de l'Emploi du Temps (Création, Modification, Suppression)
+        Route::apiResource('emplois-du-temps', EmploiDuTempsController::class)->except(['index', 'show']);
     });
 
-    //Route enseignat pour saisir note
+    // --- CONSULTATION EMPLOI DU TEMPS (TOUS) ---
+    Route::get('emplois-du-temps', [EmploiDuTempsController::class, 'index']);
+    Route::get('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'show']);
+
+    // --- ACCÈS ENSEIGNANT (ET ADMIN) ---
     Route::middleware('check.role:ENSEIGNANT,SUPER_ADMIN,ADMIN')->group(function (): void {
+        // Saisie des notes
         Route::post('notes/saisir', [EnseignantController::class, 'saisirNotes']);
     });
+
+    // --- ACCÈS ÉLÈVE ---
+    // (Ajouter ici les routes spécifiques aux élèves si nécessaire)
+
 });
