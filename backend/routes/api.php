@@ -1,79 +1,113 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
+// Controllers existants
 use App\Http\Controllers\Api\ClasseController;
 use App\Http\Controllers\Api\MatiereController;
 use App\Http\Controllers\Api\SuperAdminController;
 use App\Http\Controllers\Api\EnseignantController;
+use App\Http\Controllers\Api\EmploiDuTempsController;
+use App\Http\Controllers\Api\AbsenceController;
+
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\EmploiDuTempsController;
-use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| API Routes
+| API Routes - Saytu Edu
 |--------------------------------------------------------------------------
-|
-| Ici se trouvent les routes de l'API de Saytu Edu.
-| Elles sont protégées par le middleware Sanctum.
-|
 */
 
-// --- ROUTES PUBLIQUES ---
-// Authentification
+// ======================================================
+// ROUTES PUBLIQUES
+// ======================================================
+
+// Auth
 Route::post('login', [AuthController::class, 'login']);
-Route::post('auth/login', [AuthController::class, 'login']); // Alias pour compatibilité
+Route::post('auth/login', [AuthController::class, 'login']);
 
 
-// --- ROUTES PROTÉGÉES ---
+// ======================================================
+// ROUTES PROTÉGÉES
+// ======================================================
 Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
 
-    // Informations utilisateur connecté
+    // =========================
+    // AUTH CONNECTÉ
+    // =========================
     Route::get('me', [AuthController::class, 'me']);
     Route::get('auth/me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('auth/logout', [AuthController::class, 'logout']);
 
-    // --- ACCÈS EXCLUSIF SUPER ADMIN ---
-    Route::middleware('check.role:SUPER_ADMIN')->group(function () {
-        Route::prefix('superadmin')->group(function (): void {
-            Route::get('/dashboard', [SuperAdminController::class, 'dashboard']);
-            Route::get('/users', [SuperAdminController::class, 'users']);
-            Route::post('/admins', [SuperAdminController::class, 'storeAdmin']);
-            Route::put('/users/{id}/role', [SuperAdminController::class, 'updateRole']);
-            Route::delete('/users/{id}', [SuperAdminController::class, 'deleteUser']);
-        });
+    // ==================================================
+    // SUPER ADMIN ONLY
+    // ==================================================
+    Route::middleware('check.role:SUPER_ADMIN')->prefix('superadmin')->group(function (): void {
+        Route::get('/dashboard', [SuperAdminController::class, 'dashboard']);
+        Route::get('/users', [SuperAdminController::class, 'users']);
+        Route::post('/admins', [SuperAdminController::class, 'storeAdmin']);
+        Route::put('/users/{id}/role', [SuperAdminController::class, 'updateRole']);
+        Route::delete('/users/{id}', [SuperAdminController::class, 'deleteUser']);
     });
 
-    // --- ACCÈS PÉDAGOGIE (SUPER ADMIN & ADMIN) ---
+    // ==================================================
+    // ADMIN + SUPER ADMIN (GESTION PÉDAGOGIQUE)
+    // ==================================================
     Route::middleware('check.role:SUPER_ADMIN,ADMIN')->group(function (): void {
-        // Gestion des Utilisateurs (CRUD complet)
+
+        // Users
         Route::apiResource('users', UserController::class);
         Route::patch('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
 
-        // Gestion des Classes
+        // Classes
         Route::apiResource('classes', ClasseController::class);
         Route::post('classes/{id}/inscrire-eleve', [ClasseController::class, 'inscrireEleve']);
         Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
 
-        // Gestion des Matières
+        // Matières
         Route::apiResource('matieres', MatiereController::class);
 
-        // Gestion de l'Emploi du Temps (Création, Modification, Suppression)
-        Route::apiResource('emplois-du-temps', EmploiDuTempsController::class)->except(['index', 'show']);
+        // Emploi du temps (CRUD sauf index/show)
+        Route::apiResource('emplois-du-temps', EmploiDuTempsController::class)
+            ->except(['index', 'show']);
     });
 
-    // --- CONSULTATION EMPLOI DU TEMPS (TOUS) ---
+    // ==================================================
+    // CONSULTATION EMPLOI DU TEMPS (TOUS)
+    // ==================================================
     Route::get('emplois-du-temps', [EmploiDuTempsController::class, 'index']);
     Route::get('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'show']);
 
-    // --- ACCÈS ENSEIGNANT (ET ADMIN) ---
+    // ==================================================
+    // ENSEIGNANT + ADMIN + SUPER ADMIN
+    // ==================================================
     Route::middleware('check.role:ENSEIGNANT,SUPER_ADMIN,ADMIN')->group(function (): void {
-        // Saisie des notes
-        Route::post('notes/saisir', [EnseignantController::class, 'saisirNotes']);
-    });
 
-    // --- ACCÈS ÉLÈVE ---
-    // (Ajouter ici les routes spécifiques aux élèves si nécessaire)
+        // Notes
+        Route::post('notes/saisir', [EnseignantController::class, 'saisirNotes']);
+
+        // =========================
+        // ABSENCES MODULE
+        // =========================
+        Route::post('absences/enregistrer', [AbsenceController::class, 'store']);
+        Route::get('absences', [AbsenceController::class, 'index']);
+        Route::get('absences/classe/{id}', [AbsenceController::class, 'byClasse']);
+        Route::put('absences/{id}/justifier', [AbsenceController::class, 'updateJustification']);
+
+        Route::middleware('check.role:ENSEIGNANT,SUPER_ADMIN,ADMIN')->group(function () {
+
+    // création absences
+    Route::post('absences/enregistrer', [AbsenceController::class, 'store']);
+
+    // liste absences
+    Route::get('absences', [AbsenceController::class, 'index']);
+
+    // update absence (justifier / motif)
+    Route::put('absences/{id}', [AbsenceController::class, 'update']);
+});
+    });
 
 });
