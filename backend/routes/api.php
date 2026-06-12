@@ -1,5 +1,11 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\EmploiDuTempsController;
+
 use App\Http\Controllers\Api\ClasseController;
 use App\Http\Controllers\Api\MatiereController;
 use App\Http\Controllers\Api\SuperAdminController;
@@ -20,6 +26,7 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
     // Informations utilisateur connecté
     Route::get('me', [AuthController::class, 'me']);
     Route::get('auth/me', [AuthController::class, 'me']);
+
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('auth/logout', [AuthController::class, 'logout']);
     Route::get('/user', function (Request $request) {
