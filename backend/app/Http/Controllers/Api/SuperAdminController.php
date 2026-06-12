@@ -65,7 +65,11 @@ class SuperAdminController extends Controller
      * @param int $id
      * @return JsonResponse
      */
+<<<<<<< HEAD
+    public function updateRole(Request $request, string $id)
+=======
     public function updateRole(Request $request, int $id)
+>>>>>>> 161c43d0841212fe655d79e5372660b1c67f68a9
     {
         $user = User::findOrFail($id);
 
@@ -90,7 +94,11 @@ class SuperAdminController extends Controller
      * @param int $id
      * @return JsonResponse
      */
+<<<<<<< HEAD
+    public function deleteUser(string $id)
+=======
     public function deleteUser(int $id)
+>>>>>>> 161c43d0841212fe655d79e5372660b1c67f68a9
     {
         $user = User::findOrFail($id);
 
