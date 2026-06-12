@@ -17,27 +17,33 @@ class StoreAbsenceRequest extends FormRequest
     /**
      * Règles de validation
      */
-   public function rules(): array
-{
-    return [
-        'date_absence' => 'required|date',
-        'absents' => 'required|array|min:1',
-        'absents.*' => 'exists:users,id',
-        'motif' => 'nullable|string|max:255',
-    ];
-}
+    public function rules(): array
+    {
+        return [
+            'date_absence' => 'required|date',
+            'absents' => 'required|array|min:1',
+            'absents.*' => 'integer|exists:users,id',
+            'motif' => 'nullable|string|max:255',
+        ];
+    }
 
     /**
-     * Messages personnalisés (optionnel mais pro)
+     * Messages personnalisés
      */
-  public function messages(): array
-{
-    return [
-        'date_absence.required' => 'La date d\'absence est obligatoire',
-        'date_absence.date' => 'Format de date invalide',
-        'absents.required' => 'Vous devez sélectionner au moins un élève absent',
-        'absents.array' => 'Format des absents invalide',
-        'absents.*.exists' => 'Un ou plusieurs élèves sélectionnés sont invalides',
-    ];
-}
+    public function messages(): array
+    {
+        return [
+            'date_absence.required' => 'La date d\'absence est obligatoire',
+            'date_absence.date' => 'Le format de la date est invalide',
+
+            'absents.required' => 'Vous devez sélectionner au moins un élève absent',
+            'absents.array' => 'Le format des absents est invalide',
+            'absents.min' => 'Vous devez sélectionner au moins un élève absent',
+            'absents.*.integer' => 'L’identifiant de l’élève doit être un entier',
+            'absents.*.exists' => 'Un ou plusieurs élèves sélectionnés n’existent pas',
+
+            'motif.string' => 'Le motif doit être une chaîne de caractères',
+            'motif.max' => 'Le motif ne doit pas dépasser 255 caractères',
+        ];
+    }
 }
