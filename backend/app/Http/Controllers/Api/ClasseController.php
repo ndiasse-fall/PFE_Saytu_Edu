@@ -9,7 +9,9 @@ use Illuminate\Http\Request;
 class ClasseController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Liste toutes les classes.
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function index()
     {
@@ -17,7 +19,10 @@ class ClasseController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crée une nouvelle classe.
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -31,7 +36,10 @@ class ClasseController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Affiche les détails d'une classe spécifique.
+     * 
+     * @param string $id
+     * @return Classe
      */
     public function show(string $id)
     {
@@ -39,7 +47,11 @@ class ClasseController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Met à jour les informations d'une classe.
+     * 
+     * @param Request $request
+     * @param string $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, string $id)
     {
@@ -51,7 +63,10 @@ class ClasseController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Supprime une classe.
+     * 
+     * @param string $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(string $id)
     {
@@ -64,6 +79,10 @@ class ClasseController extends Controller
 
     /**
      * Inscrire un élève dans une classe.
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function inscrireEleve(Request $request, $id)
     {
@@ -80,6 +99,10 @@ class ClasseController extends Controller
 
     /**
      * Affecter un enseignant à une classe.
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function affecterEnseignant(Request $request, $id)
     {
@@ -93,4 +116,4 @@ class ClasseController extends Controller
             'message' => 'Enseignant affecté avec succès'
         ]);
     }
- }
+}

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('periode'); // Ex: Trimestre 1
             $table->foreignId('id_eleve')->constrained('users')->onDelete('cascade');
             $table->foreignId('id_matiere')->constrained('matieres')->onDelete('cascade');
+            $table->foreignId('id_classe')->nullable()->constrained('classes')->onDelete('cascade');
             $table->timestamps();
         });
     }
