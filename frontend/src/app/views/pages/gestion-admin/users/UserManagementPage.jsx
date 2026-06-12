@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   createUser,
   deleteUser,
+  getDashboardSummary,
   listUsers,
   showUser,
   toggleUserStatus,
@@ -23,10 +24,13 @@ const emptyForm = {
   actif: true,
 }
 
+const initialFilters = { search: '', role: '', actif: '' }
+
 export function UserManagementPage() {
   const [users, setUsers] = useState([])
   const [pagination, setPagination] = useState(null)
-  const [filters, setFilters] = useState({ search: '', role: '', actif: '' })
+  const [summary, setSummary] = useState(null)
+  const [filters, setFilters] = useState(initialFilters)
   const [form, setForm] = useState(emptyForm)
   const [formMode, setFormMode] = useState('closed')
   const [editingUserId, setEditingUserId] = useState(null)
@@ -40,23 +44,29 @@ export function UserManagementPage() {
   const isEditing = useMemo(() => formMode === 'edit' && editingUserId !== null, [editingUserId, formMode])
   const isFormOpen = useMemo(() => formMode !== 'closed', [formMode])
   const kpis = useMemo(() => {
-    const activeCount = users.filter((user) => user.actif).length
-    const inactiveCount = users.length - activeCount
-
     return [
-      { label: 'Total', value: pagination?.total ?? users.length, icon: 'bi-people-fill' },
+      { label: 'Total', value: summary?.total ?? pagination?.total ?? users.length, icon: 'bi-people-fill' },
       { label: 'Affichés', value: users.length, icon: 'bi-table' },
-      { label: 'Actifs', value: activeCount, icon: 'bi-check-circle-fill' },
-      { label: 'Inactifs', value: inactiveCount, icon: 'bi-pause-circle-fill' },
+      { label: 'Actifs', value: summary?.actifs ?? 0, icon: 'bi-check-circle-fill' },
+      { label: 'Inactifs', value: summary?.inactifs ?? 0, icon: 'bi-pause-circle-fill' },
     ]
-  }, [pagination?.total, users])
+  }, [pagination?.total, summary, users.length])
 
-  const loadData = useCallback(async (nextFilters = filters) => {
+  const loadSummary = useCallback(async () => {
+    try {
+      const data = await getDashboardSummary()
+      setSummary(data.counts ?? null)
+    } catch (err) {
+      setError(err.message)
+    }
+  }, [])
+
+  const loadData = useCallback(async (nextFilters = initialFilters, page = 1, perPage = 15) => {
     setLoading(true)
     setError('')
 
     try {
-      const data = await listUsers(nextFilters)
+      const data = await listUsers({ ...nextFilters, page, perPage })
       setUsers(data.data ?? [])
       setPagination({
         total: data.total ?? 0,
@@ -69,15 +79,15 @@ export function UserManagementPage() {
     } finally {
       setLoading(false)
     }
-  }, [filters])
+  }, [])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void loadData()
+      void Promise.all([loadData(initialFilters), loadSummary()])
     }, 0)
 
     return () => window.clearTimeout(timer)
-  }, [loadData])
+  }, [loadData, loadSummary])
 
   function resetForm() {
     setForm(emptyForm)
@@ -140,7 +150,10 @@ export function UserManagementPage() {
       }
 
       resetForm()
-      await loadData()
+      await Promise.all([
+        loadData(filters, pagination?.currentPage ?? 1, pagination?.perPage ?? 15),
+        loadSummary(),
+      ])
     } catch (err) {
       setError(err.message)
       setFieldErrors(err.details ?? {})
@@ -194,7 +207,10 @@ export function UserManagementPage() {
       if (selectedUser?.id === userId) setSelectedUser(null)
       if (editingUserId === userId) resetForm()
       setSuccess('Utilisateur supprimé avec succès.')
-      await loadData()
+      await Promise.all([
+        loadData(filters, pagination?.currentPage ?? 1, pagination?.perPage ?? 15),
+        loadSummary(),
+      ])
     } catch (err) {
       setError(err.message)
     }
@@ -206,6 +222,7 @@ export function UserManagementPage() {
       setUsers((current) => current.map((user) => (user.id === userId ? data.data : user)))
       if (selectedUser?.id === userId) setSelectedUser(data.data)
       setSuccess('Statut utilisateur mis à jour avec succès.')
+      await loadSummary()
     } catch (err) {
       setError(err.message)
     }
@@ -213,19 +230,46 @@ export function UserManagementPage() {
 
   async function applyFilters(event) {
     event.preventDefault()
-    await loadData(filters)
+    await loadData(filters, 1, pagination?.perPage ?? 15)
   }
 
   async function clearFilters() {
-    const reset = { search: '', role: '', actif: '' }
+    const reset = initialFilters
     setFilters(reset)
-    await loadData(reset)
+    await loadData(reset, 1, pagination?.perPage ?? 15)
+  }
+
+  async function changePage(page) {
+    if (loading || page < 1 || page > (pagination?.lastPage ?? 1)) {
+      return
+    }
+
+    await loadData(filters, page, pagination?.perPage ?? 15)
+  }
+
+  async function changeRowsPerPage(perPage) {
+    if (loading) {
+      return
+    }
+
+    await loadData(filters, 1, perPage)
   }
 
   return (
     <section className="page-section users-page">
       {error ? <div className="alert alert-error">{error}</div> : null}
       {success ? <div className="alert alert-success">{success}</div> : null}
+
+      <header className="users-page-header">
+        <div className="users-page-heading">
+          <h2>Gestion des utilisateurs</h2>
+        </div>
+        {!isFormOpen ? (
+          <button type="button" className="users-page-add-button" onClick={handleCreateStart}>
+            Ajouter un utilisateur
+          </button>
+        ) : null}
+      </header>
 
       <section className="users-kpi-grid" aria-label="Indicateurs utilisateur">
         {kpis.map((kpi) => (
@@ -235,9 +279,9 @@ export function UserManagementPage() {
 
       <ListeUsers
         users={users}
-        pagination={pagination}
         loading={loading}
         filters={filters}
+        pagination={pagination}
         onFilterChange={handleFilterChange}
         onApplyFilters={applyFilters}
         onClearFilters={clearFilters}
@@ -245,8 +289,8 @@ export function UserManagementPage() {
         onEdit={handleEdit}
         onToggle={handleToggle}
         onDelete={handleDelete}
-        onCreate={handleCreateStart}
-        canCreate={!isFormOpen}
+        onPageChange={changePage}
+        onRowsPerPageChange={changeRowsPerPage}
       />
 
       <DrawerPanel

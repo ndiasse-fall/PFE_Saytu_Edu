@@ -33,7 +33,7 @@ export function LoginPage() {
     setLoading(true)
 
     try {
-      const data = await signIn(form)
+      const data = await signIn(form, remember)
       const fallback = data.user.role === 'ENSEIGNANT' || data.user.role === 'ELEVE'
         ? '/user/dashboard'
         : '/admin/dashboard'
@@ -77,13 +77,13 @@ export function LoginPage() {
 
               <form className="auth-form" onSubmit={handleSubmit}>
                 <TextField
-                  label="Email ou Nom d’utilisateur"
+                  label="Email"
                   name="email"
-                  type="text"
+                  type="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="Entrez votre email ou nom d’utilisateur"
-                  autoComplete="username"
+                  placeholder="Entrez votre email"
+                  autoComplete="email"
                   required
                 />
 
@@ -105,9 +105,9 @@ export function LoginPage() {
                     onChange={handleChange}
                     label="Se souvenir de moi"
                   />
-                  <button type="button" className="text-link">
-                    Mot de passe oublié ?
-                  </button>
+                  <span className="text-link" aria-disabled="true">
+                    Mot de passe oublié
+                  </span>
                 </div>
 
                 <PrimaryButton type="submit" disabled={loading} block className="auth-submit-button">

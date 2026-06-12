@@ -16,7 +16,11 @@ export function BaseLayout() {
     <div className={`app-shell${sidebarOpen ? ' sidebar-open' : ' sidebar-closed'}`}>
       <Navbar isSidebarOpen={sidebarOpen} onToggleSidebar={() => setSidebarOpen((current) => !current)} />
       <div className="app-body">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <Sidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+          onToggle={() => setSidebarOpen((current) => !current)}
+        />
         <div className="app-main">
           <main className="app-content">
             <Outlet />

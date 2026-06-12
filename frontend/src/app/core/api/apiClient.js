@@ -1,7 +1,7 @@
 import axios from 'axios'
+import { getStoredToken } from '../storage/authStorage'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api'
-const TOKEN_STORAGE_KEY = 'saytou_edu_token'
 
 const httpClient = axios.create({
   baseURL: API_BASE_URL,
@@ -12,7 +12,7 @@ const httpClient = axios.create({
 })
 
 httpClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_STORAGE_KEY)
+  const token = getStoredToken()
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`

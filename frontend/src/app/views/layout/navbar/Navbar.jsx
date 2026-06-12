@@ -1,21 +1,10 @@
-import { useMemo } from 'react'
-import { useLocation } from 'react-router-dom'
-import { BrandLogo } from '../../../shared/components/branding/BrandLogo'
+import { Link } from 'react-router-dom'
+import { useAuth } from '../../../core/context/useAuth'
 
 export function Navbar({ isSidebarOpen, onToggleSidebar }) {
-  const location = useLocation()
-
-  const title = useMemo(() => {
-    if (location.pathname.includes('/gestion-admin/users')) {
-      return 'Gestion des utilisateurs'
-    }
-
-    if (location.pathname.includes('/settings')) {
-      return 'Paramètres'
-    }
-
-    return 'Tableau de bord'
-  }, [location.pathname])
+  const { user } = useAuth()
+  const fullName = `${user?.prenom ?? ''} ${user?.nom ?? ''}`.trim() || 'Utilisateur'
+  const initials = `${user?.prenom?.[0] ?? ''}${user?.nom?.[0] ?? ''}` || 'U'
 
   return (
     <header className="topbar">
@@ -28,16 +17,22 @@ export function Navbar({ isSidebarOpen, onToggleSidebar }) {
           aria-expanded={isSidebarOpen}
           aria-controls="main-sidebar"
         >
-          <i className={`bi sidebar-toggle-desktop-icon ${isSidebarOpen ? 'bi-list' : 'bi-chevron-right'}`} aria-hidden="true" />
-          <i className={`bi sidebar-toggle-mobile-icon ${isSidebarOpen ? 'bi-x-lg' : 'bi-list'}`} aria-hidden="true" />
+          <i className={`bi ${isSidebarOpen ? 'bi-x-lg' : 'bi-list'}`} aria-hidden="true" />
         </button>
-        <div className="topbar-brand">
-          <BrandLogo size="md" />
-        </div>
-        <h1>{title}</h1>
+        <label className="topbar-search">
+          <i className="bi bi-search" aria-hidden="true" />
+          <input type="search" aria-label="Rechercher" placeholder="Rechercher..." />
+        </label>
       </div>
       <div className="topbar-actions">
         <div className="school-year">2025 – 2026</div>
+        <Link className="topbar-profile" to="/admin/settings" aria-label={`Ouvrir le profil de ${fullName}`}>
+          <span className="topbar-profile-avatar" aria-hidden="true">{initials}</span>
+          <span className="topbar-profile-copy">
+            <strong>{fullName}</strong>
+            <small>{user?.role ?? 'Sans rôle'}</small>
+          </span>
+        </Link>
       </div>
     </header>
   )
