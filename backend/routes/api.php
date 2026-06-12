@@ -1,19 +1,35 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+
+// Controllers existants
 use App\Http\Controllers\Api\ClasseController;
 use App\Http\Controllers\Api\MatiereController;
 use App\Http\Controllers\Api\SuperAdminController;
+use App\Http\Controllers\Api\EnseignantController;
+use App\Http\Controllers\Api\EmploiDuTempsController;
+use App\Http\Controllers\Api\AbsenceController;
+
+
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\EmploiDuTempsController;
 
 
+
+// Auth
 Route::post('login', [AuthController::class, 'login']);
 Route::post('auth/login', [AuthController::class, 'login']);
 
+
+// ======================================================
+// ROUTES PROTÉGÉES
+// ======================================================
 Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
+
+    // =========================
+    // AUTH CONNECTÉ
+    // =========================
     Route::get('me', [AuthController::class, 'me']);
     Route::get('auth/me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
@@ -33,6 +49,8 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
 
 
     Route::middleware('check.role:SUPER_ADMIN,ADMIN')->group(function (): void {
+
+        // Users
         Route::apiResource('users', UserController::class);
         Route::patch('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
 

@@ -35,6 +35,7 @@ php artisan key:generate
 Ensuite, créez la base de données (si elle n'existe pas déjà) et lancez les migrations :
 ```bash
 php artisan migrate
+php artisan db:seed
 ```
 
 ### 4. Configuration du Frontend (React)
