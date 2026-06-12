@@ -11,21 +11,28 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Création du Super Admin
-        User::factory()->superAdmin()->create([
-            'email' => 'superadmin@saytu.edu',
-            'nom' => 'Sow',
-            'prenom' => 'Abdou',
-            'password' => Hash::make('password'),
-        ]);
+        User::query()
+            ->where('role', RoleEnum::SUPER_ADMIN->value)
+            ->where('email', '!=', env('SUPER_ADMIN_EMAIL', 'superadmin@saytu.edu'))
+            ->update([
+                'role' => RoleEnum::ADMIN->value,
+                'statut' => RoleEnum::ADMIN->value,
+            ]);
 
-        // Création de quelques Admins
+        User::updateOrCreate(
+            ['email' => env('SUPER_ADMIN_EMAIL', 'superadmin@saytu.edu')],
+            [
+                'nom' => env('SUPER_ADMIN_NOM', 'Sow'),
+                'prenom' => env('SUPER_ADMIN_PRENOM', 'Abdou'),
+                'password' => Hash::make(env('SUPER_ADMIN_PASSWORD', 'password')),
+                'role' => RoleEnum::SUPER_ADMIN,
+                'statut' => RoleEnum::SUPER_ADMIN->value,
+                'actif' => true,
+            ]
+        );
+
         User::factory()->admin()->count(2)->create();
-
-        // Création des Enseignants
         User::factory()->enseignant()->count(10)->create();
-
-        // Création des Élèves
         User::factory()->eleve()->count(50)->create();
     }
 }

@@ -49,6 +49,7 @@ class StoreEDTRequest extends FormRequest
             $jour = $this->jour;
             $debut = $this->heure_debut;
             $fin = $this->heure_fin;
+            $currentEmploiId = $this->route('emplois_du_temp');
 
             /*
             |--------------------------------------------------------------------------
@@ -56,6 +57,7 @@ class StoreEDTRequest extends FormRequest
             |--------------------------------------------------------------------------
             */
             $classeConflit = EmploiDuTemps::where('id_classe', $this->id_classe)
+                ->when($currentEmploiId, fn ($query) => $query->whereKeyNot($currentEmploiId))
                 ->where('jour', $jour)
                 ->where(function ($query) use ($debut, $fin) {
                     $query
@@ -81,6 +83,7 @@ class StoreEDTRequest extends FormRequest
             |--------------------------------------------------------------------------
             */
             $enseignantConflit = EmploiDuTemps::where('id_enseignant', $this->id_enseignant)
+                ->when($currentEmploiId, fn ($query) => $query->whereKeyNot($currentEmploiId))
                 ->where('jour', $jour)
                 ->where(function ($query) use ($debut, $fin) {
                     $query

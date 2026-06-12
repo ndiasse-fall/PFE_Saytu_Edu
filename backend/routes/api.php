@@ -1,12 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Http\Request;
-
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\UserController;
-use App\Http\Controllers\EmploiDuTempsController;
-
 use App\Http\Controllers\Api\ClasseController;
 use App\Http\Controllers\Api\EnseignantController;
 use App\Http\Controllers\Api\MatiereController;
@@ -48,6 +41,7 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
 
     // --- ACCÈS PÉDAGOGIE (SUPER ADMIN & ADMIN) ---
     Route::middleware('check.role:SUPER_ADMIN,ADMIN')->group(function (): void {
+        Route::get('dashboard/users-summary', [UserController::class, 'dashboard']);
         Route::apiResource('users', UserController::class);
         Route::patch('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
 

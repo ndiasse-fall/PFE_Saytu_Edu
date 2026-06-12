@@ -53,6 +53,22 @@ class UserApiTest extends TestCase
         $this->assertTrue(Hash::check('motdepasse123', $user->password));
     }
 
+    public function test_cannot_create_super_admin_from_users_endpoint(): void
+    {
+        $this->authenticate();
+
+        $this->postJson('/api/users', [
+            'nom' => 'Diallo',
+            'prenom' => 'Aminata',
+            'email' => 'superadmin2@example.com',
+            'password' => 'motdepasse123',
+            'role' => RoleEnum::SUPER_ADMIN->value,
+            'actif' => true,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['role']);
+    }
+
     public function test_can_list_users_with_filters(): void
     {
         $this->authenticate();
@@ -78,6 +94,26 @@ class UserApiTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.nom', 'Fall')
             ->assertJsonPath('data.0.role', RoleEnum::ADMIN->value);
+    }
+
+    public function test_can_load_dashboard_summary_in_one_request(): void
+    {
+        $this->authenticate();
+
+        User::factory()->admin()->count(2)->create();
+        User::factory()->enseignant()->count(6)->create();
+        User::factory()->eleve()->count(3)->create();
+
+        $response = $this->getJson('/api/dashboard/users-summary');
+
+        $response
+            ->assertOk()
+            ->assertJsonPath('counts.admins', 2)
+            ->assertJsonPath('counts.enseignants', 6)
+            ->assertJsonPath('counts.eleves', 3)
+            ->assertJsonPath('counts.actifs', 12)
+            ->assertJsonPath('counts.inactifs', 0)
+            ->assertJsonCount(5, 'recent_teachers');
     }
 
     public function test_can_show_user(): void
@@ -128,6 +164,21 @@ class UserApiTest extends TestCase
         $this->assertSame(RoleEnum::ENSEIGNANT, $user->role);
         $this->assertFalse($user->actif);
         $this->assertTrue(Hash::check('nouveaupass123', $user->password));
+    }
+
+    public function test_cannot_promote_user_to_super_admin_from_users_endpoint(): void
+    {
+        $this->authenticate();
+
+        $user = User::factory()->create([
+            'role' => RoleEnum::ADMIN,
+        ]);
+
+        $this->putJson("/api/users/{$user->id}", [
+            'role' => RoleEnum::SUPER_ADMIN->value,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors(['role']);
     }
 
     public function test_can_toggle_user_status(): void

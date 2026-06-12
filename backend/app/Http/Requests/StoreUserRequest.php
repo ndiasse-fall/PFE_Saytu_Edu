@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\RoleEnum;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rules\Password;
 
@@ -26,7 +27,7 @@ class StoreUserRequest extends FormRequest
             'password' => ['required', 'string', Password::min(8)],
             'telephone' => ['nullable', 'string', 'max:20'],
             'adresse' => ['nullable', 'string'],
-            'role' => ['required', new Enum(RoleEnum::class)],
+            'role' => ['required', new Enum(RoleEnum::class), Rule::notIn([RoleEnum::SUPER_ADMIN->value])],
             'actif' => ['nullable', 'boolean'],
             'matricule_enseignant' => ['nullable', 'string', 'unique:users,matricule_enseignant'],
             'specialite' => ['nullable', 'string', 'max:255'],
@@ -47,6 +48,7 @@ class StoreUserRequest extends FormRequest
             'email.unique' => 'Cette adresse email est déjà utilisée.',
             'password.required' => 'Le mot de passe est obligatoire.',
             'role.required' => 'Le rôle est obligatoire.',
+            'role.not_in' => 'Le compte Super Admin est réservé au seeder système.',
         ];
     }
 }
