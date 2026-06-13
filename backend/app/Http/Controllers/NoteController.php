@@ -14,15 +14,24 @@ class NoteController extends Controller
     public function index(Request $request)
     {
         $user = $request->user();
+        $eleveId = $request->query('id_eleve');
 
-        if ($user->isAdmin() || $user->isSuperAdmin()) {
-            $notes = Note::with(['eleve', 'classe', 'matiere'])->get();
+        if ($user->isAdministrateur() || $user->isSuperAdministrateur()) {
+            $query = Note::with(['eleve', 'classe', 'matiere']);
+            if ($eleveId) {
+                $query->where('id_eleve', $eleveId);
+            }
+            $notes = $query->get();
         } elseif ($user->isEnseignant()) {
             // Notes des classes affectées à l'enseignant
             $classeIds = $user->classes()->pluck('classes.id');
-            $notes = Note::with(['eleve', 'classe', 'matiere'])
-                ->whereIn('id_classe', $classeIds)
-                ->get();
+            $query = Note::with(['eleve', 'classe', 'matiere'])
+                ->whereIn('id_classe', $classeIds);
+            
+            if ($eleveId) {
+                $query->where('id_eleve', $eleveId);
+            }
+            $notes = $query->get();
         } elseif ($user->isEleve()) {
             // Notes de l'élève connecté
             $notes = Note::with(['classe', 'matiere'])
@@ -101,7 +110,7 @@ class NoteController extends Controller
 
         $user = $request->user();
 
-        if ($user->isAdmin() || $user->isSuperAdmin()) {
+        if ($user->isAdministrateur() || $user->isSuperAdministrateur()) {
             return response()->json(['success' => true, 'data' => $note], 200);
         }
 

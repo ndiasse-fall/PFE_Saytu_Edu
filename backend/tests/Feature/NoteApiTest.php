@@ -171,4 +171,49 @@ class NoteApiTest extends TestCase
             ->assertJsonPath('message', 'Certains élèves ne sont pas inscrits dans cette classe.')
             ->assertJsonPath('invalid_eleve_ids.0', $eleve->id);
     }
+
+    public function test_enseignant_can_view_notes_of_student_in_his_class(): void
+    {
+        $enseignant = User::factory()->enseignant()->create(['actif' => true]);
+        Sanctum::actingAs($enseignant);
+
+        $classe = Classe::factory()->create();
+        $classe->enseignants()->attach($enseignant->id);
+
+        $eleve = User::factory()->eleve()->create(['actif' => true]);
+        $classe->eleves()->attach($eleve->id);
+
+        $note = Note::factory()->create([
+            'id_eleve' => $eleve->id,
+            'id_classe' => $classe->id,
+            'valeur' => 18
+        ]);
+
+        $response = $this->getJson("/api/notes?id_eleve={$eleve->id}");
+
+        $response->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.valeur', 18);
+    }
+
+    public function test_enseignant_cannot_view_notes_of_student_outside_his_classes(): void
+    {
+        $enseignant = User::factory()->enseignant()->create(['actif' => true]);
+        Sanctum::actingAs($enseignant);
+
+        $autreClasse = Classe::factory()->create();
+        $eleve = User::factory()->eleve()->create(['actif' => true]);
+        $autreClasse->eleves()->attach($eleve->id);
+
+        $note = Note::factory()->create([
+            'id_eleve' => $eleve->id,
+            'id_classe' => $autreClasse->id,
+            'valeur' => 10
+        ]);
+
+        $response = $this->getJson("/api/notes?id_eleve={$eleve->id}");
+
+        $response->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
 }
