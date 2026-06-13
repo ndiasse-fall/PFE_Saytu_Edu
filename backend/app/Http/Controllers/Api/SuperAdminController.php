@@ -2,103 +2,71 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\RoleEnum;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAdminRequest;
 use App\Models\User;
+use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rules\Enum;
 
 class SuperAdminController extends Controller
 {
-    /**
-     * Affiche les statistiques globales sur le tableau de bord.
-     * 
-     * @return JsonResponse
-     */
-    public function dashboard()
-    {
-        return response()->json([
-            'total_users' => User::count(),
-            'admins' => User::where('role', 'ADMIN')->count(),
-            'enseignants' => User::where('role', 'ENSEIGNANT')->count(),
-            'eleves' => User::where('role', 'ELEVE')->count(),
-        ]);
+    public function __construct(
+        private readonly UserService $userService
+    ) {
     }
 
-    /**
-     * Liste tous les utilisateurs du système.
-     * 
-     * @return JsonResponse
-     */
-    public function users()
+    public function dashboard(): JsonResponse
     {
-        return response()->json(User::all());
+        return response()->json($this->userService->getDashboardMetrics());
     }
 
-    /**
-     * Crée un nouvel utilisateur avec le rôle ADMIN.
-     * 
-     * @param StoreAdminRequest $request
-     * @return JsonResponse
-     */
-    public function storeAdmin(StoreAdminRequest $request)
+    public function users(): JsonResponse
     {
-        $admin = User::create([
-            'nom' => $request->nom,
-            'prenom' => $request->prenom,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'statut' => 'ADMIN',
-            'role' => 'ADMIN',
-            'id_parent_createur' => $request->user()->id,
-        ]);
+        return response()->json(
+            User::query()
+                ->latest('id')
+                ->get()
+        );
+    }
+
+    public function storeAdmin(StoreAdminRequest $request): JsonResponse
+    {
+        $admin = $this->userService->createAdmin($request->validated(), $request->user());
 
         return response()->json([
             'message' => 'Administrateur créé avec succès.',
-            'admin' => $admin
+            'admin' => $admin,
         ], 201);
     }
 
-    /**
-     * Modifie le rôle (ou statut) d'un utilisateur.
-     * 
-     * @param Request $request
-     * @param int $id
-     * @return JsonResponse
-     */
-    public function updateRole(Request $request, int $id)
+    public function updateRole(Request $request, int $id): JsonResponse
     {
         $user = User::findOrFail($id);
 
         $request->validate([
-            'statut' => 'required|in:SUPER_ADMIN,ADMIN,ENSEIGNANT,ELEVE'
+            'role' => ['nullable', new Enum(RoleEnum::class), 'required_without:statut'],
+            'statut' => ['nullable', new Enum(RoleEnum::class), 'required_without:role'],
         ]);
 
-        $user->update([
-            'statut' => $request->statut,
-            'role' => $request->statut // Assure la cohérence entre statut et role
-        ]);
+        $role = $request->input('role', $request->input('statut'));
+        $updatedUser = $this->userService->updateUserRole($user, $role);
 
         return response()->json([
             'message' => 'Rôle modifié avec succès',
-            'user' => $user
+            'user' => $updatedUser,
         ]);
     }
 
-    /**
-     * Supprime définitivement un utilisateur du système.
-     * 
-     * @param string $id
-     * @return JsonResponse
-     */
-    public function deleteUser(string $id)
+    public function deleteUser(int $id): JsonResponse
     {
         $user = User::findOrFail($id);
-
-        $user->delete();
+        $this->userService->deleteUser($user);
 
         return response()->json([
-            'message' => 'Utilisateur supprimé avec succès'
+            'message' => 'Utilisateur supprimé avec succès',
         ]);
     }
 }

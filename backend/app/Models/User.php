@@ -10,10 +10,6 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-/**
- * Modèle représentant un utilisateur du système.
- * Gère les différents rôles (SUPER_ADMIN, ADMIN, ENSEIGNANT, ELEVE).
- */
 class User extends Authenticatable
 {
     use HasApiTokens;
@@ -21,11 +17,6 @@ class User extends Authenticatable
     use Notifiable;
     use SoftDeletes;
 
-    /**
-     * Les attributs qui peuvent être assignés en masse.
-     * 
-     * @var list<string>
-     */
     protected $fillable = [
         'nom',
         'prenom',
@@ -45,20 +36,10 @@ class User extends Authenticatable
         'actif',
     ];
 
-    /**
-     * Les attributs qui doivent être cachés pour la sérialisation.
-     * 
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
     ];
 
-    /**
-     * Définition des types de colonnes (casting).
-     * 
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -72,9 +53,6 @@ class User extends Authenticatable
         ];
     }
 
-    /**
-     * Scope pour la recherche textuelle (nom, prénom, email, téléphone).
-     */
     public function scopeSearch(Builder $query, ?string $search): Builder
     {
         if (blank($search)) {
@@ -90,9 +68,6 @@ class User extends Authenticatable
         });
     }
 
-    /**
-     * Scope pour filtrer par rôle.
-     */
     public function scopeByRole(Builder $query, RoleEnum|string|null $role): Builder
     {
         if (blank($role)) {
@@ -104,9 +79,6 @@ class User extends Authenticatable
         return $query->where('role', $roleValue);
     }
 
-    /**
-     * Scope pour filtrer par statut actif/inactif.
-     */
     public function scopeActive(Builder $query, ?bool $actif): Builder
     {
         if ($actif === null) {
@@ -116,19 +88,11 @@ class User extends Authenticatable
         return $query->where('actif', $actif);
     }
 
-    /**
-     * Relation vers le créateur de l'utilisateur (le parent).
-     */
     public function createur()
     {
         return $this->belongsTo(User::class, 'id_parent_createur');
     }
 
-    /**
-     * Relation vers les classes.
-     * Si c'est un élève, via classe_eleve.
-     * Si c'est un enseignant, via classe_enseignant.
-     */
     public function classes()
     {
         return $this->statut === 'ELEVE'
@@ -136,57 +100,47 @@ class User extends Authenticatable
             : $this->belongsToMany(Classe::class, 'classe_enseignant', 'id_enseignant', 'id_classe');
     }
 
-    /**
-     * Relation vers les notes (pour les élèves).
-     */
     public function notes()
     {
         return $this->hasMany(Note::class, 'id_eleve');
     }
 
-    /**
-     * Relation vers les absences (pour les élèves).
-     */
     public function absences()
     {
         return $this->hasMany(Absence::class, 'id_eleve');
     }
 
-    /**
-     * Vérifie si l'utilisateur est un super administrateur.
-     */
     public function isSuperAdministrateur(): bool
     {
         return $this->role === RoleEnum::SUPER_ADMIN;
     }
 
-    /**
-     * Vérifie si l'utilisateur est un administrateur.
-     */
     public function isAdministrateur(): bool
     {
         return $this->role === RoleEnum::ADMIN;
     }
 
-    /**
-     * Vérifie si l'utilisateur est un enseignant.
-     */
     public function isEnseignant(): bool
     {
         return $this->role === RoleEnum::ENSEIGNANT;
     }
 
-    /**
-     * Vérifie si l'utilisateur est un élève.
-     */
     public function isEleve(): bool
     {
         return $this->role === RoleEnum::ELEVE;
     }
 
-    /**
-     * Retourne le rôle de l'utilisateur sous forme de chaîne.
-     */
+    public function fullName(): string
+    {
+        $fullName = trim("{$this->prenom} {$this->nom}");
+
+        if ($fullName !== '') {
+            return $fullName;
+        }
+
+        return (string) ($this->name ?? 'Utilisateur');
+    }
+
     public function resolvedRole(): string
     {
         if ($this->role instanceof RoleEnum) {
