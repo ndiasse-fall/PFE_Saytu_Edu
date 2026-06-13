@@ -5,9 +5,10 @@ use App\Http\Controllers\Api\MatiereController;
 use App\Http\Controllers\Api\SuperAdminController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\EmploiDuTempsController;
+use App\Http\Controllers\NoteController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Route;
+use Illuminate\Support\Facades\Route;
 
 // Auth
 Route::post('login', [AuthController::class, 'login']);
@@ -25,6 +26,7 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+
     Route::middleware('check.role:SUPER_ADMIN')->group(function (): void {
         Route::prefix('superadmin')->group(function (): void {
             Route::get('/dashboard', [SuperAdminController::class, 'dashboard']);
@@ -45,7 +47,32 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
         Route::apiResource('matieres', MatiereController::class);
 
-        Route::get('/emplois-du-temps', [EmploiDuTempsController::class, 'index']);
-        Route::post('/emplois-du-temps', [EmploiDuTempsController::class, 'store']);
+        // Écriture (store, update, destroy) : uniquement SUPER_ADMIN et ADMIN
+        Route::post('emplois-du-temps', [EmploiDuTempsController::class, 'store']);
+        Route::put('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'update']);
+        Route::delete('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'destroy']);
+
+        // Admin/SuperAdmin : lecture complète
+        Route::apiResource('notes', NoteController::class)->only(['index', 'show']);
+    });
+
+    // Lecture (index, show) : accessible à SUPER_ADMIN, ADMIN, ENSEIGNANT, ELEVE
+    Route::middleware('check.role:SUPER_ADMIN,ADMIN,ENSEIGNANT,ELEVE')->group(function (): void {
+        Route::get('emplois-du-temps', [EmploiDuTempsController::class, 'index']);
+        Route::get('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'show']);
+    });
+
+
+    // Enseignant : CRUD complet
+    Route::middleware('check.role:ENSEIGNANT')->group(function () {
+        Route::post('notes/saisir', [NoteController::class, 'store']);
+        Route::put('notes/{id}', [NoteController::class, 'update']);
+        Route::delete('notes/{id}', [NoteController::class, 'destroy']);
+    });
+
+    // Élève : lecture seule
+    Route::middleware('check.role:ELEVE')->group(function () {
+        Route::get('notes', [NoteController::class, 'index']);
+        Route::get('notes/{id}', [NoteController::class, 'show']);
     });
 });

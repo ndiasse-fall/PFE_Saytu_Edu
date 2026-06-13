@@ -18,7 +18,7 @@ class EmploiDuTempsTest extends TestCase
     private function authenticateAsAdmin(): User
     {
         $user = User::factory()->create([
-            'role' => RoleEnum::ADMIN,
+            'role' => RoleEnum::ADMIN->value,
             'actif' => true,
         ]);
         Sanctum::actingAs($user);
@@ -28,7 +28,7 @@ class EmploiDuTempsTest extends TestCase
     private function authenticateAsEnseignant(): User
     {
         $user = User::factory()->create([
-            'role' => RoleEnum::ENSEIGNANT,
+            'role' => RoleEnum::ENSEIGNANT->value,
             'actif' => true,
         ]);
         Sanctum::actingAs($user);

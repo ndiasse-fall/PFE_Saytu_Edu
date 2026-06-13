@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAdminRequest;
-use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class SuperAdminController extends Controller
 {
@@ -65,11 +66,7 @@ class SuperAdminController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-<<<<<<< HEAD
-    public function updateRole(Request $request, string $id)
-=======
     public function updateRole(Request $request, int $id)
->>>>>>> 161c43d0841212fe655d79e5372660b1c67f68a9
     {
         $user = User::findOrFail($id);
 
@@ -91,14 +88,10 @@ class SuperAdminController extends Controller
     /**
      * Supprime définitivement un utilisateur du système.
      * 
-     * @param int $id
+     * @param string $id
      * @return JsonResponse
      */
-<<<<<<< HEAD
     public function deleteUser(string $id)
-=======
-    public function deleteUser(int $id)
->>>>>>> 161c43d0841212fe655d79e5372660b1c67f68a9
     {
         $user = User::findOrFail($id);
 
