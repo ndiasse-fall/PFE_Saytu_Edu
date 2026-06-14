@@ -1,5 +1,12 @@
 <?php
 
+use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
+
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\EmploiDuTempsController;
+
 use App\Http\Controllers\Api\ClasseController;
 use App\Http\Controllers\Api\EnseignantController;
 use App\Http\Controllers\Api\MatiereController;
@@ -26,9 +33,7 @@ Route::post('auth/login', [AuthController::class, 'login']);
 // --- ROUTES PROTÉGÉES ---
 Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
     Route::get('me', [AuthController::class, 'me']);
-    Route::get('auth/me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
-    Route::post('auth/logout', [AuthController::class, 'logout']);
 
     // --- ACCÈS EXCLUSIF SUPER ADMIN ---
     Route::middleware('check.role:SUPER_ADMIN')->group(function (): void {
