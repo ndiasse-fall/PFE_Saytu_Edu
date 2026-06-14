@@ -37,6 +37,7 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
 
     // --- ADMIN & SUPER ADMIN ---
     Route::middleware('check.role:SUPER_ADMIN,ADMIN')->group(function (): void {
+        Route::get('dashboard/users-summary', [UserController::class, 'dashboard']);
         Route::apiResource('users', UserController::class);
         Route::patch('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
 
