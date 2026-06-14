@@ -11,10 +11,6 @@ use App\Http\Controllers\Api\ClasseController;
 use App\Http\Controllers\Api\EnseignantController;
 use App\Http\Controllers\Api\MatiereController;
 use App\Http\Controllers\Api\SuperAdminController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\EmploiDuTempsController;
-use App\Http\Controllers\UserController;
-use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
