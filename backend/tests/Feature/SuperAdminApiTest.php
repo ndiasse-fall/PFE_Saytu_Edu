@@ -51,7 +51,8 @@ class SuperAdminApiTest extends TestCase
         ]));
 
         $response = $this->postJson('/api/superadmin/admins', [
-            'name' => 'Awa Ndiaye',
+            'nom' => 'Ndiaye',
+            'prenom' => 'Awa',
             'email' => 'awa.admin@example.com',
             'password' => 'motdepasse123',
             'password_confirmation' => 'motdepasse123',

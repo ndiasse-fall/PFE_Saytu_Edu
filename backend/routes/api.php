@@ -2,25 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
-
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\EmploiDuTempsController;
-
 use App\Http\Controllers\Api\ClasseController;
-use App\Http\Controllers\Api\EnseignantController;
-use App\Http\Controllers\Api\MatiereController;
 use App\Http\Controllers\Api\SuperAdminController;
-
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Ici se trouvent les routes de l'API de Saytu Edu.
-| Elles sont protégées par le middleware Sanctum.
-|
-*/
+use App\Http\Controllers\EmploiDuTempsController;
+use App\Http\Controllers\NoteController;
+use App\Http\Controllers\Api\EleveController;
+use App\Http\Controllers\Api\MatiereController;
 
 // --- ROUTES PUBLIQUES ---
 Route::post('login', [AuthController::class, 'login']);
@@ -30,8 +19,12 @@ Route::post('auth/login', [AuthController::class, 'login']);
 Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
     Route::get('me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('auth/logout', [AuthController::class, 'logout']);
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
 
-    // --- ACCÈS EXCLUSIF SUPER ADMIN ---
+    // --- SUPER ADMIN SEULEMENT ---
     Route::middleware('check.role:SUPER_ADMIN')->group(function (): void {
         Route::prefix('superadmin')->group(function (): void {
             Route::get('/dashboard', [SuperAdminController::class, 'dashboard']);
@@ -42,7 +35,7 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         });
     });
 
-    // --- ACCÈS PÉDAGOGIE (SUPER ADMIN & ADMIN) ---
+    // --- ADMIN & SUPER ADMIN ---
     Route::middleware('check.role:SUPER_ADMIN,ADMIN')->group(function (): void {
         Route::apiResource('users', UserController::class);
         Route::patch('users/{user}/toggle-active', [UserController::class, 'toggleActive']);
@@ -52,15 +45,32 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
 
         Route::apiResource('matieres', MatiereController::class);
-        Route::apiResource('emplois-du-temps', EmploiDuTempsController::class)->except(['index', 'show']);
+
+        // Écriture Emploi du Temps
+        Route::post('emplois-du-temps', [EmploiDuTempsController::class, 'store']);
+        Route::put('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'update']);
+        Route::delete('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'destroy']);
     });
 
-    // --- CONSULTATION EMPLOI DU TEMPS (TOUS) ---
-    Route::get('emplois-du-temps', [EmploiDuTempsController::class, 'index']);
-    Route::get('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'show']);
+    // --- LECTURE COMMUNE (TOUS RÔLES) ---
+    Route::middleware('check.role:SUPER_ADMIN,ADMIN,ENSEIGNANT,ELEVE')->group(function (): void {
+        Route::get('notes', [NoteController::class, 'index']);
+        Route::get('notes/{id}', [NoteController::class, 'show']);
+        
+        Route::get('emplois-du-temps', [EmploiDuTempsController::class, 'index']);
+        Route::get('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'show']);
+    });
 
-    // --- ACCÈS ENSEIGNANT (ET ADMIN) ---
-    Route::middleware('check.role:ENSEIGNANT,SUPER_ADMIN,ADMIN')->group(function (): void {
-        Route::post('notes/saisir', [EnseignantController::class, 'saisirNotes']);
+    // --- ENSEIGNANT SEULEMENT (ÉCRITURE NOTES) ---
+    Route::middleware('check.role:ENSEIGNANT')->group(function () {
+        Route::post('notes/saisir', [NoteController::class, 'store']);
+        Route::put('notes/{id}', [NoteController::class, 'update']);
+        Route::delete('notes/{id}', [NoteController::class, 'destroy']);
+    });
+
+    // --- ELEVE SEULEMENT ---
+    Route::middleware('check.role:ELEVE')->group(function () {
+        Route::get('mon-bulletin', [EleveController::class, 'monBulletin']);
+        Route::get('mon-emploi-du-temps', [EleveController::class, 'monEmploiDuTemps']);
     });
 });
