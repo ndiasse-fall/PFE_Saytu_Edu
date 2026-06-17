@@ -50,7 +50,18 @@ class UserService
                 : RoleEnum::from($filters['role']);
         }
 
-        return User::query()
+        $query = User::query();
+
+        // On charge la relation appropriée pour l'Eager Loading
+        if ($role === RoleEnum::ELEVE) {
+            $query->with('eleveClasses');
+        } elseif ($role === RoleEnum::ENSEIGNANT) {
+            $query->with('enseignantClasses');
+        } else {
+            $query->with(['eleveClasses', 'enseignantClasses']);
+        }
+
+        return $query->withoutTrashed()
             ->search($filters['search'] ?? null)
             ->byRole($role)
             ->active($filters['actif'] ?? null)
@@ -94,7 +105,7 @@ class UserService
 
     public function showUser(User $user): User
     {
-        return $user;
+        return $user->load('classes');
     }
 
     public function updateUser(User $user, array $data): User

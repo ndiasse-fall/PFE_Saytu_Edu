@@ -15,12 +15,11 @@ export function DrawerPanel({
       open={open}
       onClose={onClose}
       slotProps={{
-        root: {
-          keepMounted: true,
-        },
         paper: {
           sx: {
-            width: { xs: '100vw', sm: Math.min(width, 560) },
+            width: { xs: '100vw', sm: 'auto' },
+            minWidth: { sm: 400 },
+            maxWidth: { sm: 800 },
             backgroundColor: 'var(--bg)',
             p: { xs: 1.5, sm: 2.5 },
             borderLeft: '1px solid var(--border)',
@@ -28,7 +27,7 @@ export function DrawerPanel({
         },
       }}
     >
-      <Box className="panel users-drawer-panel" sx={{ minHeight: { xs: 'calc(100vh - 24px)', sm: 'calc(100vh - 40px)' }, boxShadow: 'none', m: 0 }}>
+      <Box className="panel users-drawer-panel" sx={{ minHeight: { xs: 'calc(100vh - 24px)', sm: 'calc(100vh - 40px)' }, width: '100%', boxShadow: 'none', m: 0 }}>
         <div className="panel-header">
           <div>
             <h2>{title}</h2>

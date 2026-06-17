@@ -40,6 +40,10 @@ class User extends Authenticatable
         'password',
     ];
 
+    protected $appends = [
+        'classes',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -95,9 +99,40 @@ class User extends Authenticatable
 
     public function classes()
     {
-        return $this->statut === 'ELEVE'
-            ? $this->belongsToMany(Classe::class, 'classe_eleve', 'id_eleve', 'id_classe')
-            : $this->belongsToMany(Classe::class, 'classe_enseignant', 'id_enseignant', 'id_classe');
+        $role = $this->role instanceof RoleEnum ? $this->role->value : ($this->role ?? $this->statut);
+
+        if ($role === 'ELEVE') {
+            return $this->eleveClasses();
+        }
+
+        return $this->enseignantClasses();
+    }
+
+    public function eleveClasses()
+    {
+        return $this->belongsToMany(Classe::class, 'classe_eleve', 'id_eleve', 'id_classe');
+    }
+
+    public function enseignantClasses()
+    {
+        return $this->belongsToMany(Classe::class, 'classe_enseignant', 'id_enseignant', 'id_classe');
+    }
+
+    /**
+     * Accesseur pour récupérer les classes quelle que soit la relation chargée.
+     * Utile pour l'Eager Loading car la relation dynamique 'classes()' ne fonctionne pas bien avec with().
+     */
+    public function getClassesAttribute()
+    {
+        if ($this->relationLoaded('eleveClasses')) {
+            return $this->eleveClasses;
+        }
+        if ($this->relationLoaded('enseignantClasses')) {
+            return $this->enseignantClasses;
+        }
+        
+        // Si aucune relation n'est chargée, on tente le lazy loading via la méthode dynamique
+        return $this->classes()->get();
     }
 
     public function notes()

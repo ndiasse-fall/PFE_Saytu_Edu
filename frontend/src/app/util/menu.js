@@ -11,6 +11,7 @@ export const menuItems = [
     roles: ['SUPER_ADMIN', 'ADMIN'],
     items: [
       { label: 'Utilisateurs', path: '/admin/gestion-admin/users', icon: 'bi-people-fill' },
+      { label: 'Élèves', path: '/admin/gestion-admin/eleves', icon: 'bi-mortarboard-fill' },
     ],
   },
   {
