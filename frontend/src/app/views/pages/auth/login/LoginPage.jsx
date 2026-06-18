@@ -6,6 +6,7 @@ import { CheckboxField } from '../../../../shared/components/forms/CheckboxField
 import { TextField } from '../../../../shared/components/forms/TextField'
 import { AuthSplitLayout } from '../../../../shared/components/layout/AuthSplitLayout'
 import { PrimaryButton } from '../../../../shared/components/ui/PrimaryButton'
+import { getDashboardPath } from '../../../../util/roleNavigation'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -34,9 +35,7 @@ export function LoginPage() {
 
     try {
       const data = await signIn(form, remember)
-      const fallback = data.user.role === 'ENSEIGNANT' || data.user.role === 'ELEVE'
-        ? '/user/dashboard'
-        : '/admin/dashboard'
+      const fallback = getDashboardPath(data.user.role)
       const redirectTo = location.state?.from?.pathname || fallback
 
       navigate(redirectTo, { replace: true })
