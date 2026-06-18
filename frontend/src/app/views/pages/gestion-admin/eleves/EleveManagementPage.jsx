@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   createEleve,
   deleteEleve,
@@ -30,6 +31,7 @@ const emptyForm = {
 const initialFilters = { search: '', actif: '' }
 
 export function EleveManagementPage() {
+  const navigate = useNavigate()
   const [eleves, setEleves] = useState([])
   const [pagination, setPagination] = useState(null)
   const [filters, setFilters] = useState(initialFilters)
@@ -158,15 +160,7 @@ export function EleveManagementPage() {
   }
 
   async function handleShow(eleveId) {
-    try {
-      setFormMode('closed')
-      setEditingEleveId(null)
-      setFieldErrors({})
-      setSelectedEleve(await showEleve(eleveId))
-      setError('')
-    } catch (err) {
-      setError(err.message)
-    }
+    navigate(`/admin/gestion-admin/eleves/${eleveId}`)
   }
 
   function handleEdit(eleve) {
@@ -364,32 +358,6 @@ export function EleveManagementPage() {
           onSubmit={handleInscriptionSubmit}
           onCancel={closeInscription}
         />
-      </DrawerPanel>
-
-      {/* Détails élève */}
-      <DrawerPanel
-        open={Boolean(selectedEleve) && !showInscription}
-        onClose={closeDetails}
-        title="Détails élève"
-        subtitle="Consultation rapide sans quitter le tableau."
-        headerAction={
-          <button type="button" className="ghost-button" onClick={closeDetails}>
-            Fermer
-          </button>
-        }
-      >
-        {selectedEleve ? (
-          <div className="users-details-grid">
-            <div><span className="detail-label">Identifiant</span><strong>#{selectedEleve.id}</strong></div>
-            <div><span className="detail-label">Nom complet</span><strong>{selectedEleve.prenom} {selectedEleve.nom}</strong></div>
-            <div><span className="detail-label">Email</span><strong>{selectedEleve.email}</strong></div>
-            <div><span className="detail-label">Date de naissance</span><strong>{selectedEleve.date_naissance ? new Date(selectedEleve.date_naissance).toLocaleDateString() : 'Non renseignée'}</strong></div>
-            <div><span className="detail-label">Téléphone</span><strong>{selectedEleve.telephone || 'Non renseigné'}</strong></div>
-            <div><span className="detail-label">Téléphone parent</span><strong>{selectedEleve.telephone_parent || 'Non renseigné'}</strong></div>
-            <div><span className="detail-label">Adresse</span><strong>{selectedEleve.adresse || 'Non renseignée'}</strong></div>
-            <div><span className="detail-label">Statut</span><strong>{selectedEleve.actif ? 'Actif' : 'Inactif'}</strong></div>
-          </div>
-        ) : null}
       </DrawerPanel>
     </section>
   )

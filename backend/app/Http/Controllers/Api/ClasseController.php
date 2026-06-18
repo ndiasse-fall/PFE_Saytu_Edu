@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Classe;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ClasseController extends Controller
 {
@@ -101,7 +102,7 @@ class ClasseController extends Controller
                 'message' => 'Élève inscrit avec succès'
             ]);
         } catch (\Exception $e) {
-            \Log::error("Erreur inscription élève: " . $e->getMessage());
+            Log::error("Erreur inscription élève: " . $e->getMessage());
             return response()->json([
                 'message' => 'Erreur lors de l\'inscription',
                 'error' => $e->getMessage()

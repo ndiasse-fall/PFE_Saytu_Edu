@@ -124,14 +124,20 @@ class User extends Authenticatable
      */
     public function getClassesAttribute()
     {
-        if ($this->relationLoaded('eleveClasses')) {
-            return $this->eleveClasses;
+        // On récupère la relation chargée
+        $classes = $this->relationLoaded('eleveClasses') 
+            ? $this->eleveClasses 
+            : ($this->relationLoaded('enseignantClasses') ? $this->enseignantClasses : null);
+
+        if ($classes) {
+            return $classes;
         }
-        if ($this->relationLoaded('enseignantClasses')) {
-            return $this->enseignantClasses;
+
+        if ($this->relationLoaded('classes')) {
+            return $this->relations['classes'];
         }
         
-        // Si aucune relation n'est chargée, on tente le lazy loading via la méthode dynamique
+        // Lazy loading fallback
         return $this->classes()->get();
     }
 

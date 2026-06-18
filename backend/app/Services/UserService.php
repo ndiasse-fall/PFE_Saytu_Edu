@@ -105,7 +105,13 @@ class UserService
 
     public function showUser(User $user): User
     {
-        return $user->load('classes');
+        if ($user->role === RoleEnum::ELEVE || $user->statut === 'ELEVE') {
+            $user->load('eleveClasses');
+        } elseif ($user->role === RoleEnum::ENSEIGNANT || $user->statut === 'ENSEIGNANT') {
+            $user->load('enseignantClasses');
+        }
+
+        return $user;
     }
 
     public function updateUser(User $user, array $data): User

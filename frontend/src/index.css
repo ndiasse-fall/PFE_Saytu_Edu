@@ -2366,30 +2366,35 @@ small {
     background: rgba(15, 23, 42, 0.42);
 }
 
-.users-drawer {
-    position: fixed;
-    top: 0;
-    right: 0;
-    width: min(460px, 100vw);
-    padding: 20px 18px;
-    background: var(--bg);
-    border-left: 1px solid var(--border);
-    z-index: 61;
+/* Base Drawer Styles */
+.users-drawer-paper {
+    width: 100vw !important;
+    background-color: var(--bg) !important;
+    border-left: 1px solid var(--border) !important;
+    box-shadow: var(--shadow) !important;
+    padding: 12px !important;
     overflow-y: auto;
 }
 
-.users-drawer .panel {
-    margin: 0;
-    box-shadow: none;
-}
-
-.users-drawer-form {
-    width: min(520px, 100vw);
+@media (min-width: 600px) {
+    .users-drawer-paper {
+        width: auto !important;
+        min-width: 400px;
+        max-width: 800px;
+        padding: 20px !important;
+    }
 }
 
 .users-drawer-panel {
     display: grid;
-    gap: 20px;
+    gap: 24px;
+    min-height: auto;
+    width: 100%;
+}
+
+.users-drawer-form {
+    width: 100%;
+    max-width: 520px;
 }
 
 .users-details-grid {
@@ -2754,11 +2759,6 @@ small {
         grid-column: 1 / -1;
     }
 
-    .users-drawer,
-    .users-drawer-form {
-        width: min(100vw, 560px);
-    }
-
     .page-header-inline {
         flex-direction: column;
         align-items: stretch;
@@ -2934,16 +2934,6 @@ small {
 
     .users-page-add-button {
         width: 100%;
-    }
-
-    .users-drawer,
-    .users-drawer-form {
-        padding: 12px;
-        width: 100vw;
-    }
-
-    .users-drawer .panel {
-        min-height: calc(100vh - 24px);
     }
 }
 

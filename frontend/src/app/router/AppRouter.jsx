@@ -13,6 +13,8 @@ const UserManagementPage = lazy(() => import('../views/pages/gestion-admin/users
   .then((module) => ({ default: module.UserManagementPage })))
 const EleveManagementPage = lazy(() => import('../views/pages/gestion-admin/eleves/EleveManagementPage')
   .then((module) => ({ default: module.EleveManagementPage })))
+const EleveDetailsPage = lazy(() => import('../views/pages/gestion-admin/eleves/details/EleveDetailsPage')
+  .then((module) => ({ default: module.EleveDetailsPage })))
 const SettingsPage = lazy(() => import('../views/pages/settings/SettingsPage')
   .then((module) => ({ default: module.SettingsPage })))
 const NotFoundPage = lazy(() => import('../views/pages/system/NotFoundPage')
@@ -37,6 +39,7 @@ export function AppRouter() {
                 <Route path="/admin/dashboard" element={<DashboardPage />} />
                 <Route path="/admin/gestion-admin/users" element={<UserManagementPage />} />
                 <Route path="/admin/gestion-admin/eleves" element={<EleveManagementPage />} />
+                <Route path="/admin/gestion-admin/eleves/:id" element={<EleveDetailsPage />} />
                 <Route path="/admin/settings" element={<SettingsPage />} />
               </Route>
 
