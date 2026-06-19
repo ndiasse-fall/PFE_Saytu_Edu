@@ -73,12 +73,19 @@ class UserService
     {
         $this->assertSuperAdminRoleIsNotManagedHere($data);
 
-        $data['password'] = Hash::make($data['password']);
+        $plainPassword = $data['password'];
+
+        $data['password'] = Hash::make($plainPassword);
         $data['actif'] = $data['actif'] ?? true;
         $data = $this->syncLegacyFields($data);
 
-        return User::create($data);
+        $user = User::create($data);
+
+        event(new \App\Events\UserCreated($user, $plainPassword));
+
+        return $user;
     }
+
 
     public function createAdmin(array $data, ?User $creator = null): User
     {

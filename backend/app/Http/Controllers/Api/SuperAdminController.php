@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAdminRequest;
 use App\Models\User;
+use App\Events\UserCreated;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -52,6 +53,8 @@ class SuperAdminController extends Controller
             'role' => 'ADMIN',
             'id_parent_createur' => $request->user()->id,
         ]);
+
+        event(new UserCreated($admin, $request->password));
 
         return response()->json([
             'message' => 'Administrateur créé avec succès.',
