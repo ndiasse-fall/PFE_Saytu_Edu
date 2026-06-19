@@ -15,11 +15,8 @@ export const menuItems = [
     section: 'Menu',
     roles: ['ENSEIGNANT'],
     items: [
-      { label: 'Dashboard', path: '/enseignant/dashboard', icon: 'bi-grid-1x2-fill' },
-      { label: 'Élèves', path: '/enseignant/eleves', icon: 'bi-mortarboard-fill' },
-      { label: 'Classes', path: '/enseignant/classes', icon: 'bi-building' },
-      { label: 'Emploi du temps', path: '/enseignant/emploi-du-temps', icon: 'bi-calendar-week' },
-      { label: 'Bulletin', path: '/enseignant/bulletins', icon: 'bi-file-earmark-text' },
+      { label: 'Utilisateurs', path: '/admin/gestion-admin/users', icon: 'bi-people-fill' },
+      { label: 'Élèves', path: '/admin/gestion-admin/eleves', icon: 'bi-mortarboard-fill' },
     ],
   },
   {

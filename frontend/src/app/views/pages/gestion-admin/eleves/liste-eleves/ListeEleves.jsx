@@ -1,11 +1,10 @@
-const roles = ["SUPER_ADMIN", "ADMIN", "ENSEIGNANT", "ELEVE"];
 import TablePagination from "@mui/material/TablePagination";
 import { ActionMenu } from "../../../../../shared/components/ui/ActionMenu";
 import { FilterToolbar } from "../../../../../shared/components/ui/FilterToolbar";
 
-function getInitials(user) {
+function getInitials(eleve) {
     return (
-        [user.prenom, user.nom]
+        [eleve.prenom, eleve.nom]
             .filter(Boolean)
             .map((part) => String(part).trim().charAt(0))
             .join("")
@@ -14,8 +13,8 @@ function getInitials(user) {
     );
 }
 
-export function ListeUsers({
-    users,
+export function ListeEleves({
+    eleves,
     loading,
     filters,
     pagination,
@@ -26,6 +25,7 @@ export function ListeUsers({
     onEdit,
     onToggle,
     onDelete,
+    onInscrire,
     onPageChange,
     onRowsPerPageChange,
 }) {
@@ -46,23 +46,8 @@ export function ListeUsers({
                             value={filters.search}
                             onChange={onFilterChange}
                             placeholder="Nom, prénom, email..."
-                            aria-label="Rechercher un utilisateur"
+                            aria-label="Rechercher un élève"
                         />
-                    </label>
-                    <label className="users-toolbar-field">
-                        <span>Rôle</span>
-                        <select
-                            name="role"
-                            value={filters.role}
-                            onChange={onFilterChange}
-                        >
-                            <option value="">Tous</option>
-                            {roles.map((role) => (
-                                <option key={role} value={role}>
-                                    {role}
-                                </option>
-                            ))}
-                        </select>
                     </label>
                     <label className="users-toolbar-field">
                         <span>Statut</span>
@@ -91,110 +76,114 @@ export function ListeUsers({
 
             {loading ? (
                 <div className="screen-state users-table-state">
-                    Chargement des utilisateurs...
+                    Chargement des élèves...
                 </div>
-            ) : users.length === 0 ? (
+            ) : eleves.length === 0 ? (
                 <div className="screen-state users-table-state">
-                    Aucun utilisateur trouvé.
+                    Aucun élève trouvé.
                 </div>
             ) : (
                 <div className="table-wrapper users-table-wrapper">
                     <table className="users-table">
                         <colgroup>
                             <col className="users-col-user" />
+                            <col className="users-col-classe" />
                             <col className="users-col-contact" />
-                            <col className="users-col-role" />
                             <col className="users-col-status" />
                             <col className="users-col-actions" />
                         </colgroup>
                         <thead>
                             <tr>
-                                <th scope="col">Utilisateur</th>
+                                <th scope="col">Élève</th>
+                                <th scope="col">Classe</th>
                                 <th scope="col">Contact</th>
-                                <th scope="col">Rôle</th>
                                 <th scope="col">Statut</th>
                                 <th scope="col">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {users.map((user) => (
-                                <tr key={user.id}>
+                            {eleves.map((eleve) => (
+                                <tr key={eleve.id}>
                                     <td>
                                         <span className="users-identity">
                                             <span
                                                 className="users-identity-avatar"
                                                 aria-hidden="true"
                                             >
-                                                {getInitials(user)}
+                                                {getInitials(eleve)}
                                             </span>
                                             <strong>
-                                                {user.prenom} {user.nom}
+                                                {eleve.prenom} {eleve.nom}
                                             </strong>
                                         </span>
                                     </td>
                                     <td>
-                                        <span>
-                                            {user.telephone || "Non renseigné"}
-                                        </span>
+                                        {eleve.classes &&
+                                        eleve.classes.length > 0 ? (
+                                            <span
+                                                className="badge badge-info"
+                                                style={{
+                                                    backgroundColor:
+                                                        "var(--primary-light)",
+                                                    color: "var(--primary-dark)",
+                                                }}
+                                            >
+                                                {eleve.classes[0].nom_classe}
+                                            </span>
+                                        ) : (
+                                            <span
+                                                className="text-muted"
+                                                style={{ fontSize: "0.85rem" }}
+                                            >
+                                                Non affecté
+                                            </span>
+                                        )}
                                     </td>
                                     <td>
-                                        <span className="badge badge-role">
-                                            {user.role}
+                                        <span>
+                                            {eleve.telephone || "Non renseigné"}
                                         </span>
                                     </td>
                                     <td>
                                         <span
-                                            className={`badge ${user.actif ? "badge-active" : "badge-inactive"}`}
+                                            className={`badge ${eleve.actif ? "badge-active" : "badge-inactive"}`}
                                         >
-                                            {user.actif ? "Actif" : "Inactif"}
+                                            {eleve.actif ? "Actif" : "Inactif"}
                                         </span>
                                     </td>
                                     <td>
                                         <ActionMenu
-                                            ariaLabel={`Ouvrir les actions pour ${user.prenom} ${user.nom}`}
-                                            items={
-                                                user.role === "SUPER_ADMIN"
-                                                    ? [
-                                                          {
-                                                              label: "Voir",
-                                                              onClick: () =>
-                                                                  void onShow(
-                                                                      user.id,
-                                                                  ),
-                                                          },
-                                                      ]
-                                                    : [
-                                                          {
-                                                              label: "Voir",
-                                                              onClick: () =>
-                                                                  void onShow(
-                                                                      user.id,
-                                                                  ),
-                                                          },
-                                                          {
-                                                              label: "Modifier",
-                                                              onClick: () =>
-                                                                  onEdit(user),
-                                                          },
-                                                          {
-                                                              label: user.actif
-                                                                  ? "Désactiver"
-                                                                  : "Activer",
-                                                              onClick: () =>
-                                                                  void onToggle(
-                                                                      user.id,
-                                                                  ),
-                                                          },
-                                                          {
-                                                              label: "Supprimer",
-                                                              onClick: () =>
-                                                                  void onDelete(
-                                                                      user.id,
-                                                                  ),
-                                                              danger: true,
-                                                          },
-                                                      ]
-                                            }
+                                            ariaLabel={`Ouvrir les actions pour ${eleve.prenom} ${eleve.nom}`}
+                                            items={[
+                                                {
+                                                    label: "Voir",
+                                                    onClick: () =>
+                                                        void onShow(eleve.id),
+                                                },
+                                                {
+                                                    label: "Modifier",
+                                                    onClick: () =>
+                                                        onEdit(eleve),
+                                                },
+                                                {
+                                                    label: "Affecter à une classe",
+                                                    onClick: () =>
+                                                        onInscrire(eleve),
+                                                },
+                                                {
+                                                    label: eleve.actif
+                                                        ? "Désactiver"
+                                                        : "Activer",
+                                                    onClick: () =>
+                                                        void onToggle(eleve.id),
+                                                },
+                                                {
+                                                    label: "Supprimer",
+                                                    onClick: () =>
+                                                        void onDelete(eleve.id),
+                                                    danger: true,
+                                                },
+                                            ]}
                                         />
                                     </td>
                                 </tr>

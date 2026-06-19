@@ -50,7 +50,18 @@ class UserService
                 : RoleEnum::from($filters['role']);
         }
 
-        return User::query()
+        $query = User::query();
+
+        // On charge la relation appropriée pour l'Eager Loading
+        if ($role === RoleEnum::ELEVE) {
+            $query->with('eleveClasses');
+        } elseif ($role === RoleEnum::ENSEIGNANT) {
+            $query->with('enseignantClasses');
+        } else {
+            $query->with(['eleveClasses', 'enseignantClasses']);
+        }
+
+        return $query->withoutTrashed()
             ->search($filters['search'] ?? null)
             ->byRole($role)
             ->active($filters['actif'] ?? null)
@@ -62,11 +73,41 @@ class UserService
     {
         $this->assertSuperAdminRoleIsNotManagedHere($data);
 
-        $data['password'] = Hash::make($data['password']);
+        $plainPassword = $data['password'];
+
+        $data['password'] = Hash::make($plainPassword);
         $data['actif'] = $data['actif'] ?? true;
         $data = $this->syncLegacyFields($data);
 
-        return User::create($data);
+        $user = User::create($data);
+
+        event(new \App\Events\UserCreated($user, $plainPassword));
+
+        return $user;
+    }
+
+
+    public function createAdmin(array $data, ?User $creator = null): User
+    {
+        $name = trim((string) ($data['name'] ?? ''));
+        $nameParts = preg_split('/\s+/', $name, 2, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $payload = [
+            'nom' => $data['nom'] ?? ($nameParts[1] ?? $nameParts[0] ?? 'Admin'),
+            'prenom' => $data['prenom'] ?? ($nameParts[0] ?? 'Saytou'),
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'telephone' => $data['telephone'] ?? null,
+            'adresse' => $data['adresse'] ?? null,
+            'role' => RoleEnum::ADMIN,
+            'actif' => true,
+        ];
+
+        if ($creator) {
+            $payload['id_parent_createur'] = $creator->id;
+        }
+
+        return $this->createUser($payload);
     }
 
     public function createAdmin(array $data, ?User $creator = null): User
@@ -94,6 +135,12 @@ class UserService
 
     public function showUser(User $user): User
     {
+        if ($user->role === RoleEnum::ELEVE || $user->statut === 'ELEVE') {
+            $user->load('eleveClasses');
+        } elseif ($user->role === RoleEnum::ENSEIGNANT || $user->statut === 'ENSEIGNANT') {
+            $user->load('enseignantClasses');
+        }
+
         return $user;
     }
 
