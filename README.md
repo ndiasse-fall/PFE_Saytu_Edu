@@ -37,7 +37,7 @@ Ensuite, créez la base de données (si elle n'existe pas déjà) et lancez les 
 php artisan migrate
 ```
 
-### 4. Configuration du Frontend (React)
+### 4. Configuration du Frontend (React)g
 ```bash
 cd ../frontend
 npm install
