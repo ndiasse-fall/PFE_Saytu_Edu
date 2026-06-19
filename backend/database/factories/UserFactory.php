@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Schema;
 
 /**
  * @extends Factory<User>
@@ -24,22 +25,62 @@ class UserFactory extends Factory
      */
     public function definition(): array
     {
-        return [
-            'name' => fake()->name(),
+        $roleEnum = fake()->randomElement(RoleEnum::cases());
+        $role = $roleEnum->value;
+        $data = [
+            'nom' => fake()->lastName(),
+            'prenom' => fake()->firstName(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
             'password' => static::$password ??= Hash::make('password'),
-            'remember_token' => Str::random(10),
+            'telephone' => fake()->numerify('##########'),
+            'adresse' => fake()->address(),
+            'role' => $role,
+            'statut' => $roleEnum->value,
+            'actif' => true,
         ];
+
+        if (Schema::hasColumn('users', 'name')) {
+            $data['name'] = "{$data['prenom']} {$data['nom']}";
+        }
+
+        return $data;
     }
 
-    /**
-     * Indicate that the model's email address should be unverified.
-     */
-    public function unverified(): static
+    public function superAdmin(): static
     {
-        return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+        return $this->state(fn(array $attributes) => [
+            'role' => RoleEnum::SUPER_ADMIN->value,
+            'statut' => RoleEnum::SUPER_ADMIN->value,
+        ]);
+    }
+
+    public function admin(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'role' => RoleEnum::ADMIN->value,
+            'statut' => RoleEnum::ADMIN->value,
+        ]);
+    }
+
+    public function enseignant(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'role' => RoleEnum::ENSEIGNANT->value,
+            'statut' => RoleEnum::ENSEIGNANT->value,
+            'matricule_enseignant' => 'ENS-' . fake()->unique()->numberBetween(1000, 9999),
+            'specialite' => fake()->word(),
+            'date_embauche' => fake()->date(),
+        ]);
+    }
+
+    public function eleve(): static
+    {
+        return $this->state(fn(array $attributes) => [
+            'role' => RoleEnum::ELEVE->value,
+            'statut' => RoleEnum::ELEVE->value,
+            'matricule_eleve' => 'ELV-' . fake()->unique()->numberBetween(10000, 99999),
+            'date_naissance' => fake()->date('Y-m-d', '-10 years'),
+            'telephone_parent' => fake()->numerify('##########'),
         ]);
     }
 }

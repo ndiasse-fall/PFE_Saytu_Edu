@@ -14,7 +14,7 @@ Avant de commencer, assurez-vous d'avoir installé :
 
 ### 1. Clonage du projet
 ```bash
-git clone <url-du-depot>
+git clone https://github.com/ndiasse-fall/PFE_Saytu_Edu.git
 cd PFE_Saytu_Edu
 ```
 
@@ -35,6 +35,7 @@ php artisan key:generate
 Ensuite, créez la base de données (si elle n'existe pas déjà) et lancez les migrations :
 ```bash
 php artisan migrate
+php artisan db:seed
 ```
 
 ### 4. Configuration du Frontend (React)g

@@ -18,7 +18,7 @@ class StoreNoteRequest extends FormRequest
     {
         return [
             'id_classe' => ['required', 'integer', 'exists:classes,id'],
-            'id_matieres' => ['required', 'integer', 'exists:matieres,id'],
+            'id_matiere' => ['required', 'integer', 'exists:matieres,id'],
             'type_evaluation' => ['required', 'string', 'max:100'],
             'periode' => ['required', 'string', 'max:100'],
             'notes' => ['required', 'array', 'min:1'],
@@ -34,7 +34,7 @@ class StoreNoteRequest extends FormRequest
     {
         return [
             'id_classe.required' => 'La classe est obligatoire.',
-            'id_matieres.required' => 'La matière est obligatoire.',
+            'id_matiere.required' => 'La matière est obligatoire.',
             'type_evaluation.required' => 'Le type d\'évaluation est obligatoire.',
             'periode.required' => 'La période est obligatoire.',
             'notes.required' => 'Au moins une note doit être fournie.',
