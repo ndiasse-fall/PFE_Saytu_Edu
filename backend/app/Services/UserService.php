@@ -110,6 +110,29 @@ class UserService
         return $this->createUser($payload);
     }
 
+    public function createAdmin(array $data, ?User $creator = null): User
+    {
+        $name = trim((string) ($data['name'] ?? ''));
+        $nameParts = preg_split('/\s+/', $name, 2, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $payload = [
+            'nom' => $data['nom'] ?? ($nameParts[1] ?? $nameParts[0] ?? 'Admin'),
+            'prenom' => $data['prenom'] ?? ($nameParts[0] ?? 'Saytou'),
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'telephone' => $data['telephone'] ?? null,
+            'adresse' => $data['adresse'] ?? null,
+            'role' => RoleEnum::ADMIN,
+            'actif' => true,
+        ];
+
+        if ($creator) {
+            $payload['id_parent_createur'] = $creator->id;
+        }
+
+        return $this->createUser($payload);
+    }
+
     public function showUser(User $user): User
     {
         if ($user->role === RoleEnum::ELEVE || $user->statut === 'ELEVE') {
