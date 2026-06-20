@@ -39,6 +39,8 @@ httpClient.interceptors.response.use(
   },
 )
 
+export default httpClient
+
 export function apiClient(path, options = {}) {
   const { body, data, ...config } = options
 

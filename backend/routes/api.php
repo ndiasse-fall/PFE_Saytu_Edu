@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Api\ClasseController;
+use App\Http\Controllers\Api\AffectationController;
 use App\Http\Controllers\Api\SuperAdminController;
 use App\Http\Controllers\EmploiDuTempsController;
 use App\Http\Controllers\NoteController;
@@ -46,6 +47,13 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
 
         Route::apiResource('matieres', MatiereController::class);
+
+        // Affectations
+        Route::prefix('affectations')->group(function (): void {
+            Route::get('/', [AffectationController::class, 'index']);
+            Route::post('matiere-classe', [AffectationController::class, 'affecterMatiereClasse']);
+            Route::post('enseignant-matiere', [AffectationController::class, 'affecterEnseignantMatiere']);
+        });
 
         // Écriture Emploi du Temps
         Route::post('emplois-du-temps', [EmploiDuTempsController::class, 'store']);
