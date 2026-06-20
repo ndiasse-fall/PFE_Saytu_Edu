@@ -5,7 +5,7 @@ namespace Tests\Feature;
 use App\Enums\RoleEnum;
 use App\Models\User;
 use App\Models\Classe;
-use App\Models\Matiere;
+use App\Models\Matieres;
 use App\Models\EmploiDuTemps;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Laravel\Sanctum\Sanctum;
@@ -58,7 +58,7 @@ class EmploiDuTempsTest extends TestCase
         $this->authenticateAsAdmin();
         $classe = Classe::factory()->create();
         $enseignant = User::factory()->enseignant()->create();
-        $matiere = Matiere::factory()->create();
+        $matiere = Matieres::factory()->create();
 
         $data = [
             'jour' => 'Lundi',
@@ -89,7 +89,7 @@ class EmploiDuTempsTest extends TestCase
         $classe = Classe::factory()->create();
         $enseignant1 = User::factory()->enseignant()->create();
         $enseignant2 = User::factory()->enseignant()->create();
-        $matiere = Matiere::factory()->create();
+        $matiere = Matieres::factory()->create();
 
         // Créer un premier cours
         EmploiDuTemps::create([

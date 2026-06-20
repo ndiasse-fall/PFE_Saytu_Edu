@@ -6,7 +6,7 @@ use App\Models\Absence;
 use App\Models\Bulletin;
 use App\Models\Classe;
 use App\Models\EmploiDuTemps;
-use App\Models\Matiere;
+use App\Models\Matieres;
 use App\Models\Note;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
         $eleves = User::where('role', 'ELEVE')->get();
         $enseignants = User::where('role', 'ENSEIGNANT')->get();
         $classes = Classe::all();
-        $matieres = Matiere::all();
+        $matieres = Matieres::all();
 
         // Inscrire les élèves dans des classes
         foreach ($eleves as $eleve) {
