@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Classe;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ClasseController extends Controller
 {
@@ -86,15 +87,27 @@ class ClasseController extends Controller
      */
     public function inscrireEleve(Request $request, $id)
     {
-        $classe = Classe::findOrFail($id);
+        try {
+            $request->validate([
+                'id_eleve' => 'required|exists:users,id'
+            ]);
 
-        $classe->eleves()->syncWithoutDetaching([
-            $request->id_eleve
-        ]);
+            $classe = Classe::findOrFail($id);
 
-        return response()->json([
-            'message' => 'Élève inscrit avec succès'
-        ]);
+            $classe->eleves()->syncWithoutDetaching([
+                $request->id_eleve
+            ]);
+
+            return response()->json([
+                'message' => 'Élève inscrit avec succès'
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Erreur inscription élève: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Erreur lors de l\'inscription',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

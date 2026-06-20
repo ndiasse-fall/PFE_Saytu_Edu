@@ -2,7 +2,7 @@
 
 namespace Tests\Unit;
 
-use App\Models\Matiere;
+use App\Models\Matieres;
 use App\Models\Note;
 use App\Models\User;
 use App\Models\Classe;
@@ -26,9 +26,9 @@ class BulletinServiceTest extends TestCase
     {
         $eleve = User::factory()->eleve()->create();
         $classe = Classe::factory()->create();
-        
-        $maths = Matiere::factory()->create(['nom_matiere' => 'Maths', 'coefficient' => 4]);
-        $francais = Matiere::factory()->create(['nom_matiere' => 'Français', 'coefficient' => 2]);
+
+        $maths = Matieres::factory()->create(['nom_matiere' => 'Maths', 'coefficient' => 4]);
+        $francais = Matieres::factory()->create(['nom_matiere' => 'Français', 'coefficient' => 2]);
 
         Note::factory()->create([
             'id_eleve' => $eleve->id,
@@ -56,7 +56,7 @@ class BulletinServiceTest extends TestCase
     public function test_retourne_zero_si_pas_de_notes()
     {
         $eleve = User::factory()->eleve()->create();
-        
+
         $moyenne = $this->service->calculerMoyenne($eleve->id);
 
         $this->assertEquals(0, $moyenne);

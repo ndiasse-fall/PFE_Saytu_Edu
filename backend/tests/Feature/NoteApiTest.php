@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\RoleEnum;
 use App\Models\Classe;
-use App\Models\Matiere;
+use App\Models\Matieres;
 use App\Models\Note;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,7 +28,7 @@ class NoteApiTest extends TestCase
             'niveau' => '6e',
             'annee_scolaire' => '2026-2027',
         ]);
-        $matiere = Matiere::query()->create([
+        $matiere = Matieres::query()->create([
             'nom_matiere' => 'Mathématiques',
             'coefficient' => 4,
             'description' => 'Module de base',
@@ -103,7 +103,7 @@ class NoteApiTest extends TestCase
             'niveau' => '5e',
             'annee_scolaire' => '2026-2027',
         ]);
-        $matiere = Matiere::query()->create([
+        $matiere = Matieres::query()->create([
             'nom_matiere' => 'Français',
             'coefficient' => 3,
             'description' => 'Expression écrite',
@@ -143,7 +143,7 @@ class NoteApiTest extends TestCase
             'niveau' => '4e',
             'annee_scolaire' => '2026-2027',
         ]);
-        $matiere = Matiere::query()->create([
+        $matiere = Matieres::query()->create([
             'nom_matiere' => 'SVT',
             'coefficient' => 2,
             'description' => 'Sciences',
