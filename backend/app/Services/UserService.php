@@ -110,8 +110,6 @@ class UserService
         return $this->createUser($payload);
     }
 
-    
-
     public function showUser(User $user): User
     {
         if ($user->role === RoleEnum::ELEVE || $user->statut === 'ELEVE') {

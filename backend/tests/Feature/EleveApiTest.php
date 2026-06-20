@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\RoleEnum;
 use App\Models\Classe;
-use App\Models\Matiere;
+use App\Models\Matieres;
 use App\Models\Note;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,7 +24,7 @@ class EleveApiTest extends TestCase
         Sanctum::actingAs($eleve);
 
         $classe = Classe::factory()->create();
-        $matiere = Matiere::factory()->create(['coefficient' => 2]);
+        $matiere = Matieres::factory()->create(['coefficient' => 2]);
         
         Note::factory()->create([
             'id_eleve' => $eleve->id,
