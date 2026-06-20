@@ -6,6 +6,13 @@ export function SettingsPage() {
 
   return (
     <section className="settings-page">
+      <header className="page-header-inline">
+        <div>
+          <h2>Mon compte</h2>
+          <p>Informations de session et données de profil visibles dans l’application.</p>
+        </div>
+      </header>
+
       <section className="panel settings-panel">
         <div className="settings-heading">
           <div className="settings-avatar" aria-hidden="true">

@@ -2,11 +2,14 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   createUser,
   deleteUser,
+  getDashboardSummary,
   listUsers,
   showUser,
   toggleUserStatus,
   updateUser,
 } from '../../../../services/user/userService'
+import { DrawerPanel } from '../../../../shared/components/ui/DrawerPanel'
+import { KpiCard } from '../../../../shared/components/ui/KpiCard'
 import { ListeUsers } from './liste-users/ListeUsers'
 import { UserForm } from './user-form/UserForm'
 
@@ -21,10 +24,13 @@ const emptyForm = {
   actif: true,
 }
 
+const initialFilters = { search: '', role: '', actif: '' }
+
 export function UserManagementPage() {
   const [users, setUsers] = useState([])
   const [pagination, setPagination] = useState(null)
-  const [filters, setFilters] = useState({ search: '', role: '', actif: '' })
+  const [summary, setSummary] = useState(null)
+  const [filters, setFilters] = useState(initialFilters)
   const [form, setForm] = useState(emptyForm)
   const [formMode, setFormMode] = useState('closed')
   const [editingUserId, setEditingUserId] = useState(null)
@@ -38,23 +44,29 @@ export function UserManagementPage() {
   const isEditing = useMemo(() => formMode === 'edit' && editingUserId !== null, [editingUserId, formMode])
   const isFormOpen = useMemo(() => formMode !== 'closed', [formMode])
   const kpis = useMemo(() => {
-    const activeCount = users.filter((user) => user.actif).length
-    const inactiveCount = users.length - activeCount
-
     return [
-      { label: 'Total', value: pagination?.total ?? users.length, icon: 'bi-people-fill' },
+      { label: 'Total', value: summary?.total ?? pagination?.total ?? users.length, icon: 'bi-people-fill' },
       { label: 'Affichés', value: users.length, icon: 'bi-table' },
-      { label: 'Actifs', value: activeCount, icon: 'bi-check-circle-fill' },
-      { label: 'Inactifs', value: inactiveCount, icon: 'bi-pause-circle-fill' },
+      { label: 'Actifs', value: summary?.actifs ?? 0, icon: 'bi-check-circle-fill' },
+      { label: 'Inactifs', value: summary?.inactifs ?? 0, icon: 'bi-pause-circle-fill' },
     ]
-  }, [pagination?.total, users])
+  }, [pagination?.total, summary, users.length])
 
-  const loadData = useCallback(async (nextFilters = filters) => {
+  const loadSummary = useCallback(async () => {
+    try {
+      const data = await getDashboardSummary()
+      setSummary(data.counts ?? null)
+    } catch (err) {
+      setError(err.message)
+    }
+  }, [])
+
+  const loadData = useCallback(async (nextFilters = initialFilters, page = 1, perPage = 15) => {
     setLoading(true)
     setError('')
 
     try {
-      const data = await listUsers(nextFilters)
+      const data = await listUsers({ ...nextFilters, page, perPage })
       setUsers(data.data ?? [])
       setPagination({
         total: data.total ?? 0,
@@ -67,15 +79,15 @@ export function UserManagementPage() {
     } finally {
       setLoading(false)
     }
-  }, [filters])
+  }, [])
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      void loadData()
+      void Promise.all([loadData(initialFilters), loadSummary()])
     }, 0)
 
     return () => window.clearTimeout(timer)
-  }, [loadData])
+  }, [loadData, loadSummary])
 
   function resetForm() {
     setForm(emptyForm)
@@ -138,7 +150,10 @@ export function UserManagementPage() {
       }
 
       resetForm()
-      await loadData()
+      await Promise.all([
+        loadData(filters, pagination?.currentPage ?? 1, pagination?.perPage ?? 15),
+        loadSummary(),
+      ])
     } catch (err) {
       setError(err.message)
       setFieldErrors(err.details ?? {})
@@ -192,7 +207,10 @@ export function UserManagementPage() {
       if (selectedUser?.id === userId) setSelectedUser(null)
       if (editingUserId === userId) resetForm()
       setSuccess('Utilisateur supprimé avec succès.')
-      await loadData()
+      await Promise.all([
+        loadData(filters, pagination?.currentPage ?? 1, pagination?.perPage ?? 15),
+        loadSummary(),
+      ])
     } catch (err) {
       setError(err.message)
     }
@@ -204,6 +222,7 @@ export function UserManagementPage() {
       setUsers((current) => current.map((user) => (user.id === userId ? data.data : user)))
       if (selectedUser?.id === userId) setSelectedUser(data.data)
       setSuccess('Statut utilisateur mis à jour avec succès.')
+      await loadSummary()
     } catch (err) {
       setError(err.message)
     }
@@ -211,13 +230,29 @@ export function UserManagementPage() {
 
   async function applyFilters(event) {
     event.preventDefault()
-    await loadData(filters)
+    await loadData(filters, 1, pagination?.perPage ?? 15)
   }
 
   async function clearFilters() {
-    const reset = { search: '', role: '', actif: '' }
+    const reset = initialFilters
     setFilters(reset)
-    await loadData(reset)
+    await loadData(reset, 1, pagination?.perPage ?? 15)
+  }
+
+  async function changePage(page) {
+    if (loading || page < 1 || page > (pagination?.lastPage ?? 1)) {
+      return
+    }
+
+    await loadData(filters, page, pagination?.perPage ?? 15)
+  }
+
+  async function changeRowsPerPage(perPage) {
+    if (loading) {
+      return
+    }
+
+    await loadData(filters, 1, perPage)
   }
 
   return (
@@ -225,25 +260,28 @@ export function UserManagementPage() {
       {error ? <div className="alert alert-error">{error}</div> : null}
       {success ? <div className="alert alert-success">{success}</div> : null}
 
+      <header className="users-page-header">
+        <div className="users-page-heading">
+          <h2>Gestion des utilisateurs</h2>
+        </div>
+        {!isFormOpen ? (
+          <button type="button" className="users-page-add-button" onClick={handleCreateStart}>
+            Ajouter un utilisateur
+          </button>
+        ) : null}
+      </header>
+
       <section className="users-kpi-grid" aria-label="Indicateurs utilisateur">
         {kpis.map((kpi) => (
-          <article key={kpi.label} className="panel users-kpi-card">
-            <span className="users-kpi-icon" aria-hidden="true">
-              <i className={`bi ${kpi.icon}`} />
-            </span>
-            <div className="users-kpi-copy">
-              <strong>{kpi.value}</strong>
-              <span>{kpi.label}</span>
-            </div>
-          </article>
+          <KpiCard key={kpi.label} {...kpi} />
         ))}
       </section>
 
       <ListeUsers
         users={users}
-        pagination={pagination}
         loading={loading}
         filters={filters}
+        pagination={pagination}
         onFilterChange={handleFilterChange}
         onApplyFilters={applyFilters}
         onClearFilters={clearFilters}
@@ -251,59 +289,55 @@ export function UserManagementPage() {
         onEdit={handleEdit}
         onToggle={handleToggle}
         onDelete={handleDelete}
-        onCreate={handleCreateStart}
-        canCreate={!isFormOpen}
+        onPageChange={changePage}
+        onRowsPerPageChange={changeRowsPerPage}
       />
 
-      {(isFormOpen || selectedUser) ? (
-        <>
-          <button
-            type="button"
-            className="users-drawer-backdrop"
-            aria-label="Fermer le panneau"
-            onClick={isFormOpen ? resetForm : closeDetails}
-          />
+      <DrawerPanel
+        open={isFormOpen}
+        onClose={resetForm}
+        width={520}
+        title={isEditing ? 'Modifier un utilisateur' : 'Ajouter un utilisateur'}
+        headerAction={
+          <button type="button" className="ghost-button" onClick={resetForm}>
+            Fermer
+          </button>
+        }
+      >
+        <UserForm
+          mode={formMode}
+          form={form}
+          fieldErrors={fieldErrors}
+          submitting={submitting}
+          onInputChange={handleInputChange}
+          onSubmit={handleSubmit}
+          onCancel={resetForm}
+        />
+      </DrawerPanel>
 
-          {isFormOpen ? (
-            <aside className="users-drawer users-drawer-form" aria-label={isEditing ? 'Modifier un utilisateur' : 'Ajouter un utilisateur'}>
-              <UserForm
-                mode={formMode}
-                form={form}
-                fieldErrors={fieldErrors}
-                submitting={submitting}
-                onInputChange={handleInputChange}
-                onSubmit={handleSubmit}
-                onCancel={resetForm}
-              />
-            </aside>
-          ) : null}
-
-          {selectedUser ? (
-            <aside className="users-drawer users-drawer-details" aria-label="Détails utilisateur">
-              <section className="panel users-drawer-panel">
-                <div className="panel-header">
-                  <div>
-                    <h2>Détails utilisateur</h2>
-                    <p className="muted">Consultation rapide sans quitter le tableau.</p>
-                  </div>
-                  <button type="button" className="ghost-button" onClick={closeDetails}>
-                    Fermer
-                  </button>
-                </div>
-                <div className="users-details-grid">
-                  <div><span className="detail-label">Identifiant</span><strong>#{selectedUser.id}</strong></div>
-                  <div><span className="detail-label">Nom complet</span><strong>{selectedUser.prenom} {selectedUser.nom}</strong></div>
-                  <div><span className="detail-label">Email</span><strong>{selectedUser.email}</strong></div>
-                  <div><span className="detail-label">Téléphone</span><strong>{selectedUser.telephone || 'Non renseigné'}</strong></div>
-                  <div><span className="detail-label">Adresse</span><strong>{selectedUser.adresse || 'Non renseignée'}</strong></div>
-                  <div><span className="detail-label">Rôle</span><strong>{selectedUser.role}</strong></div>
-                  <div><span className="detail-label">Statut</span><strong>{selectedUser.actif ? 'Actif' : 'Inactif'}</strong></div>
-                </div>
-              </section>
-            </aside>
-          ) : null}
-        </>
-      ) : null}
+      <DrawerPanel
+        open={Boolean(selectedUser)}
+        onClose={closeDetails}
+        title="Détails utilisateur"
+        subtitle="Consultation rapide sans quitter le tableau."
+        headerAction={
+          <button type="button" className="ghost-button" onClick={closeDetails}>
+            Fermer
+          </button>
+        }
+      >
+        {selectedUser ? (
+          <div className="users-details-grid">
+            <div><span className="detail-label">Identifiant</span><strong>#{selectedUser.id}</strong></div>
+            <div><span className="detail-label">Nom complet</span><strong>{selectedUser.prenom} {selectedUser.nom}</strong></div>
+            <div><span className="detail-label">Email</span><strong>{selectedUser.email}</strong></div>
+            <div><span className="detail-label">Téléphone</span><strong>{selectedUser.telephone || 'Non renseigné'}</strong></div>
+            <div><span className="detail-label">Adresse</span><strong>{selectedUser.adresse || 'Non renseignée'}</strong></div>
+            <div><span className="detail-label">Rôle</span><strong>{selectedUser.role}</strong></div>
+            <div><span className="detail-label">Statut</span><strong>{selectedUser.actif ? 'Actif' : 'Inactif'}</strong></div>
+          </div>
+        ) : null}
+      </DrawerPanel>
     </section>
   )
 }

@@ -6,6 +6,7 @@ import { CheckboxField } from '../../../../shared/components/forms/CheckboxField
 import { TextField } from '../../../../shared/components/forms/TextField'
 import { AuthSplitLayout } from '../../../../shared/components/layout/AuthSplitLayout'
 import { PrimaryButton } from '../../../../shared/components/ui/PrimaryButton'
+import { getDashboardPath } from '../../../../util/roleNavigation'
 
 export function LoginPage() {
   const navigate = useNavigate()
@@ -33,10 +34,8 @@ export function LoginPage() {
     setLoading(true)
 
     try {
-      const data = await signIn(form)
-      const fallback = data.user.role === 'ENSEIGNANT' || data.user.role === 'ELEVE'
-        ? '/user/dashboard'
-        : '/admin/dashboard'
+      const data = await signIn(form, remember)
+      const fallback = getDashboardPath(data.user.role)
       const redirectTo = location.state?.from?.pathname || fallback
 
       navigate(redirectTo, { replace: true })
@@ -77,12 +76,13 @@ export function LoginPage() {
 
               <form className="auth-form" onSubmit={handleSubmit}>
                 <TextField
-                  label="Email ou Nom d’utilisateur"
+                  label="Email"
                   name="email"
                   type="email"
                   value={form.email}
                   onChange={handleChange}
-                  placeholder="Email ou Nom d’utilisateur"
+                  placeholder="Entrez votre email"
+                  autoComplete="email"
                   required
                 />
 
@@ -93,6 +93,7 @@ export function LoginPage() {
                   value={form.password}
                   onChange={handleChange}
                   placeholder="Entrez votre mot de passe"
+                  autoComplete="current-password"
                   required
                 />
 
@@ -103,12 +104,12 @@ export function LoginPage() {
                     onChange={handleChange}
                     label="Se souvenir de moi"
                   />
-                  <button type="button" className="text-link">
-                    Mot de passe oublié ?
-                  </button>
+                  <span className="text-link" aria-disabled="true">
+                    Mot de passe oublié
+                  </span>
                 </div>
 
-                <PrimaryButton type="submit" disabled={loading} block>
+                <PrimaryButton type="submit" disabled={loading} block className="auth-submit-button">
                   {loading ? 'Connexion...' : 'Se connecter'}
                 </PrimaryButton>
               </form>

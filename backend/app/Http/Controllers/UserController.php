@@ -42,6 +42,11 @@ class UserController extends Controller
         return response()->json($users);
     }
 
+    public function dashboard(): JsonResponse
+    {
+        return response()->json($this->userService->getDashboardSummary());
+    }
+
     /**
      * Crée un nouvel utilisateur.
      * 

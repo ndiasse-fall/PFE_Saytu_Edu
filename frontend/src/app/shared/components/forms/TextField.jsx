@@ -7,6 +7,7 @@ export function TextField({
   placeholder,
   error,
   required = false,
+  ...props
 }) {
   return (
     <label className="field">
@@ -19,6 +20,7 @@ export function TextField({
         onChange={onChange}
         placeholder={placeholder}
         required={required}
+        {...props}
       />
       {error ? <small>{error}</small> : null}
     </label>

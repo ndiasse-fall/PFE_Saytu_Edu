@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreAdminRequest;
-use Illuminate\Http\Request;
 use App\Models\User;
+use App\Events\UserCreated;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class SuperAdminController extends Controller
 {
@@ -52,6 +54,8 @@ class SuperAdminController extends Controller
             'id_parent_createur' => $request->user()->id,
         ]);
 
+        event(new UserCreated($admin, $request->password));
+
         return response()->json([
             'message' => 'Administrateur créé avec succès.',
             'admin' => $admin
@@ -87,10 +91,10 @@ class SuperAdminController extends Controller
     /**
      * Supprime définitivement un utilisateur du système.
      * 
-     * @param int $id
+     * @param string $id
      * @return JsonResponse
      */
-    public function deleteUser(int $id)
+    public function deleteUser(string $id)
     {
         $user = User::findOrFail($id);
 

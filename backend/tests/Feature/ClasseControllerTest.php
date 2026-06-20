@@ -88,4 +88,20 @@ class ClasseControllerTest extends TestCase
             'id_eleve' => $eleve->id
         ]);
     }
+
+    public function test_can_affecter_enseignant()
+    {
+        $classe = Classe::factory()->create();
+        $enseignant = User::factory()->enseignant()->create();
+
+        $response = $this->postJson("/api/classes/{$classe->id}/affecter-enseignant", [
+            'id_enseignant' => $enseignant->id
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('classe_enseignant', [
+            'id_classe' => $classe->id,
+            'id_enseignant' => $enseignant->id
+        ]);
+    }
 }

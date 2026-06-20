@@ -41,6 +41,7 @@ Ensuite, créez la base de données (si elle n'existe pas déjà) et lancez les 
 
 ```bash
 php artisan migrate
+php artisan db:seed
 ```
 
 Vous Pouvez peuplé la base de données
