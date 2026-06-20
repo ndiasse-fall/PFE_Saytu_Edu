@@ -3,163 +3,416 @@
 namespace App\Http\Controllers;
 
 use App\Models\Note;
-use App\Models\Classe;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class NoteController extends Controller
 {
     /**
-     * Liste toutes les notes (admin ou enseignant).
+     * =====================================================
+     * LISTE DES NOTES
+     * =====================================================
      */
     public function index(Request $request)
     {
-        $user = $request->user();
-        $eleveId = $request->query('id_eleve');
+        $query = Note::with([
+            'eleve',
+            'matiere',
+            'classe'
+        ]);
 
-        if ($user->isAdministrateur() || $user->isSuperAdministrateur()) {
-            $query = Note::with(['eleve', 'classe', 'matiere']);
-            if ($eleveId) {
-                $query->where('id_eleve', $eleveId);
-            }
-            $notes = $query->get();
-        } elseif ($user->isEnseignant()) {
-            // Notes des classes affectées à l'enseignant
-            $classeIds = $user->classes()->pluck('classes.id');
-            $query = Note::with(['eleve', 'classe', 'matiere'])
-                ->whereIn('id_classe', $classeIds);
-            
-            if ($eleveId) {
-                $query->where('id_eleve', $eleveId);
-            }
-            $notes = $query->get();
-        } elseif ($user->isEleve()) {
-            // Notes de l'élève connecté
-            $notes = Note::with(['classe', 'matiere'])
-                ->where('id_eleve', $user->id)
-                ->get();
-        } else {
-            return response()->json(['message' => 'Accès refusé'], 403);
+        /*
+        |--------------------------------------------------------------------------
+        | Recherche
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('search')) {
+
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+
+                $q->where('type_evaluation', 'LIKE', "%{$search}%")
+                  ->orWhere('periode', 'LIKE', "%{$search}%")
+                  ->orWhere('valeur', 'LIKE', "%{$search}%")
+
+                  ->orWhereHas('eleve', function ($e) use ($search) {
+
+                      $e->where('nom', 'LIKE', "%{$search}%")
+                        ->orWhere('prenom', 'LIKE', "%{$search}%");
+
+                  })
+
+                  ->orWhereHas('matiere', function ($m) use ($search) {
+
+                      $m->where('nom_matiere', 'LIKE', "%{$search}%");
+
+                  })
+
+                  ->orWhereHas('classe', function ($c) use ($search) {
+
+                     $c->where('nom_classe', 'LIKE', "%{$search}%");
+
+                  });
+
+            });
+
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Filtres
+        |--------------------------------------------------------------------------
+        */
+
+        if ($request->filled('id_classe')) {
+
+            $query->where('id_classe', $request->id_classe);
+
+        }
+
+        if ($request->filled('id_matiere')) {
+
+            $query->where('id_matiere', $request->id_matiere);
+
+        }
+
+        if ($request->filled('id_eleve')) {
+
+            $query->where('id_eleve', $request->id_eleve);
+
+        }
+
+        if ($request->filled('periode')) {
+
+            $query->where('periode', $request->periode);
+
+        }
+
+        if ($request->filled('type_evaluation')) {
+
+            $query->where('type_evaluation', $request->type_evaluation);
+
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tri
+        |--------------------------------------------------------------------------
+        */
+
+        $sortBy = $request->get('sort_by', 'created_at');
+
+        $sortOrder = $request->get('sort_order', 'desc');
+
+        $allowedSorts = [
+            'created_at',
+            'valeur',
+            'periode',
+            'type_evaluation'
+        ];
+
+        if (!in_array($sortBy, $allowedSorts)) {
+
+            $sortBy = 'created_at';
+
+        }
+
+        $query->orderBy($sortBy, $sortOrder);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Pagination
+        |--------------------------------------------------------------------------
+        */
+
+        $perPage = $request->get('per_page', 10);
+
+        $notes = $query->paginate($perPage);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Réponse JSON
+        |--------------------------------------------------------------------------
+        */
+
         return response()->json([
+
             'success' => true,
-            'count' => $notes->count(),
-            'data' => $notes,
-        ], 200);
+
+            'message' => 'Liste des notes récupérée avec succès.',
+
+            'data' => $notes->items(),
+
+            'pagination' => [
+
+                'current_page' => $notes->currentPage(),
+
+                'last_page' => $notes->lastPage(),
+
+                'per_page' => $notes->perPage(),
+
+                'total' => $notes->total(),
+
+            ]
+
+        ]);
     }
 
-    /**
-     * Création de notes par un enseignant.
+        /**
+     * =====================================================
+     * AJOUTER UNE NOTE
+     * =====================================================
      */
     public function store(Request $request)
     {
-        $user = $request->user();
+        $validated = $request->validate([
+            'valeur' => [
+                'required',
+                'numeric',
+                'min:0',
+                'max:20'
+            ],
 
-        $classe = Classe::find($request->id_classe);
-        if (! $classe || ! $classe->enseignants->contains($user->id)) {
-            return response()->json([
-                'message' => 'Accès refusé: vous n\'êtes pas affecté à cette classe.'
-            ], 403);
-        }
+            'type_evaluation' => [
+                'required',
+                'string',
+                'max:255'
+            ],
 
-        // Vérifier que tous les élèves appartiennent à la classe
-        $invalidEleves = collect($request->notes)->pluck('id_eleve')
-            ->filter(fn($id) => ! $classe->eleves->contains($id));
+            'periode' => [
+                'required',
+                'string',
+                'max:255'
+            ],
 
-        if ($invalidEleves->isNotEmpty()) {
-            return response()->json([
-                'message' => 'Certains élèves ne sont pas inscrits dans cette classe.',
-                'invalid_eleve_ids' => $invalidEleves->values(),
-            ], 422);
-        }
+            'id_eleve' => [
+                'required',
+                'exists:users,id'
+            ],
 
-        $notes = [];
-        foreach ($request->notes as $noteData) {
-            $notes[] = Note::updateOrCreate(
-                [
-                    'id_eleve' => $noteData['id_eleve'],
-                    'id_classe' => $request->id_classe,
-                    'id_matiere' => $request->id_matiere,
-                    'type_evaluation' => $request->type_evaluation,
-                    'periode' => $request->periode,
-                ],
-                [
-                    'valeur' => $noteData['valeur'],
-                    'type_evaluation' => $request->type_evaluation,
-                    'periode' => $request->periode,
-                ]
-            );
-        }
+            'id_matiere' => [
+                'required',
+                'exists:matieres,id'
+            ],
+
+            'id_classe' => [
+                'required',
+                'exists:classes,id'
+            ]
+        ]);
+
+        $note = Note::create($validated);
+
+        // Charger les relations
+        $note->load([
+            'eleve',
+            'matiere',
+            'classe'
+        ]);
 
         return response()->json([
+
             'success' => true,
-            'data' => $notes,
+
+            'message' => 'La note a été ajoutée avec succès.',
+
+            'data' => $note
+
         ], 201);
     }
 
     /**
-     * Affiche une note spécifique.
+     * =====================================================
+     * DETAIL D'UNE NOTE
+     * =====================================================
      */
-    public function show(Request $request, int $id)
+    public function show($id)
     {
-        $note = Note::with(['eleve', 'classe', 'matiere'])->find($id);
+        $note = Note::with([
+            'eleve',
+            'matiere',
+            'classe'
+        ])->find($id);
 
-        if (! $note) {
-            return response()->json(['message' => 'Not Found'], 404);
+        if (!$note) {
+
+            return response()->json([
+
+                'success' => false,
+
+                'message' => 'Note introuvable.'
+
+            ], 404);
+
         }
 
-        $user = $request->user();
+        return response()->json([
 
-        if ($user->isAdministrateur() || $user->isSuperAdministrateur()) {
-            return response()->json(['success' => true, 'data' => $note], 200);
-        }
+            'success' => true,
 
-        if ($user->isEnseignant() && $note->classe->enseignants->contains($user->id)) {
-            return response()->json(['success' => true, 'data' => $note], 200);
-        }
+            'message' => 'Détail de la note.',
 
-        if ($user->isEleve() && $note->id_eleve === $user->id) {
-            return response()->json(['success' => true, 'data' => $note], 200);
-        }
+            'data' => $note
 
-        return response()->json(['message' => 'Not Found'], 404);
+        ]);
     }
 
     /**
-     * Mise à jour d'une note.
+ * =====================================================
+ * MODIFIER UNE NOTE
+ * =====================================================
+ */
+public function update(Request $request, $id)
+{
+    $note = Note::find($id);
+
+    if (!$note) {
+
+        return response()->json([
+            'success' => false,
+            'message' => 'Note introuvable.'
+        ],404);
+
+    }
+
+    $validated = $request->validate([
+
+        'valeur' => [
+            'required',
+            'numeric',
+            'min:0',
+            'max:20'
+        ],
+
+        'type_evaluation' => [
+            'required',
+            'string',
+            'max:255'
+        ],
+
+        'periode' => [
+            'required',
+            'string',
+            'max:255'
+        ],
+
+        'id_eleve' => [
+            'required',
+            'exists:users,id'
+        ],
+
+        'id_matiere' => [
+            'required',
+            'exists:matieres,id'
+        ],
+
+        'id_classe' => [
+            'required',
+            'exists:classes,id'
+        ]
+
+    ]);
+
+    $note->update($validated);
+
+    $note->load([
+        'eleve',
+        'matiere',
+        'classe'
+    ]);
+
+    return response()->json([
+
+        'success'=>true,
+
+        'message'=>'Note modifiée avec succès.',
+
+        'data'=>$note
+
+    ]);
+
+}
+
+/**
+ * =====================================================
+ * SUPPRIMER UNE NOTE
+ * =====================================================
+ */
+public function destroy($id)
+{
+    $note = Note::find($id);
+
+    if(!$note){
+
+        return response()->json([
+
+            'success'=>false,
+
+            'message'=>'Note introuvable.'
+
+        ],404);
+
+    }
+
+    $note->delete();
+
+    return response()->json([
+
+        'success'=>true,
+
+        'message'=>'La note a été supprimée avec succès.'
+
+    ]);
+
+}
+
+    /**
+     * =====================================================
+     * RÉSULTATS PAR CLASSE
+     * =====================================================
      */
-    public function update(Request $request, int $id)
+    public function resultatsParClasse($id)
     {
-        $note = Note::find($id);
-
-        if (! $note) {
-            return response()->json(['message' => 'Not Found'], 404);
-        }
-
-        $note->update($request->only(['valeur', 'type_evaluation', 'periode']));
+        $notes = Note::with([
+            'eleve',
+            'matiere',
+            'classe'
+        ])
+        ->where('id_classe', $id)
+        ->orderBy('created_at', 'desc')
+        ->get();
 
         return response()->json([
             'success' => true,
-            'data' => $note,
-        ], 200);
+            'message' => 'Résultats de la classe récupérés avec succès.',
+            'count' => $notes->count(),
+            'data' => $notes
+        ]);
     }
 
     /**
-     * Suppression d'une note.
+     * =====================================================
+     * RÉSULTATS PAR ÉLÈVE
+     * =====================================================
      */
-    public function destroy(int $id)
+    public function resultatsParEleve($id)
     {
-        $note = Note::find($id);
-
-        if (! $note) {
-            return response()->json(['message' => 'Not Found'], 404);
-        }
-
-        $note->delete();
+        $notes = Note::with([
+            'eleve',
+            'matiere',
+            'classe'
+        ])
+        ->where('id_eleve', $id)
+        ->orderBy('created_at', 'desc')
+        ->get();
 
         return response()->json([
             'success' => true,
-            'message' => 'Note supprimée avec succès.',
-        ], 200);
+            'message' => 'Résultats de l\'élève récupérés avec succès.',
+            'count' => $notes->count(),
+            'data' => $notes
+        ]);
     }
 }
