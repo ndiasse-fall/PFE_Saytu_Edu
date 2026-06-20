@@ -25,6 +25,26 @@ const UnauthorizedPage = lazy(() => import('../views/pages/system/UnauthorizedPa
   .then((module) => ({ default: module.UnauthorizedPage })))
 const ModulePlaceholderPage = lazy(() => import('../views/pages/system/ModulePlaceholderPage')
   .then((module) => ({ default: module.ModulePlaceholderPage })))
+const BulletinList = lazy(() =>
+  import('../views/pages/gestion-admin/bulletins/BulletinList')
+)
+
+const MesNotes = lazy(() =>
+  import('../views/pages/gestion-admin/eleves/espace-eleve/MesNotes')
+)
+
+const MesAbsences = lazy(() =>
+  import('../views/pages/gestion-admin/eleves/espace-eleve/MesAbsences')
+)
+
+const MonBulletin = lazy(() =>
+  import('../views/pages/gestion-admin/eleves/espace-eleve/MonBulletin')
+)
+
+const MonEmploiTemps = lazy(() =>
+  import('../views/pages/gestion-admin/eleves/espace-eleve/MonEmploiTemps')
+)
+
 
 function RoleHomeRedirect() {
   const { user } = useAuth()
@@ -55,7 +75,7 @@ export function AppRouter() {
                   path="/admin/emploi-du-temps"
                   element={<ModulePlaceholderPage title="Emploi du temps" />}
                 />
-                <Route path="/admin/bulletins" element={<ModulePlaceholderPage title="Bulletin" />} />
+                <Route path="/admin/bulletins" element={<BulletinList />} />
                 <Route path="/admin/gestion-admin/users" element={<UserManagementPage />} />
                 <Route path="/admin/gestion-admin/eleves" element={<EleveManagementPage />} />
                 <Route path="/admin/gestion-admin/eleves/:id" element={<EleveDetailsPage />} />
@@ -74,12 +94,18 @@ export function AppRouter() {
               </Route>
 
               <Route element={<RoleGuard roles={['ELEVE']} />}>
-                <Route path="/eleve/dashboard" element={<DashboardPage />} />
-                <Route
-                  path="/eleve/emploi-du-temps"
-                  element={<ModulePlaceholderPage title="Emploi du temps" />}
-                />
-                <Route path="/eleve/bulletin" element={<ModulePlaceholderPage title="Bulletin" />} />
+                 <Route path="/eleve/dashboard" element={<DashboardPage />} />
+
+                 <Route path="/eleve/notes" element={<MesNotes />} />
+
+                 <Route path="/eleve/absences" element={<MesAbsences />} />
+
+                 <Route path="/eleve/bulletin" element={<MonBulletin />} />
+
+                 <Route
+                    path="/eleve/emploi-du-temps"
+                   element={<MonEmploiTemps />}
+                 />
               </Route>
 
               <Route path="/unauthorized" element={<UnauthorizedPage />} />
