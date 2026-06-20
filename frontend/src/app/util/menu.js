@@ -13,6 +13,7 @@ export const menuItems = [
       { label: 'Utilisateurs', path: '/admin/gestion-admin/users', icon: 'bi-people-fill' },
     ],
   },
+
   {
     section: 'Espace utilisateur',
     roles: ['ENSEIGNANT', 'ELEVE'],
@@ -20,4 +21,15 @@ export const menuItems = [
       { label: 'Tableau de bord', path: '/user/dashboard', icon: 'bi-house-door-fill' },
     ],
   },
-]
+
+  {
+    section: 'Notes & Évaluations',
+    roles: ['ENSEIGNANT', 'ADMIN', 'SUPER_ADMIN'],
+    items: [
+      { label: 'Liste des notes', path: '/notes', icon: 'bi-journal-text' },
+      { label: 'Ajouter note', path: '/notes/create', icon: 'bi-plus-circle' },
+      { label: 'Résultats classe', path: '/notes/resultats/classe', icon: 'bi-bar-chart' },
+      { label: 'Résultats élève', path: '/notes/resultats/eleve', icon: 'bi-person-badge' },
+    ],
+  },
+];
