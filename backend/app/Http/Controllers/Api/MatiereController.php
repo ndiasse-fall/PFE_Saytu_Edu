@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Matiere;
+use App\Models\Matieres;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
@@ -15,29 +15,29 @@ class MatiereController extends Controller
      */
     public function index()
     {
-        return Matiere::all();
+        return Matieres::all();
     }
 
     /**
      * Crée une nouvelle matière.
      * 
      * @param Request $request
-     * @return Matiere
+     * @return Matieres
      */
     public function store(Request $request)
     {
-        return Matiere::create($request->all());
+        return Matieres::create($request->all());
     }
 
     /**
      * Affiche les détails d'une matière spécifique.
      * 
      * @param string $id
-     * @return Matiere
+     * @return Matieres
      */
     public function show(string $id)
     {
-        return Matiere::findOrFail($id);
+        return Matieres::findOrFail($id);
     }
 
     /**
@@ -45,11 +45,11 @@ class MatiereController extends Controller
      * 
      * @param Request $request
      * @param string $id
-     * @return Matiere
+     * @return Matieres
      */
     public function update(Request $request, string $id)
     {
-        $matiere = Matiere::findOrFail($id);
+        $matiere = Matieres::findOrFail($id);
 
         $matiere->update($request->all());
 
@@ -64,7 +64,7 @@ class MatiereController extends Controller
      */
     public function destroy(string $id)
     {
-        Matiere::destroy($id);
+        Matieres::destroy($id);
 
         return response()->json([
             'message' => 'Matière supprimée'
