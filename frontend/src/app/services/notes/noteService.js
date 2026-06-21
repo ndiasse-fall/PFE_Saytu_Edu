@@ -1,71 +1,67 @@
-import axios from "../../api/axios";
+import { apiClient } from "../../core/api/apiClient";
 
 /**
- * =====================================================
  * LISTE DES NOTES
- * =====================================================
  */
-export const getNotes = async (params = {}) => {
-    const response = await axios.get("/notes", { params });
-    return response.data;
+export const getNotes = (params = {}) => {
+    return apiClient("/notes", {
+        method: "GET",
+        params,
+    });
 };
 
 /**
- * =====================================================
  * UNE NOTE
- * =====================================================
  */
-export const getNoteById = async (id) => {
-    const response = await axios.get(`/notes/${id}`);
-    return response.data;
+export const getNoteById = (id) => {
+    return apiClient(`/notes/${id}`, {
+        method: "GET",
+    });
 };
 
 /**
- * =====================================================
  * AJOUTER
- * =====================================================
  */
-export const createNote = async (data) => {
-    const response = await axios.post("/notes", data);
-    return response.data;
+export const createNote = (data) => {
+    return apiClient("/notes", {
+        method: "POST",
+        data,
+    });
 };
 
 /**
- * =====================================================
  * MODIFIER
- * =====================================================
  */
-export const updateNote = async (id, data) => {
-    const response = await axios.put(`/notes/${id}`, data);
-    return response.data;
+export const updateNote = (id, data) => {
+    return apiClient(`/notes/${id}`, {
+        method: "PUT",
+        data,
+    });
 };
 
 /**
- * =====================================================
  * SUPPRIMER
- * =====================================================
  */
-export const deleteNote = async (id) => {
-    const response = await axios.delete(`/notes/${id}`);
-    return response.data;
+export const deleteNote = (id) => {
+    return apiClient(`/notes/${id}`, {
+        method: "DELETE",
+    });
 };
 
 /**
- * =====================================================
- * RÉSULTATS D'UNE CLASSE
- * =====================================================
+ * RÉSULTATS CLASSE
  */
-export const getResultatsClasse = async (idClasse) => {
-    const response = await axios.get(`/notes/classe/${idClasse}`);
-    return response.data;
+export const getResultatsClasse = (idClasse) => {
+    return apiClient(`/notes/classe/${idClasse}`, {
+        method: "GET",
+    });
 };
 
 /**
- * =====================================================
- * RÉSULTATS D'UN ÉLÈVE
- * =====================================================
+ * RÉSULTATS ÉLÈVE
  */
-export const getResultatsEleve = async (idEleve) => {
-    const response = await axios.get(`/notes/eleve/${idEleve}`);
-    return response.data;
+export const getResultatsEleve = (idEleve) => {
+    return apiClient(`/notes/eleve/${idEleve}`, {
+        method: "GET",
+    });
 };
