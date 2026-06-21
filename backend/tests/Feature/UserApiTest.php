@@ -80,6 +80,25 @@ class UserApiTest extends TestCase
             ->assertJsonPath('data.0.role', RoleEnum::ADMIN->value);
     }
 
+    public function test_can_load_dashboard_summary_in_one_request(): void
+    {
+        $this->authenticate();
+
+        User::factory()->admin()->count(2)->create();
+        User::factory()->enseignant()->count(6)->create();
+        User::factory()->eleve()->count(3)->create();
+
+        $this->getJson('/api/dashboard/users-summary')
+            ->assertOk()
+            ->assertJsonPath('counts.total', 12)
+            ->assertJsonPath('counts.admins', 2)
+            ->assertJsonPath('counts.enseignants', 6)
+            ->assertJsonPath('counts.eleves', 3)
+            ->assertJsonPath('counts.actifs', 12)
+            ->assertJsonPath('counts.inactifs', 0)
+            ->assertJsonCount(5, 'recent_teachers');
+    }
+
     public function test_can_show_user(): void
     {
         $this->authenticate();

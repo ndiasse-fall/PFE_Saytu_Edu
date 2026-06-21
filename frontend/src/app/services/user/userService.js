@@ -1,5 +1,18 @@
 import { apiClient } from '../../core/api/apiClient'
 
+const pendingRequests = new Map()
+
+function deduplicateRequest(key, request) {
+  if (pendingRequests.has(key)) {
+    return pendingRequests.get(key)
+  }
+
+  const promise = request().finally(() => pendingRequests.delete(key))
+  pendingRequests.set(key, promise)
+
+  return promise
+}
+
 export async function listUsers(filters = {}) {
   const params = new URLSearchParams()
 
@@ -7,9 +20,17 @@ export async function listUsers(filters = {}) {
   if (filters.role) params.set('role', filters.role)
   if (filters.actif !== '' && filters.actif !== undefined) params.set('actif', filters.actif)
   if (filters.perPage) params.set('per_page', filters.perPage)
+  if (filters.page) params.set('page', filters.page)
 
   const query = params.toString()
-  return apiClient(`/users${query ? `?${query}` : ''}`)
+  const path = `/users${query ? `?${query}` : ''}`
+
+  return deduplicateRequest(path, () => apiClient(path))
+}
+
+export function getDashboardSummary() {
+  const path = '/dashboard/users-summary'
+  return deduplicateRequest(path, () => apiClient(path))
 }
 
 export async function showUser(userId) {

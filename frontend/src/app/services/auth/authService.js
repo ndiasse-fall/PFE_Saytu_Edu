@@ -1,5 +1,7 @@
 import { apiClient } from '../../core/api/apiClient'
 
+let currentUserRequest = null
+
 export function login(credentials) {
   return apiClient('/login', {
     method: 'POST',
@@ -14,6 +16,13 @@ export function logout() {
 }
 
 export async function getCurrentUser() {
-  const response = await apiClient('/me')
-  return response.data
+  if (!currentUserRequest) {
+    currentUserRequest = apiClient('/me')
+      .then((response) => response.data)
+      .finally(() => {
+        currentUserRequest = null
+      })
+  }
+
+  return currentUserRequest
 }

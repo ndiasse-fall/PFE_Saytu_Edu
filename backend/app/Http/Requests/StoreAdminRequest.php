@@ -8,16 +8,19 @@ class StoreAdminRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()
-            && $this->user()->statut === 'SUPER_ADMIN';
+        return $this->user() && $this->user()->isSuperAdministrateur();
     }
 
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'name' => 'nullable|string|max:255|required_without_all:nom,prenom',
+            'nom' => 'nullable|string|max:255|required_without:name',
+            'prenom' => 'nullable|string|max:255|required_without:name',
             'email' => 'required|string|email|max:255|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
+            'telephone' => 'nullable|string|max:20',
+            'adresse' => 'nullable|string',
         ];
     }
 }

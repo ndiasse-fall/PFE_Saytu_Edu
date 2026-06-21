@@ -5,11 +5,42 @@ namespace App\Services;
 use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 
 class UserService
 {
+    public function getDashboardSummary(): array
+    {
+        $counts = User::query()
+            ->selectRaw('COUNT(*) as total')
+            ->selectRaw('SUM(CASE WHEN role = ? THEN 1 ELSE 0 END) as admins', [RoleEnum::ADMIN->value])
+            ->selectRaw('SUM(CASE WHEN role = ? THEN 1 ELSE 0 END) as eleves', [RoleEnum::ELEVE->value])
+            ->selectRaw('SUM(CASE WHEN role = ? THEN 1 ELSE 0 END) as enseignants', [RoleEnum::ENSEIGNANT->value])
+            ->selectRaw('SUM(CASE WHEN actif = 1 THEN 1 ELSE 0 END) as actifs')
+            ->selectRaw('SUM(CASE WHEN actif = 0 THEN 1 ELSE 0 END) as inactifs')
+            ->selectRaw(
+                'SUM(CASE WHEN telephone IS NULL OR telephone = ? OR adresse IS NULL OR adresse = ? THEN 1 ELSE 0 END) as profils_incomplets',
+                ['', '']
+            )
+            ->first();
+
+        return [
+            'counts' => [
+                'total' => (int) ($counts?->total ?? 0),
+                'admins' => (int) ($counts?->admins ?? 0),
+                'eleves' => (int) ($counts?->eleves ?? 0),
+                'enseignants' => (int) ($counts?->enseignants ?? 0),
+                'actifs' => (int) ($counts?->actifs ?? 0),
+                'inactifs' => (int) ($counts?->inactifs ?? 0),
+                'profils_incomplets' => (int) ($counts?->profils_incomplets ?? 0),
+            ],
+            'recent_teachers' => $this->recentTeachers(),
+        ];
+    }
+
     public function listUsers(array $filters = [], int $perPage = 15): LengthAwarePaginator
     {
         $role = null;
@@ -19,7 +50,18 @@ class UserService
                 : RoleEnum::from($filters['role']);
         }
 
-        return User::query()
+        $query = User::query();
+
+        // On charge la relation appropriée pour l'Eager Loading
+        if ($role === RoleEnum::ELEVE) {
+            $query->with('eleveClasses');
+        } elseif ($role === RoleEnum::ENSEIGNANT) {
+            $query->with('enseignantClasses');
+        } else {
+            $query->with(['eleveClasses', 'enseignantClasses']);
+        }
+
+        return $query->withoutTrashed()
             ->search($filters['search'] ?? null)
             ->byRole($role)
             ->active($filters['actif'] ?? null)
@@ -29,28 +71,77 @@ class UserService
 
     public function createUser(array $data): User
     {
-        $data['password'] = Hash::make($data['password']);
-        $data['actif'] = $data['actif'] ?? true;
-        $data = $this->syncLegacyName($data);
+        $this->assertSuperAdminRoleIsNotManagedHere($data);
 
-        return User::create($data);
+        $plainPassword = $data['password'];
+
+        $data['password'] = Hash::make($plainPassword);
+        $data['actif'] = $data['actif'] ?? true;
+        $data = $this->syncLegacyFields($data);
+
+        $user = User::create($data);
+
+        event(new \App\Events\UserCreated($user, $plainPassword));
+
+        return $user;
+    }
+
+
+    public function createAdmin(array $data, ?User $creator = null): User
+    {
+        $name = trim((string) ($data['name'] ?? ''));
+        $nameParts = preg_split('/\s+/', $name, 2, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        $payload = [
+            'nom' => $data['nom'] ?? ($nameParts[1] ?? $nameParts[0] ?? 'Admin'),
+            'prenom' => $data['prenom'] ?? ($nameParts[0] ?? 'Saytou'),
+            'email' => $data['email'],
+            'password' => $data['password'],
+            'telephone' => $data['telephone'] ?? null,
+            'adresse' => $data['adresse'] ?? null,
+            'role' => RoleEnum::ADMIN,
+            'actif' => true,
+        ];
+
+        if ($creator) {
+            $payload['id_parent_createur'] = $creator->id;
+        }
+
+        return $this->createUser($payload);
     }
 
     public function showUser(User $user): User
     {
+        if ($user->role === RoleEnum::ELEVE || $user->statut === 'ELEVE') {
+            $user->load('eleveClasses');
+        } elseif ($user->role === RoleEnum::ENSEIGNANT || $user->statut === 'ENSEIGNANT') {
+            $user->load('enseignantClasses');
+        }
+
         return $user;
     }
 
     public function updateUser(User $user, array $data): User
     {
+        $this->assertSuperAdminRoleIsNotManagedHere($data);
+
         if (array_key_exists('password', $data) && filled($data['password'])) {
             $data['password'] = Hash::make($data['password']);
         } else {
             unset($data['password']);
         }
 
-        $data = $this->syncLegacyName($data, $user);
+        $data = $this->syncLegacyFields($data, $user);
         $user->update($data);
+
+        return $user->fresh();
+    }
+
+    public function updateUserRole(User $user, RoleEnum|string $role): User
+    {
+        $user->forceFill($this->syncLegacyFields([
+            'role' => $role instanceof RoleEnum ? $role : RoleEnum::from($role),
+        ], $user))->save();
 
         return $user->fresh();
     }
@@ -67,10 +158,29 @@ class UserService
         return $user->fresh();
     }
 
-    private function syncLegacyName(array $data, ?User $user = null): array
+    public function getDashboardMetrics(): array
+    {
+        return [
+            'total_users' => User::query()->count(),
+            'admins' => User::query()->byRole(RoleEnum::ADMIN)->count(),
+            'enseignants' => User::query()->byRole(RoleEnum::ENSEIGNANT)->count(),
+            'eleves' => User::query()->byRole(RoleEnum::ELEVE)->count(),
+        ];
+    }
+
+    private function recentTeachers(): Collection
+    {
+        return User::query()
+            ->where('role', RoleEnum::ENSEIGNANT->value)
+            ->latest('id')
+            ->limit(5)
+            ->get();
+    }
+
+    private function syncLegacyFields(array $data, ?User $user = null): array
     {
         if (! Schema::hasColumn('users', 'name')) {
-            return $data;
+            return $this->syncLegacyRole($data, $user);
         }
 
         $nom = $data['nom'] ?? $user?->nom ?? '';
@@ -79,6 +189,36 @@ class UserService
 
         $data['name'] = $fullName !== '' ? $fullName : 'Utilisateur';
 
+        return $this->syncLegacyRole($data, $user);
+    }
+
+    private function syncLegacyRole(array $data, ?User $user = null): array
+    {
+        if (! Schema::hasColumn('users', 'statut')) {
+            return $data;
+        }
+
+        $role = $data['role'] ?? $user?->resolvedRole();
+
+        if ($role instanceof RoleEnum) {
+            $data['statut'] = $role->value;
+        } elseif (filled($role)) {
+            $data['statut'] = (string) $role;
+        }
+
         return $data;
+    }
+
+    private function assertSuperAdminRoleIsNotManagedHere(array $data): void
+    {
+        $role = $data['role'] ?? null;
+
+        if ($role !== RoleEnum::SUPER_ADMIN->value && $role !== RoleEnum::SUPER_ADMIN) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'role' => 'Le compte Super Admin est réservé au seeder système.',
+        ]);
     }
 }

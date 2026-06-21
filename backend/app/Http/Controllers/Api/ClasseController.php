@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Classe;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class ClasseController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Liste toutes les classes.
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function index()
     {
@@ -17,7 +20,10 @@ class ClasseController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crée une nouvelle classe.
+     * 
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -31,7 +37,10 @@ class ClasseController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Affiche les détails d'une classe spécifique.
+     * 
+     * @param string $id
+     * @return Classe
      */
     public function show(string $id)
     {
@@ -39,7 +48,11 @@ class ClasseController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
+     * Met à jour les informations d'une classe.
+     * 
+     * @param Request $request
+     * @param string $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function update(Request $request, string $id)
     {
@@ -51,7 +64,10 @@ class ClasseController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Supprime une classe.
+     * 
+     * @param string $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(string $id)
     {
@@ -64,22 +80,42 @@ class ClasseController extends Controller
 
     /**
      * Inscrire un élève dans une classe.
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function inscrireEleve(Request $request, $id)
     {
-        $classe = Classe::findOrFail($id);
+        try {
+            $request->validate([
+                'id_eleve' => 'required|exists:users,id'
+            ]);
 
-        $classe->eleves()->syncWithoutDetaching([
-            $request->id_eleve
-        ]);
+            $classe = Classe::findOrFail($id);
 
-        return response()->json([
-            'message' => 'Élève inscrit avec succès'
-        ]);
+            $classe->eleves()->syncWithoutDetaching([
+                $request->id_eleve
+            ]);
+
+            return response()->json([
+                'message' => 'Élève inscrit avec succès'
+            ]);
+        } catch (\Exception $e) {
+            Log::error("Erreur inscription élève: " . $e->getMessage());
+            return response()->json([
+                'message' => 'Erreur lors de l\'inscription',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Affecter un enseignant à une classe.
+     * 
+     * @param Request $request
+     * @param int $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function affecterEnseignant(Request $request, $id)
     {
@@ -93,4 +129,4 @@ class ClasseController extends Controller
             'message' => 'Enseignant affecté avec succès'
         ]);
     }
- }
+}

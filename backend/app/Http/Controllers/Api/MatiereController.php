@@ -2,42 +2,54 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Models\Matiere;
+use App\Models\Matieres;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 class MatiereController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Liste toutes les matières.
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function index()
     {
-        return Matiere::all();
+        return Matieres::all();
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Crée une nouvelle matière.
+     * 
+     * @param Request $request
+     * @return Matieres
      */
     public function store(Request $request)
     {
-        return Matiere::create($request->all());
+        return Matieres::create($request->all());
     }
 
     /**
-     * Display the specified resource.
+     * Affiche les détails d'une matière spécifique.
+     * 
+     * @param string $id
+     * @return Matieres
      */
     public function show(string $id)
     {
-        return Matiere::findOrFail($id);
+        return Matieres::findOrFail($id);
     }
 
     /**
-     * Update the specified resource in storage.
+     * Met à jour une matière.
+     * 
+     * @param Request $request
+     * @param string $id
+     * @return Matieres
      */
     public function update(Request $request, string $id)
     {
-          $matiere = Matiere::findOrFail($id);
+        $matiere = Matieres::findOrFail($id);
 
         $matiere->update($request->all());
 
@@ -45,11 +57,14 @@ class MatiereController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Supprime une matière.
+     * 
+     * @param string $id
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(string $id)
     {
-          Matiere::destroy($id);
+        Matieres::destroy($id);
 
         return response()->json([
             'message' => 'Matière supprimée'

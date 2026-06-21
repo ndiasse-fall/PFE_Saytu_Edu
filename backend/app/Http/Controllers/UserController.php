@@ -13,11 +13,20 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    /**
+     * Initialise le contrôleur avec le service utilisateur.
+     */
     public function __construct(
         private readonly UserService $userService
     ) {
     }
 
+    /**
+     * Liste les utilisateurs avec filtres (recherche, rôle, actif).
+     * 
+     * @param Request $request
+     * @return JsonResponse
+     */
     public function index(Request $request): JsonResponse
     {
         $validated = $request->validate([
@@ -33,6 +42,17 @@ class UserController extends Controller
         return response()->json($users);
     }
 
+    public function dashboard(): JsonResponse
+    {
+        return response()->json($this->userService->getDashboardSummary());
+    }
+
+    /**
+     * Crée un nouvel utilisateur.
+     * 
+     * @param StoreUserRequest $request
+     * @return JsonResponse
+     */
     public function store(StoreUserRequest $request): JsonResponse
     {
         $user = $this->userService->createUser($request->validated());
@@ -43,6 +63,12 @@ class UserController extends Controller
         ], 201);
     }
 
+    /**
+     * Affiche les détails d'un utilisateur.
+     * 
+     * @param User $user
+     * @return JsonResponse
+     */
     public function show(User $user): JsonResponse
     {
         return response()->json([
@@ -50,6 +76,13 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Met à jour un utilisateur existant.
+     * 
+     * @param UpdateUserRequest $request
+     * @param User $user
+     * @return JsonResponse
+     */
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
         $updatedUser = $this->userService->updateUser($user, $request->validated());
@@ -60,6 +93,12 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Supprime un utilisateur (Soft Delete).
+     * 
+     * @param User $user
+     * @return JsonResponse
+     */
     public function destroy(User $user): JsonResponse
     {
         $this->userService->deleteUser($user);
@@ -69,6 +108,12 @@ class UserController extends Controller
         ]);
     }
 
+    /**
+     * Active ou désactive un utilisateur.
+     * 
+     * @param User $user
+     * @return JsonResponse
+     */
     public function toggleActive(User $user): JsonResponse
     {
         $updatedUser = $this->userService->toggleActive($user);
