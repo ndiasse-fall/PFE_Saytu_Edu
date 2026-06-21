@@ -4,18 +4,12 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UserController;
-<<<<<<< HEAD
-use App\Http\Controllers\AdminController;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-=======
 use App\Http\Controllers\Api\ClasseController;
 use App\Http\Controllers\Api\SuperAdminController;
 use App\Http\Controllers\EmploiDuTempsController;
 use App\Http\Controllers\NoteController;
 use App\Http\Controllers\Api\EleveController;
 use App\Http\Controllers\Api\MatiereController;
->>>>>>> main
 
 // --- ROUTES PUBLIQUES ---
 Route::post('login', [AuthController::class, 'login']);
@@ -63,7 +57,7 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
     Route::middleware('check.role:SUPER_ADMIN,ADMIN,ENSEIGNANT,ELEVE')->group(function (): void {
         Route::get('notes', [NoteController::class, 'index']);
         Route::get('notes/{id}', [NoteController::class, 'show']);
-        
+
         Route::get('emplois-du-temps', [EmploiDuTempsController::class, 'index']);
         Route::get('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'show']);
     });
@@ -77,27 +71,4 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
 
     // --- ELEVE SEULEMENT ---
     Route::middleware('check.role:ELEVE')->group(function () {
-        Route::get('mon-bulletin', [EleveController::class, 'monBulletin']);
-        Route::get('mon-emploi-du-temps', [EleveController::class, 'monEmploiDuTemps']);
-    });
-});
-<<<<<<< HEAD
-
-Route::apiResource('classes', ClasseController::class);
-Route::post('classes/{id}/inscrire-eleve', [ClasseController::class, 'inscrireEleve']);
-Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
-Route::apiResource('matieres', MatiereController::class);
-
-// Routes CRUD Enseignants
-Route::get('/enseignants',         [AdminController::class, 'indexEnseignants']);
-Route::post('/enseignants',        [AdminController::class, 'storeEnseignant']);
-Route::put('/enseignants/{id}',    [AdminController::class, 'updateEnseignant']);
-Route::delete('/enseignants/{id}', [AdminController::class, 'destroyEnseignant']);
-
-// Routes CRUD Élèves
-Route::get('/eleves',         [AdminController::class, 'indexEleves']);
-Route::post('/eleves',        [AdminController::class, 'storeEleve']);
-Route::put('/eleves/{id}',    [AdminController::class, 'updateEleve']);
-Route::delete('/eleves/{id}', [AdminController::class, 'destroyEleve']);
-=======
->>>>>>> main
+        Route::get('mon-bulletin', [EleveController::class, 'monBulletin'])
