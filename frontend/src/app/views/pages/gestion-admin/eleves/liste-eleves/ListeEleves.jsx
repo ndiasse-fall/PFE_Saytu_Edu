@@ -61,6 +61,18 @@ export function ListeEleves({
                             <option value="0">Inactif</option>
                         </select>
                     </label>
+                    <label className="users-toolbar-field">
+                        <span>Affectation</span>
+                        <select
+                            name="affecte"
+                            value={filters.affecte ?? ""}
+                            onChange={onFilterChange}
+                        >
+                            <option value="">Tous</option>
+                            <option value="1">Affecté à une classe</option>
+                            <option value="0">Non affecté</option>
+                        </select>
+                    </label>
                     <div className="form-actions users-toolbar-actions">
                         <button type="submit">Filtrer</button>
                         <button
@@ -112,7 +124,7 @@ export function ListeEleves({
                                             >
                                                 {getInitials(eleve)}
                                             </span>
-                                            <strong>
+                                            <strong translate="no">
                                                 {eleve.prenom} {eleve.nom}
                                             </strong>
                                         </span>

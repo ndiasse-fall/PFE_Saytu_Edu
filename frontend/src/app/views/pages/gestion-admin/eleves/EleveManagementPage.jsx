@@ -28,7 +28,7 @@ const emptyForm = {
   actif: true,
 }
 
-const initialFilters = { search: '', actif: '' }
+const initialFilters = { search: '', actif: '', affecte: '' }
 
 export function EleveManagementPage() {
   const navigate = useNavigate()
