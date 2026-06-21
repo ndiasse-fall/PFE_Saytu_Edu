@@ -7,32 +7,6 @@ import { useAuth } from "../core/context/useAuth";
 import { getDashboardPath } from "../util/roleNavigation";
 import { BaseLayout } from "../views/layout/base/BaseLayout";
 
-<<<<<<< HEAD
-const LoginPage = lazy(() => import('../views/pages/auth/login/LoginPage')
-  .then((module) => ({ default: module.LoginPage })))
-const DashboardPage = lazy(() => import('../views/pages/gestion-admin/dashboard/DashboardPage')
-  .then((module) => ({ default: module.DashboardPage })))
-const UserManagementPage = lazy(() => import('../views/pages/gestion-admin/users/UserManagementPage')
-  .then((module) => ({ default: module.UserManagementPage })))
-  const ClasseManagementPage = lazy(() =>
-  import('../views/pages/gestion-admin/classes/ClasseManagementPage')
-    .then(module => ({
-      default: module.ClasseManagementPage})))
-      const MatiereManagementPage = lazy(() =>
-  import('../views/pages/gestion-admin/matieres/MatiereManagementPage')
-    .then(module => ({
-      default: module.MatiereManagementPage})))
-      const AffectationManagementPage = lazy(() =>
-  import('../views/pages/gestion-admin/affectations/AffectationManagementPage')
-    .then(module => ({
-      default: module.AffectationManagementPage})))
-const SettingsPage = lazy(() => import('../views/pages/settings/SettingsPage')
-  .then((module) => ({ default: module.SettingsPage })))
-const NotFoundPage = lazy(() => import('../views/pages/system/NotFoundPage')
-  .then((module) => ({ default: module.NotFoundPage })))
-const UnauthorizedPage = lazy(() => import('../views/pages/system/UnauthorizedPage')
-  .then((module) => ({ default: module.UnauthorizedPage })))
-=======
 const LoginPage = lazy(() =>
     import("../views/pages/auth/login/LoginPage").then((module) => ({
         default: module.LoginPage,
@@ -84,7 +58,6 @@ function RoleHomeRedirect() {
 
     return <Navigate to={getDashboardPath(user?.role)} replace />;
 }
->>>>>>> 1e46c9208855ad7f7d7779c433d242510331349c
 
 export function AppRouter() {
     return (
@@ -107,16 +80,6 @@ export function AppRouter() {
                                 element={<RoleHomeRedirect />}
                             />
 
-<<<<<<< HEAD
-              <Route element={<RoleGuard roles={['SUPER_ADMIN', 'ADMIN']} />}>
-                <Route path="/admin/gestion-admin/classes"element={<ClasseManagementPage />} />
-                <Route path="/admin/gestion-admin/matieres" element={<MatiereManagementPage />} />
-                <Route path="/admin/gestion-admin/affectations" element={<AffectationManagementPage />} />
-                <Route path="/admin/dashboard" element={<DashboardPage />} />
-                <Route path="/admin/gestion-admin/users" element={<UserManagementPage />} />
-                <Route path="/admin/settings" element={<SettingsPage />} />
-              </Route>
-=======
                             <Route
                                 element={
                                     <RoleGuard
@@ -175,7 +138,6 @@ export function AppRouter() {
                                     element={<SettingsPage />}
                                 />
                             </Route>
->>>>>>> 1e46c9208855ad7f7d7779c433d242510331349c
 
                             <Route
                                 element={<RoleGuard roles={["ENSEIGNANT"]} />}
