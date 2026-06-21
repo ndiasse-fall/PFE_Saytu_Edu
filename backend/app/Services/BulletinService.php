@@ -6,7 +6,7 @@ use App\Models\User;
 
 class BulletinService
 {
-    public function calculerMoyenne($eleveId)
+    public function calculerMoyenne(int $eleveId)
     {
         $eleve = User::with('notes.matiere')->findOrFail($eleveId);
 

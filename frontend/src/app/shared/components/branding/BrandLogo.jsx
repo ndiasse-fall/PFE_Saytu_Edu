@@ -1,4 +1,4 @@
-import logoSrc from '../../../../assets/branding/saytu-logo.png'
+import logoSrc from '../../../../assets/branding/logo_bleu.png'
 
 export function BrandLogo({ size = 'md', light = false, showText = true }) {
   const classes = ['brand-logo']

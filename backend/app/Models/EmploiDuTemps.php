@@ -12,12 +12,12 @@ class EmploiDuTemps extends Model
     protected $table = 'emploi_du_temps';
 
     protected $fillable = [
-        'jour', 
-        'heure_debut', 
-        'heure_fin', 
-        'salle', 
-        'id_classe', 
-        'id_enseignant', 
+        'jour',
+        'heure_debut',
+        'heure_fin',
+        'salle',
+        'id_classe',
+        'id_enseignant',
         'id_matiere'
     ];
 
@@ -33,6 +33,6 @@ class EmploiDuTemps extends Model
 
     public function matiere()
     {
-        return $this->belongsTo(Matiere::class, 'id_matiere');
+        return $this->belongsTo(Matieres::class, 'id_matiere');
     }
 }
