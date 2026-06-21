@@ -42,7 +42,8 @@ export function AffectationManagementPage() {
       setEnseignants(enseignantsRes.data || []);
       setAffectations(affectationsRes);
     } catch (err) {
-      setError("Erreur lors du chargement des données");
+  console.error(err);
+  setError(err.message);
     } finally {
       setLoading(false);
     }
