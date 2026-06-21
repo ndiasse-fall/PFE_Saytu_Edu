@@ -71,4 +71,7 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
 
     // --- ELEVE SEULEMENT ---
     Route::middleware('check.role:ELEVE')->group(function () {
-        Route::get('mon-bulletin', [EleveController::class, 'monBulletin'])
+        Route::get('mon-bulletin', [EleveController::class, 'monBulletin']);
+        Route::get('mon-emploi-du-temps', [EleveController::class, 'monEmploiDuTemps']);
+    });
+});
