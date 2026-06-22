@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\EmploiDuTemps;
 use App\Models\Classe;
 use App\Models\User;
-use App\Models\Matiere;
+use App\Models\Matieres;
 use Illuminate\Database\Seeder;
 
 class EmploiDuTempsSeeder extends Seeder
@@ -18,7 +18,7 @@ class EmploiDuTempsSeeder extends Seeder
         // On récupère des données existantes ou on en crée
         $classes = Classe::all();
         $enseignants = User::where('role', 'ENSEIGNANT')->get();
-        $matieres = Matiere::all();
+        $matieres = Matieres::all();
 
         if ($classes->isEmpty() || $enseignants->isEmpty() || $matieres->isEmpty()) {
             // Si pas assez de données, on utilise les factories

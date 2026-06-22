@@ -40,6 +40,10 @@ class User extends Authenticatable
         'password',
     ];
 
+    protected $appends = [
+        'classes',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -95,9 +99,13 @@ class User extends Authenticatable
 
     public function classes()
     {
-        return $this->isEleve()
-            ? $this->eleveClasses()
-            : $this->enseignantClasses();
+        $role = $this->role instanceof RoleEnum ? $this->role->value : ($this->role ?? $this->statut);
+
+        if ($role === 'ELEVE') {
+            return $this->eleveClasses();
+        }
+
+        return $this->enseignantClasses();
     }
 
     public function eleveClasses()
@@ -108,6 +116,29 @@ class User extends Authenticatable
     public function enseignantClasses()
     {
         return $this->belongsToMany(Classe::class, 'classe_enseignant', 'id_enseignant', 'id_classe');
+    }
+
+    /**
+     * Accesseur pour récupérer les classes quelle que soit la relation chargée.
+     * Utile pour l'Eager Loading car la relation dynamique 'classes()' ne fonctionne pas bien avec with().
+     */
+    public function getClassesAttribute()
+    {
+        // On récupère la relation chargée
+        $classes = $this->relationLoaded('eleveClasses') 
+            ? $this->eleveClasses 
+            : ($this->relationLoaded('enseignantClasses') ? $this->enseignantClasses : null);
+
+        if ($classes) {
+            return $classes;
+        }
+
+        if ($this->relationLoaded('classes')) {
+            return $this->relations['classes'];
+        }
+        
+        // Lazy loading fallback
+        return $this->classes()->get();
     }
 
     public function notes()
@@ -158,5 +189,80 @@ class User extends Authenticatable
         }
 
         return (string) ($this->role ?? $this->statut);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            $role = $user->resolvedRole();
+            
+            if ($role === 'ELEVE') {
+                if (empty($user->matricule_eleve)) {
+                    $user->matricule_eleve = self::generateMatriculeEleve();
+                }
+            } elseif ($role === 'ENSEIGNANT') {
+                if (empty($user->matricule_enseignant)) {
+                    $user->matricule_enseignant = self::generateMatriculeEnseignant();
+                }
+            }
+        });
+    }
+
+    public static function generateMatriculeEleve(): string
+    {
+        $year = date('Y');
+        $prefix = "ELV-{$year}";
+
+        $lastUser = self::where('matricule_eleve', 'LIKE', "{$prefix}%")
+            ->orderByRaw('LENGTH(matricule_eleve) DESC')
+            ->orderBy('matricule_eleve', 'desc')
+            ->first();
+
+        if ($lastUser && preg_match('/ELV-\d{4}(\d+)/', $lastUser->matricule_eleve, $matches)) {
+            $lastNumber = (int) $matches[1];
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+        $matricule = "{$prefix}{$suffix}";
+
+        while (self::where('matricule_eleve', $matricule)->exists()) {
+            $nextNumber++;
+            $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+            $matricule = "{$prefix}{$suffix}";
+        }
+
+        return $matricule;
+    }
+
+    public static function generateMatriculeEnseignant(): string
+    {
+        $year = date('Y');
+        $prefix = "ENS-{$year}";
+
+        $lastUser = self::where('matricule_enseignant', 'LIKE', "{$prefix}%")
+            ->orderByRaw('LENGTH(matricule_enseignant) DESC')
+            ->orderBy('matricule_enseignant', 'desc')
+            ->first();
+
+        if ($lastUser && preg_match('/ENS-\d{4}(\d+)/', $lastUser->matricule_enseignant, $matches)) {
+            $lastNumber = (int) $matches[1];
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+        $matricule = "{$prefix}{$suffix}";
+
+        while (self::where('matricule_enseignant', $matricule)->exists()) {
+            $nextNumber++;
+            $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+            $matricule = "{$prefix}{$suffix}";
+        }
+
+        return $matricule;
     }
 }

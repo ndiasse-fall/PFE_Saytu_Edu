@@ -3,7 +3,6 @@ import { Box, Drawer } from '@mui/material'
 export function DrawerPanel({
   open,
   onClose,
-  width = 460,
   title,
   subtitle = '',
   headerAction = null,
@@ -14,21 +13,14 @@ export function DrawerPanel({
       anchor="right"
       open={open}
       onClose={onClose}
+      className="users-drawer-root"
       slotProps={{
-        root: {
-          keepMounted: true,
-        },
         paper: {
-          sx: {
-            width: { xs: '100vw', sm: Math.min(width, 560) },
-            backgroundColor: 'var(--bg)',
-            p: { xs: 1.5, sm: 2.5 },
-            borderLeft: '1px solid var(--border)',
-          },
+          className: 'users-drawer-paper',
         },
       }}
     >
-      <Box className="panel users-drawer-panel" sx={{ minHeight: { xs: 'calc(100vh - 24px)', sm: 'calc(100vh - 40px)' }, boxShadow: 'none', m: 0 }}>
+      <Box className="panel users-drawer-panel">
         <div className="panel-header">
           <div>
             <h2>{title}</h2>

@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Classe;
-use App\Models\Matiere;
+use App\Models\Matieres;
 use App\Models\Note;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -19,7 +19,7 @@ class NoteFactory extends Factory
             'type_evaluation' => fake()->randomElement(['Devoir', 'Examen', 'Interrogation']),
             'periode' => fake()->randomElement(['Trimestre 1', 'Trimestre 2', 'Trimestre 3']),
             'id_eleve' => User::factory()->eleve(),
-            'id_matiere' => Matiere::factory(),
+            'id_matiere' => Matieres::factory(),
             'id_classe' => Classe::factory(),
         ];
     }
