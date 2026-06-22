@@ -9,6 +9,10 @@ import { BaseLayout } from '../views/layout/base/BaseLayout'
 
 const LoginPage = lazy(() => import('../views/pages/auth/login/LoginPage')
   .then((module) => ({ default: module.LoginPage })))
+const ForgotPasswordPage = lazy(() => import('../views/pages/auth/forgot-password/ForgotPasswordPage')
+  .then((module) => ({ default: module.ForgotPasswordPage })))
+const ResetPasswordPage = lazy(() => import('../views/pages/auth/reset-password/ResetPasswordPage')
+  .then((module) => ({ default: module.ResetPasswordPage })))
 const DashboardPage = lazy(() => import('../views/pages/gestion-admin/dashboard/DashboardPage')
   .then((module) => ({ default: module.DashboardPage })))
 const UserManagementPage = lazy(() => import('../views/pages/gestion-admin/users/UserManagementPage')
@@ -35,6 +39,8 @@ export function AppRouter() {
         <Routes>
           <Route element={<GuestGuard />}>
             <Route path="/login" element={<LoginPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password" element={<ResetPasswordPage />} />
           </Route>
 
           <Route element={<AuthGuard />}>

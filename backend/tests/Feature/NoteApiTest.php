@@ -130,6 +130,34 @@ class NoteApiTest extends TestCase
             ->assertJsonPath('message', 'Accès refusé: vous n\'êtes pas affecté à cette classe.');
     }
 
+    public function test_cannot_saisir_note_greater_than_twenty(): void
+    {
+        $enseignant = User::factory()->enseignant()->create(['actif' => true]);
+        Sanctum::actingAs($enseignant);
+
+        $classe = Classe::factory()->create();
+        $matiere = Matiere::factory()->create();
+        $eleve = User::factory()->eleve()->create(['actif' => true]);
+
+        $classe->enseignants()->attach($enseignant->id);
+        $classe->eleves()->attach($eleve->id);
+
+        $this->postJson('/api/notes/saisir', [
+            'id_classe' => $classe->id,
+            'id_matiere' => $matiere->id,
+            'type_evaluation' => 'Devoir',
+            'periode' => 'Trimestre 1',
+            'notes' => [
+                [
+                    'id_eleve' => $eleve->id,
+                    'valeur' => 21,
+                ],
+            ],
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['notes.0.valeur']);
+    }
+
     public function test_cannot_saisir_note_for_student_outside_the_class(): void
     {
         $enseignant = User::factory()->create([
@@ -215,5 +243,43 @@ class NoteApiTest extends TestCase
 
         $response->assertOk()
             ->assertJsonCount(0, 'data');
+    }
+
+    public function test_enseignant_cannot_update_note_outside_his_classes(): void
+    {
+        $enseignant = User::factory()->enseignant()->create(['actif' => true]);
+        Sanctum::actingAs($enseignant);
+
+        $autreClasse = Classe::factory()->create();
+        $note = Note::factory()->create([
+            'id_classe' => $autreClasse->id,
+            'valeur' => 10,
+        ]);
+
+        $this->putJson("/api/notes/{$note->id}", [
+            'valeur' => 18,
+        ])->assertStatus(404);
+
+        $this->assertDatabaseHas('notes', [
+            'id' => $note->id,
+            'valeur' => 10,
+        ]);
+    }
+
+    public function test_enseignant_cannot_delete_note_outside_his_classes(): void
+    {
+        $enseignant = User::factory()->enseignant()->create(['actif' => true]);
+        Sanctum::actingAs($enseignant);
+
+        $autreClasse = Classe::factory()->create();
+        $note = Note::factory()->create([
+            'id_classe' => $autreClasse->id,
+        ]);
+
+        $this->deleteJson("/api/notes/{$note->id}")->assertStatus(404);
+
+        $this->assertDatabaseHas('notes', [
+            'id' => $note->id,
+        ]);
     }
 }

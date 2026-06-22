@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../../../core/context/useAuth'
 import { BrandLogo } from '../../../../shared/components/branding/BrandLogo'
 import { CheckboxField } from '../../../../shared/components/forms/CheckboxField'
@@ -104,9 +104,9 @@ export function LoginPage() {
                     onChange={handleChange}
                     label="Se souvenir de moi"
                   />
-                  <span className="text-link" aria-disabled="true">
+                  <Link className="text-link" to="/forgot-password">
                     Mot de passe oublié
-                  </span>
+                  </Link>
                 </div>
 
                 <PrimaryButton type="submit" disabled={loading} block className="auth-submit-button">

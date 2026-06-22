@@ -95,9 +95,19 @@ class User extends Authenticatable
 
     public function classes()
     {
-        return $this->statut === 'ELEVE'
-            ? $this->belongsToMany(Classe::class, 'classe_eleve', 'id_eleve', 'id_classe')
-            : $this->belongsToMany(Classe::class, 'classe_enseignant', 'id_enseignant', 'id_classe');
+        return $this->isEleve()
+            ? $this->eleveClasses()
+            : $this->enseignantClasses();
+    }
+
+    public function eleveClasses()
+    {
+        return $this->belongsToMany(Classe::class, 'classe_eleve', 'id_eleve', 'id_classe');
+    }
+
+    public function enseignantClasses()
+    {
+        return $this->belongsToMany(Classe::class, 'classe_enseignant', 'id_enseignant', 'id_classe');
     }
 
     public function notes()

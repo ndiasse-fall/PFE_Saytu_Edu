@@ -3,17 +3,21 @@
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Api\ClasseController;
 use App\Http\Controllers\Api\SuperAdminController;
 use App\Http\Controllers\EmploiDuTempsController;
 use App\Http\Controllers\NoteController;
+use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\Api\EleveController;
 use App\Http\Controllers\Api\MatiereController;
 
 // --- ROUTES PUBLIQUES ---
 Route::post('login', [AuthController::class, 'login']);
 Route::post('auth/login', [AuthController::class, 'login']);
+Route::post('forgot-password', [PasswordResetController::class, 'forgotPassword']);
+Route::post('reset-password', [PasswordResetController::class, 'resetPassword']);
 
 // --- ROUTES PROTÉGÉES ---
 Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
@@ -51,6 +55,11 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         Route::post('emplois-du-temps', [EmploiDuTempsController::class, 'store']);
         Route::put('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'update']);
         Route::delete('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'destroy']);
+
+        // Écriture Absences
+        Route::post('absences', [AbsenceController::class, 'store']);
+        Route::put('absences/{id}', [AbsenceController::class, 'update']);
+        Route::delete('absences/{id}', [AbsenceController::class, 'destroy']);
     });
 
     // --- LECTURE COMMUNE (TOUS RÔLES) ---
@@ -60,6 +69,9 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         
         Route::get('emplois-du-temps', [EmploiDuTempsController::class, 'index']);
         Route::get('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'show']);
+
+        Route::get('absences', [AbsenceController::class, 'index']);
+        Route::get('absences/{id}', [AbsenceController::class, 'show']);
     });
 
     // --- ENSEIGNANT SEULEMENT (ÉCRITURE NOTES) ---

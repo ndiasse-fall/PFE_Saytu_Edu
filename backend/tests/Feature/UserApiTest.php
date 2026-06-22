@@ -34,6 +34,9 @@ class UserApiTest extends TestCase
             'adresse' => 'Dakar',
             'role' => RoleEnum::ENSEIGNANT->value,
             'actif' => true,
+            'matricule_enseignant' => 'ENS-2026-001',
+            'specialite' => 'Mathematiques',
+            'date_embauche' => '2026-01-15',
         ]);
 
         $response
@@ -133,6 +136,9 @@ class UserApiTest extends TestCase
             'password' => 'nouveaupass123',
             'role' => RoleEnum::ENSEIGNANT->value,
             'actif' => false,
+            'matricule_enseignant' => 'ENS-2026-002',
+            'specialite' => 'Physique',
+            'date_embauche' => '2026-02-01',
         ]);
 
         $response
@@ -147,6 +153,46 @@ class UserApiTest extends TestCase
         $this->assertSame(RoleEnum::ENSEIGNANT, $user->role);
         $this->assertFalse($user->actif);
         $this->assertTrue(Hash::check('nouveaupass123', $user->password));
+    }
+
+    public function test_create_enseignant_requires_teacher_fields(): void
+    {
+        $this->authenticate();
+
+        $this->postJson('/api/users', [
+            'nom' => 'Diop',
+            'prenom' => 'Mamadou',
+            'email' => 'mamadou.diop@example.com',
+            'password' => 'motdepasse123',
+            'role' => RoleEnum::ENSEIGNANT->value,
+            'actif' => true,
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'matricule_enseignant',
+                'specialite',
+                'date_embauche',
+            ]);
+    }
+
+    public function test_create_eleve_requires_student_fields(): void
+    {
+        $this->authenticate();
+
+        $this->postJson('/api/users', [
+            'nom' => 'Ndiaye',
+            'prenom' => 'Awa',
+            'email' => 'awa.ndiaye@example.com',
+            'password' => 'motdepasse123',
+            'role' => RoleEnum::ELEVE->value,
+            'actif' => true,
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors([
+                'matricule_eleve',
+                'date_naissance',
+                'telephone_parent',
+            ]);
     }
 
     public function test_can_toggle_user_status(): void

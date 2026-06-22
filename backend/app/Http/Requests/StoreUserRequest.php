@@ -28,12 +28,12 @@ class StoreUserRequest extends FormRequest
             'adresse' => ['nullable', 'string'],
             'role' => ['required', new Enum(RoleEnum::class)],
             'actif' => ['nullable', 'boolean'],
-            'matricule_enseignant' => ['nullable', 'string', 'unique:users,matricule_enseignant'],
-            'specialite' => ['nullable', 'string', 'max:255'],
-            'date_embauche' => ['nullable', 'date'],
-            'matricule_eleve' => ['nullable', 'string', 'unique:users,matricule_eleve'],
-            'date_naissance' => ['nullable', 'date'],
-            'telephone_parent' => ['nullable', 'string', 'max:20'],
+            'matricule_enseignant' => ['required_if:role,ENSEIGNANT', 'nullable', 'string', 'unique:users,matricule_enseignant'],
+            'specialite' => ['required_if:role,ENSEIGNANT', 'nullable', 'string', 'max:255'],
+            'date_embauche' => ['required_if:role,ENSEIGNANT', 'nullable', 'date'],
+            'matricule_eleve' => ['required_if:role,ELEVE', 'nullable', 'string', 'unique:users,matricule_eleve'],
+            'date_naissance' => ['required_if:role,ELEVE', 'nullable', 'date'],
+            'telephone_parent' => ['required_if:role,ELEVE', 'nullable', 'string', 'max:20'],
             'statut' => ['nullable', 'string'],
         ];
     }

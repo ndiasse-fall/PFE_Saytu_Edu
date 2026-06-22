@@ -34,12 +34,12 @@ class UpdateUserRequest extends FormRequest
             'adresse' => ['nullable', 'string'],
             'role' => ['sometimes', 'required', new Enum(RoleEnum::class)],
             'actif' => ['nullable', 'boolean'],
-            'matricule_enseignant' => ['nullable', 'string', Rule::unique('users', 'matricule_enseignant')->ignore($userId)],
-            'specialite' => ['nullable', 'string', 'max:255'],
-            'date_embauche' => ['nullable', 'date'],
-            'matricule_eleve' => ['nullable', 'string', Rule::unique('users', 'matricule_eleve')->ignore($userId)],
-            'date_naissance' => ['nullable', 'date'],
-            'telephone_parent' => ['nullable', 'string', 'max:20'],
+            'matricule_enseignant' => ['required_if:role,ENSEIGNANT', 'nullable', 'string', Rule::unique('users', 'matricule_enseignant')->ignore($userId)],
+            'specialite' => ['required_if:role,ENSEIGNANT', 'nullable', 'string', 'max:255'],
+            'date_embauche' => ['required_if:role,ENSEIGNANT', 'nullable', 'date'],
+            'matricule_eleve' => ['required_if:role,ELEVE', 'nullable', 'string', Rule::unique('users', 'matricule_eleve')->ignore($userId)],
+            'date_naissance' => ['required_if:role,ELEVE', 'nullable', 'date'],
+            'telephone_parent' => ['required_if:role,ELEVE', 'nullable', 'string', 'max:20'],
             'statut' => ['nullable', 'string'],
         ];
     }
