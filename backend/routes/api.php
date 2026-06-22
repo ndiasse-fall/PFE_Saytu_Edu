@@ -57,9 +57,9 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
     Route::middleware('check.role:SUPER_ADMIN,ADMIN,ENSEIGNANT,ELEVE')->group(function (): void {
         Route::get('notes', [NoteController::class, 'index']);
         Route::get('notes/{id}', [NoteController::class, 'show']);
-        Route::get('notes/resultats/classe/{id}', [NoteController::class, 'resultatsParClasse']);
-        Route::get('notes/resultats/eleve/{id}', [NoteController::class, 'resultatsParEleve']);
-        
+Route::get('notes/resultats/classe/{id}', [NoteController::class, 'resultatsParClasse']);
+
+Route::get('notes/resultats/eleve/{id}', [NoteController::class, 'resultatsParEleve']);
         Route::get('emplois-du-temps', [EmploiDuTempsController::class, 'index']);
         Route::get('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'show']);
     });
