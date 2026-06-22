@@ -13,7 +13,7 @@ export function Sidebar({ isOpen, onClose, onToggle }) {
         section.roles.includes(user?.role),
     );
     const canAccessSettings =
-        user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
+        user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.role === "ELEVE";
     const accountLabel = useMemo(() => {
         if (user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") {
             return "Saytu Admin";
@@ -143,7 +143,7 @@ export function Sidebar({ isOpen, onClose, onToggle }) {
                                     className="sidebar-account-action"
                                     onClick={() =>
                                         handleAccountNavigation(
-                                            "/admin/settings",
+                                            "/settings",
                                         )
                                     }
                                     role="menuitem"

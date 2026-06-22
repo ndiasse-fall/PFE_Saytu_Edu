@@ -307,7 +307,7 @@ export function DashboardPage() {
             <Link to="/admin/gestion-admin/users"><i className="bi bi-person-plus" />Ajouter un utilisateur<i className="bi bi-chevron-right" /></Link>
             <Link to="/admin/gestion-admin/users"><i className="bi bi-people" />Gérer les utilisateurs<i className="bi bi-chevron-right" /></Link>
             <Link to="/admin/gestion-admin/users"><i className="bi bi-person-video3" />Voir les enseignants<i className="bi bi-chevron-right" /></Link>
-            <Link to="/admin/settings"><i className="bi bi-gear" />Paramètres<i className="bi bi-chevron-right" /></Link>
+            <Link to="/settings"><i className="bi bi-gear" />Paramètres<i className="bi bi-chevron-right" /></Link>
           </nav>
         </section>
       </div>

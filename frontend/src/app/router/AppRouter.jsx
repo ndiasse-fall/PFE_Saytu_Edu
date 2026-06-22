@@ -83,6 +83,10 @@ export function AppRouter() {
                                 path="/user/dashboard"
                                 element={<RoleHomeRedirect />}
                             />
+                            <Route
+                                path="/settings"
+                                element={<SettingsPage />}
+                            />
 
                             <Route
                                 element={
@@ -138,10 +142,6 @@ export function AppRouter() {
                                 <Route
                                     path="/admin/gestion-admin/professeurs"
                                     element={<TeacherManagementPage />}
-                                />
-                                <Route
-                                    path="/admin/settings"
-                                    element={<SettingsPage />}
                                 />
                             </Route>
 

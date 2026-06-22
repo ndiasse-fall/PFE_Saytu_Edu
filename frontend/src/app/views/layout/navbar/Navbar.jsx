@@ -38,7 +38,7 @@ export function Navbar({ isSidebarOpen, onToggleSidebar }) {
                 <div className="school-year">2025 – 2026</div>
                 <Link
                     className="topbar-profile"
-                    to="/admin/settings"
+                    to="/settings"
                     aria-label={`Ouvrir le profil de ${fullName}`}
                 >
                     <span className="topbar-profile-avatar" aria-hidden="true">
