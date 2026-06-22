@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\RoleEnum;
 use App\Models\Classe;
+use App\Models\EmploiDuTemps;
 use App\Models\Matieres;
 use App\Models\Note;
 use App\Models\User;
@@ -51,5 +52,29 @@ class EleveApiTest extends TestCase
         $response = $this->getJson("/api/notes/{$note->id}");
 
         $response->assertStatus(404);
+    }
+
+    public function test_eleve_can_view_only_his_class_schedule()
+    {
+        $eleve = User::factory()->eleve()->create(['actif' => true]);
+        Sanctum::actingAs($eleve);
+
+        $classe = Classe::factory()->create();
+        $autreClasse = Classe::factory()->create();
+        $classe->eleves()->attach($eleve->id);
+
+        $emploi = EmploiDuTemps::factory()->create([
+            'id_classe' => $classe->id,
+        ]);
+        EmploiDuTemps::factory()->create([
+            'id_classe' => $autreClasse->id,
+        ]);
+
+        $response = $this->getJson('/api/mon-emploi-du-temps');
+
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('data.0.id', $emploi->id);
     }
 }

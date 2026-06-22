@@ -119,6 +119,59 @@ class EmploiDuTempsTest extends TestCase
             ->assertJsonValidationErrors(['id_classe']);
     }
 
+    public function test_can_create_adjacent_schedule_for_same_class(): void
+    {
+        $this->authenticateAsAdmin();
+        $classe = Classe::factory()->create();
+        $enseignant1 = User::factory()->enseignant()->create();
+        $enseignant2 = User::factory()->enseignant()->create();
+        $matiere = Matieres::factory()->create();
+
+        EmploiDuTemps::create([
+            'jour' => 'Lundi',
+            'heure_debut' => '08:00',
+            'heure_fin' => '10:00',
+            'salle' => 'Salle 101',
+            'id_classe' => $classe->id,
+            'id_enseignant' => $enseignant1->id,
+            'id_matiere' => $matiere->id,
+        ]);
+
+        $response = $this->postJson('/api/emplois-du-temps', [
+            'jour' => 'Lundi',
+            'heure_debut' => '10:00',
+            'heure_fin' => '12:00',
+            'salle' => 'Salle 102',
+            'id_classe' => $classe->id,
+            'id_enseignant' => $enseignant2->id,
+            'id_matiere' => $matiere->id,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.heure_debut', '10:00');
+    }
+
+    public function test_cannot_create_schedule_with_non_teacher_user(): void
+    {
+        $this->authenticateAsAdmin();
+        $classe = Classe::factory()->create();
+        $eleve = User::factory()->eleve()->create();
+        $matiere = Matieres::factory()->create();
+
+        $response = $this->postJson('/api/emplois-du-temps', [
+            'jour' => 'Lundi',
+            'heure_debut' => '08:00',
+            'heure_fin' => '10:00',
+            'salle' => 'Salle 101',
+            'id_classe' => $classe->id,
+            'id_enseignant' => $eleve->id,
+            'id_matiere' => $matiere->id,
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonValidationErrors(['id_enseignant']);
+    }
+
     public function test_admin_can_update_emploi_du_temps(): void
     {
         $this->authenticateAsAdmin();

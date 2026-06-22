@@ -266,4 +266,3 @@ class User extends Authenticatable
         return $matricule;
     }
 }
-
