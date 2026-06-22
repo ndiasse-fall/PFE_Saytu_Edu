@@ -153,7 +153,7 @@ class User extends Authenticatable
 
     public function matieres()
     {
-        return $this->belongsToMany(Matiere::class, 'enseignant_matiere', 'id_enseignant', 'id_matiere');
+        return $this->belongsToMany(Matieres::class, 'enseignant_matiere', 'id_enseignant', 'id_matiere');
     }
 
     public function isSuperAdministrateur(): bool

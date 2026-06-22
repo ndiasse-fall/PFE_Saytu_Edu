@@ -41,6 +41,7 @@ export function AffectationManagementPage() {
       setMatieres(matieresRes);
       setEnseignants(enseignantsRes.data || []);
       setAffectations(affectationsRes);
+      console.log("Affectations :", affectationsRes);
     } catch (err) {
   console.error(err);
   setError(err.message);
@@ -102,38 +103,79 @@ export function AffectationManagementPage() {
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
-      <div className="panel mt-4">
-        <div className="table-wrapper">
-          <table className="users-table">
-            <thead>
-              <tr>
-                <th>Classe / Enseignant</th>
-                <th>Matière</th>
-                <th>Type</th>
-              </tr>
-            </thead>
-            <tbody>
-              {affectations.length > 0 ? (
-                affectations.map((aff) => (
-                  <tr key={aff.id}>
-                    <td>{aff.target_name}</td>
-                    <td>{aff.matiere_nom}</td>
-                    <td>
-                      <span className={`badge ${aff.type === 'Matière à Classe' ? 'badge-primary' : 'badge-success'}`}>
-                        {aff.type}
-                      </span>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "20px", marginTop: "20px" }}>
+        {/* Table 1: Enseignant à Matière */}
+        <div className="panel">
+          <div className="panel-header" style={{ marginBottom: "15px" }}>
+            <h3 className="panel-title" style={{ fontSize: "1.1rem", fontWeight: "600", color: "var(--text-strong)" }}>
+              Affectations Enseignant à Matière
+            </h3>
+          </div>
+          <div className="table-wrapper">
+            <table className="users-table">
+              <thead>
+                <tr>
+                  <th>Enseignant</th>
+                  <th>Matière</th>
+                </tr>
+              </thead>
+              <tbody>
+                {affectations.filter((aff) => aff.type === "Enseignant à Matière").length === 0 ? (
+                  <tr>
+                    <td colSpan="2" style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>
+                      Aucune affectation enseignant-matière
                     </td>
                   </tr>
-                ))
-              ) : (
+                ) : (
+                  affectations
+                    .filter((aff) => aff.type === "Enseignant à Matière")
+                    .map((aff) => (
+                      <tr key={aff.id}>
+                        <td>{aff.target_name}</td>
+                        <td>{aff.matiere_nom}</td>
+                      </tr>
+                    ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Table 2: Matière à Classe */}
+        <div className="panel">
+          <div className="panel-header" style={{ marginBottom: "15px" }}>
+            <h3 className="panel-title" style={{ fontSize: "1.1rem", fontWeight: "600", color: "var(--text-strong)" }}>
+              Affectations Matière à Classe
+            </h3>
+          </div>
+          <div className="table-wrapper">
+            <table className="users-table">
+              <thead>
                 <tr>
-                  <td colSpan="3" style={{ textAlign: 'center', padding: '40px' }}>
-                    <p className="text-muted">Aucune affectation trouvée. Les nouvelles affectations s'afficheront ici une fois enregistrées.</p>
-                  </td>
+                  <th>Classe</th>
+                  <th>Matière</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {affectations.filter((aff) => aff.type === "Matière à Classe").length === 0 ? (
+                  <tr>
+                    <td colSpan="2" style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>
+                      Aucune affectation matière-classe
+                    </td>
+                  </tr>
+                ) : (
+                  affectations
+                    .filter((aff) => aff.type === "Matière à Classe")
+                    .map((aff) => (
+                      <tr key={aff.id}>
+                        <td>{aff.target_name}</td>
+                        <td>{aff.matiere_nom}</td>
+                      </tr>
+                    ))
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
