@@ -208,4 +208,67 @@ class UserApiTest extends TestCase
             'id' => $user->id,
         ]);
     }
+
+    public function test_can_generate_automatic_matricule_for_eleve(): void
+    {
+        $this->authenticate();
+
+        $response = $this->postJson('/api/users', [
+            'nom' => 'Sene',
+            'prenom' => 'Babacar',
+            'email' => 'babacar.sene@example.com',
+            'password' => 'motdepasse123',
+            'role' => RoleEnum::ELEVE->value,
+            'actif' => true,
+        ]);
+
+        $response->assertCreated();
+
+        $user = User::where('email', 'babacar.sene@example.com')->firstOrFail();
+        
+        $year = date('Y');
+        $this->assertNotNull($user->matricule_eleve);
+        $this->assertStringStartsWith("ELV-{$year}", $user->matricule_eleve);
+        $this->assertNull($user->matricule_enseignant);
+    }
+
+    public function test_can_generate_automatic_matricule_for_enseignant(): void
+    {
+        $this->authenticate();
+
+        $response = $this->postJson('/api/users', [
+            'nom' => 'Diop',
+            'prenom' => 'Khadim',
+            'email' => 'khadim.diop@example.com',
+            'password' => 'motdepasse123',
+            'role' => RoleEnum::ENSEIGNANT->value,
+            'actif' => true,
+        ]);
+
+        $response->assertCreated();
+
+        $user = User::where('email', 'khadim.diop@example.com')->firstOrFail();
+
+        $year = date('Y');
+        $this->assertNotNull($user->matricule_enseignant);
+        $this->assertStringStartsWith("ENS-{$year}", $user->matricule_enseignant);
+        $this->assertNull($user->matricule_eleve);
+    }
+
+    public function test_avoids_duplicate_matricule_generation(): void
+    {
+        $this->authenticate();
+
+        $year = date('Y');
+        // On crée un premier élève avec un matricule spécifique
+        $user1 = User::factory()->eleve()->create([
+            'matricule_eleve' => "ELV-{$year}001",
+        ]);
+
+        // On crée un second élève sans matricule
+        $user2 = User::factory()->eleve()->create();
+
+        // Le second élève doit avoir le matricule suivant : ELV-YYYY002
+        $this->assertSame("ELV-{$year}002", $user2->matricule_eleve);
+    }
 }
