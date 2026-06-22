@@ -32,6 +32,11 @@ const EleveDetailsPage = lazy(() =>
         (module) => ({ default: module.EleveDetailsPage }),
     ),
 );
+const TeacherManagementPage = lazy(() =>
+    import("../views/pages/gestion-admin/professeurs/TeacherManagementPage").then(
+        (module) => ({ default: module.TeacherManagementPage }),
+    ),
+);
 const SettingsPage = lazy(() =>
     import("../views/pages/settings/SettingsPage").then((module) => ({
         default: module.SettingsPage,
@@ -55,7 +60,6 @@ const ModulePlaceholderPage = lazy(() =>
 
 function RoleHomeRedirect() {
     const { user } = useAuth();
-
     return <Navigate to={getDashboardPath(user?.role)} replace />;
 }
 
@@ -99,9 +103,7 @@ export function AppRouter() {
                                 />
                                 <Route
                                     path="/admin/professeurs"
-                                    element={
-                                        <ModulePlaceholderPage title="Professeurs" />
-                                    }
+                                    element={<TeacherManagementPage />}
                                 />
                                 <Route
                                     path="/admin/classes"
@@ -132,6 +134,10 @@ export function AppRouter() {
                                 <Route
                                     path="/admin/gestion-admin/eleves/:id"
                                     element={<EleveDetailsPage />}
+                                />
+                                <Route
+                                    path="/admin/gestion-admin/professeurs"
+                                    element={<TeacherManagementPage />}
                                 />
                                 <Route
                                     path="/admin/settings"
