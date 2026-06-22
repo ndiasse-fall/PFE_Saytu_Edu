@@ -167,7 +167,7 @@ export function DashboardPage() {
           <div className="dashboard-profile-grid">
             <article className="dashboard-profile-card">
               <span>Nom complet</span>
-              <strong>{getFullName(user) || 'Non renseigné'}</strong>
+              <strong translate="no">{getFullName(user) || 'Non renseigné'}</strong>
             </article>
             <article className="dashboard-profile-card">
               <span>Email</span>

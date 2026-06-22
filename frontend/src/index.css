@@ -12,7 +12,7 @@
     --primary: #2f64f1;
     --primary-strong: #1f57df;
     --primary-soft: #e8f0ff;
-    --primary-surface: #1d49b3;
+    --primary-surface: #1D49B3;
     --danger: #dc2626;
     --danger-soft: #fee2e2;
     --success: #15803d;
@@ -728,14 +728,15 @@ th,
 
 .auth-copy-block {
     display: grid;
-    gap: 18px;
+    gap: 20px;
+    justify-items: center;
 }
 
 .auth-copy-block h1 {
     margin: 0;
     font-size: clamp(2rem, 3vw, 2.7rem);
     line-height: 1.18;
-    color: var(--primary);
+    color: var(--primary)
 }
 
 .auth-feature-list {

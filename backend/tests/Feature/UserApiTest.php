@@ -80,6 +80,37 @@ class UserApiTest extends TestCase
             ->assertJsonPath('data.0.role', RoleEnum::ADMIN->value);
     }
 
+    public function test_can_list_users_filtered_by_classe_affectation(): void
+    {
+        $this->authenticate();
+
+        $eleveAffecte = User::factory()->eleve()->create([
+            'nom' => 'Affecte',
+            'prenom' => 'Jean',
+        ]);
+        $classe = \App\Models\Classe::factory()->create();
+        $classe->eleves()->attach($eleveAffecte->id);
+
+        $eleveNonAffecte = User::factory()->eleve()->create([
+            'nom' => 'NonAffecte',
+            'prenom' => 'Paul',
+        ]);
+
+        // Filter: affecte = 1 (True)
+        $response1 = $this->getJson('/api/users?role=ELEVE&affecte=1');
+        $response1
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.nom', 'Affecte');
+
+        // Filter: affecte = 0 (False)
+        $response0 = $this->getJson('/api/users?role=ELEVE&affecte=0');
+        $response0
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.nom', 'NonAffecte');
+    }
+
     public function test_can_load_dashboard_summary_in_one_request(): void
     {
         $this->authenticate();

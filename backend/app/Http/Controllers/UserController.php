@@ -33,6 +33,7 @@ class UserController extends Controller
             'search' => ['nullable', 'string', 'max:255'],
             'role' => ['nullable', new Enum(RoleEnum::class)],
             'actif' => ['nullable', 'boolean'],
+            'affecte' => ['nullable', 'boolean'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
