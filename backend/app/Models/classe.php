@@ -28,7 +28,7 @@ class Classe extends Model
     public function matieres()
     {
         return $this->belongsToMany(
-            Matiere::class,
+            Matieres::class,
             'classe_matiere',
             'id_classe',
             'id_matiere'
