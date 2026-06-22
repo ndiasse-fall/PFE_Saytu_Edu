@@ -22,6 +22,7 @@ export async function listEleves(filters = {}) {
   params.set('role', 'ELEVE') // Forcé pour ce service
   if (filters.search) params.set('search', filters.search)
   if (filters.actif !== '' && filters.actif !== undefined) params.set('actif', filters.actif)
+  if (filters.affecte !== '' && filters.affecte !== undefined) params.set('affecte', filters.affecte)
   if (filters.perPage) params.set('per_page', filters.perPage)
   if (filters.page) params.set('page', filters.page)
 

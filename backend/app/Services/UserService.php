@@ -61,6 +61,31 @@ class UserService
             $query->with(['eleveClasses', 'enseignantClasses']);
         }
 
+        if (isset($filters['affecte']) && $filters['affecte'] !== null && $filters['affecte'] !== '') {
+            $affecte = filter_var($filters['affecte'], FILTER_VALIDATE_BOOLEAN);
+            if ($role === RoleEnum::ELEVE) {
+                if ($affecte) {
+                    $query->has('eleveClasses');
+                } else {
+                    $query->doesntHave('eleveClasses');
+                }
+            } elseif ($role === RoleEnum::ENSEIGNANT) {
+                if ($affecte) {
+                    $query->has('enseignantClasses');
+                } else {
+                    $query->doesntHave('enseignantClasses');
+                }
+            } else {
+                if ($affecte) {
+                    $query->where(function ($q) {
+                        $q->has('eleveClasses')->orHas('enseignantClasses');
+                    });
+                } else {
+                    $query->doesntHave('eleveClasses')->doesntHave('enseignantClasses');
+                }
+            }
+        }
+
         return $query->withoutTrashed()
             ->search($filters['search'] ?? null)
             ->byRole($role)

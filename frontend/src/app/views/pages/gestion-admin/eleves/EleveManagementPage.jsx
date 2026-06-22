@@ -6,7 +6,6 @@ import {
   inscrireDansClasse,
   listClasses,
   listEleves,
-  showEleve,
   toggleEleveStatus,
   updateEleve,
 } from '../../../../services/eleves/eleveService'
@@ -28,7 +27,7 @@ const emptyForm = {
   actif: true,
 }
 
-const initialFilters = { search: '', actif: '' }
+const initialFilters = { search: '', actif: '', affecte: '' }
 
 export function EleveManagementPage() {
   const navigate = useNavigate()
@@ -83,6 +82,7 @@ export function EleveManagementPage() {
   }, [filters, pagination?.currentPage, pagination?.perPage])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     loadData(initialFilters, 1, 15)
     // On ne veut exécuter cela qu'au montage
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -213,10 +213,6 @@ export function EleveManagementPage() {
     } finally {
       setSubmitting(false)
     }
-  }
-
-  function closeDetails() {
-    setSelectedEleve(null)
   }
 
   function closeInscription() {
