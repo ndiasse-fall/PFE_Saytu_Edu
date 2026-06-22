@@ -25,207 +25,207 @@ $appName        = config('app.name', 'Saytu Edu');
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
-        /* =========================================================================
+    /* =========================================================================
            CSS ISOLÉ (Laravel s'occupe de l'injecter en ligne automatiquement)
            ========================================================================= */
-        body {
-            margin: 0;
-            padding: 0;
-            width: 100% !important;
-            background-color: <?php echo $bgColor;
-                                ?>;
-            font-family: 'Poppins', 'Segoe UI', Helvetica, Arial, sans-serif;
-            -webkit-font-smoothing: antialiased;
-        }
+    body {
+        margin: 0;
+        padding: 0;
+        width: 100% !important;
+        background-color: <?php echo $bgColor;
+        ?>;
+        font-family: 'Poppins', 'Segoe UI', Helvetica, Arial, sans-serif;
+        -webkit-font-smoothing: antialiased;
+    }
 
-        .email-wrapper {
-            width: 100%;
-            background-color: <?php echo $bgColor;
-                                ?>;
-            padding: 40px 0;
-        }
+    .email-wrapper {
+        width: 100%;
+        background-color: <?php echo $bgColor;
+        ?>;
+        padding: 40px 0;
+    }
 
+    .email-container {
+        background-color: <?php echo $cardBg;
+        ?>;
+        border: 1px solid <?php echo $borderColor;
+        ?>;
+        border-radius: 12px;
+        box-shadow: 0 18px 34px rgba(15, 23, 42, 0.06);
+        overflow: hidden;
+        border-collapse: separate;
+    }
+
+    /* En-tête */
+    .header-zone {
+        background-color: <?php echo $primaryColor;
+        ?>;
+        padding: 35px 20px;
+        text-align: center;
+    }
+
+    .logo-img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        border: 0;
+        margin: 0 auto 12px auto;
+    }
+
+    .header-title {
+        color: #ffffff;
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .header-subtitle {
+        color: rgba(255, 255, 255, 0.85);
+        margin: 5px 0 0 0;
+        font-size: 13px;
+        font-weight: 400;
+    }
+
+    /* Corps */
+    .content-zone {
+        padding: 40px 30px;
+        color: <?php echo $textColor;
+        ?>;
+        font-size: 15px;
+        line-height: 1.6;
+    }
+
+    .content-title {
+        color: <?php echo $textStrong;
+        ?>;
+        margin-top: 0;
+        margin-bottom: 16px;
+        font-size: 19px;
+        font-weight: 600;
+    }
+
+    .text-spacing {
+        margin-bottom: 24px;
+    }
+
+    .text-lead {
+        margin-bottom: 12px;
+        font-weight: 500;
+        color: <?php echo $textStrong;
+        ?>;
+    }
+
+    /* Zone Identifiants */
+    .credentials-table {
+        background-color: <?php echo $accentBg;
+        ?>;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        border-collapse: separate;
+    }
+
+    .credentials-padding {
+        padding: 20px 24px;
+    }
+
+    .label-cell {
+        color: <?php echo $primaryColor;
+        ?>;
+        font-weight: 600;
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding-bottom: 8px;
+    }
+
+    .value-cell {
+        color: <?php echo $textStrong;
+        ?>;
+        font-family: monospace;
+        font-size: 15px;
+        font-weight: 500;
+        padding-bottom: 8px;
+    }
+
+    .value-password {
+        color: <?php echo $textStrong;
+        ?>;
+        font-family: monospace;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    /* Bouton */
+    .button-container {
+        margin: 30px 0;
+        text-align: center;
+    }
+
+    .btn-primary {
+        display: inline-block;
+        background-color: <?php echo $primaryColor;
+        ?>;
+        color: #ffffff !important;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+        padding: 14px 28px;
+        border-radius: 8px;
+        box-shadow: 0 8px 20px rgba(47, 100, 241, 0.15);
+    }
+
+    /* Sécurité & Footer */
+    .security-zone {
+        border-top: 1px solid <?php echo $borderColor;
+        ?>;
+        padding-top: 20px;
+        margin-top: 25px;
+    }
+
+    .security-text {
+        margin: 0;
+        font-size: 13px;
+        color: #dc2626;
+        font-style: italic;
+        line-height: 1.5;
+    }
+
+    .footer-zone {
+        background-color: #f8fafc;
+        border-top: 1px solid <?php echo $borderColor;
+        ?>;
+        padding: 24px 20px;
+        font-size: 12px;
+        color: <?php echo $textColor;
+        ?>;
+        text-align: center;
+    }
+
+    .footer-text {
+        margin: 0 0 6px 0;
+        font-weight: 500;
+    }
+
+    .footer-copyright {
+        margin: 0;
+        opacity: 0.8;
+    }
+
+    /* Optimisations mobiles obligatoires dans le head */
+    @media only screen and (max-width: 600px) {
         .email-container {
-            background-color: <?php echo $cardBg;
-                                ?>;
-            border: 1px solid <?php echo $borderColor;
-                                ?>;
-            border-radius: 12px;
-            box-shadow: 0 18px 34px rgba(15, 23, 42, 0.06);
-            overflow: hidden;
-            border-collapse: separate;
+            width: 100% !important;
         }
 
-        /* En-tête */
-        .header-zone {
-            background-color: <?php echo $primaryColor;
-                                ?>;
-            padding: 35px 20px;
-            text-align: center;
-        }
-
-        .logo-img {
-            display: block;
-            max-width: 100%;
-            height: auto;
-            border: 0;
-            margin: 0 auto 12px auto;
-        }
-
-        .header-title {
-            color: #ffffff;
-            margin: 0;
-            font-size: 24px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .header-subtitle {
-            color: rgba(255, 255, 255, 0.85);
-            margin: 5px 0 0 0;
-            font-size: 13px;
-            font-weight: 400;
-        }
-
-        /* Corps */
         .content-zone {
-            padding: 40px 30px;
-            color: <?php echo $textColor;
-                    ?>;
-            font-size: 15px;
-            line-height: 1.6;
+            padding: 30px 20px !important;
         }
 
-        .content-title {
-            color: <?php echo $textStrong;
-                    ?>;
-            margin-top: 0;
-            margin-bottom: 16px;
-            font-size: 19px;
-            font-weight: 600;
-        }
-
-        .text-spacing {
-            margin-bottom: 24px;
-        }
-
-        .text-lead {
-            margin-bottom: 12px;
-            font-weight: 500;
-            color: <?php echo $textStrong;
-                    ?>;
-        }
-
-        /* Zone Identifiants */
         .credentials-table {
-            background-color: <?php echo $accentBg;
-                                ?>;
-            border-radius: 8px;
-            margin-bottom: 30px;
-            border-collapse: separate;
+            width: 100% !important;
         }
-
-        .credentials-padding {
-            padding: 20px 24px;
-        }
-
-        .label-cell {
-            color: <?php echo $primaryColor;
-                    ?>;
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding-bottom: 8px;
-        }
-
-        .value-cell {
-            color: <?php echo $textStrong;
-                    ?>;
-            font-family: monospace;
-            font-size: 15px;
-            font-weight: 500;
-            padding-bottom: 8px;
-        }
-
-        .value-password {
-            color: <?php echo $textStrong;
-                    ?>;
-            font-family: monospace;
-            font-size: 15px;
-            font-weight: 600;
-        }
-
-        /* Bouton */
-        .button-container {
-            margin: 30px 0;
-            text-align: center;
-        }
-
-        .btn-primary {
-            display: inline-block;
-            background-color: <?php echo $primaryColor;
-                                ?>;
-            color: #ffffff !important;
-            font-weight: 600;
-            font-size: 14px;
-            text-decoration: none;
-            padding: 14px 28px;
-            border-radius: 8px;
-            box-shadow: 0 8px 20px rgba(47, 100, 241, 0.15);
-        }
-
-        /* Sécurité & Footer */
-        .security-zone {
-            border-top: 1px solid <?php echo $borderColor;
-                                    ?>;
-            padding-top: 20px;
-            margin-top: 25px;
-        }
-
-        .security-text {
-            margin: 0;
-            font-size: 13px;
-            color: #dc2626;
-            font-style: italic;
-            line-height: 1.5;
-        }
-
-        .footer-zone {
-            background-color: #f8fafc;
-            border-top: 1px solid <?php echo $borderColor;
-                                    ?>;
-            padding: 24px 20px;
-            font-size: 12px;
-            color: <?php echo $textColor;
-                    ?>;
-            text-align: center;
-        }
-
-        .footer-text {
-            margin: 0 0 6px 0;
-            font-weight: 500;
-        }
-
-        .footer-copyright {
-            margin: 0;
-            opacity: 0.8;
-        }
-
-        /* Optimisations mobiles obligatoires dans le head */
-        @media only screen and (max-width: 600px) {
-            .email-container {
-                width: 100% !important;
-            }
-
-            .content-zone {
-                padding: 30px 20px !important;
-            }
-
-            .credentials-table {
-                width: 100% !important;
-            }
-        }
+    }
     </style>
 </head>
 

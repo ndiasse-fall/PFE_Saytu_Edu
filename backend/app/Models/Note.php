@@ -19,7 +19,7 @@ class Note extends Model
 
     public function matiere()
     {
-        return $this->belongsTo(Matiere::class, 'id_matiere');
+        return $this->belongsTo(Matieres::class, 'id_matiere');
     }
     /**
      * Obtenir la classe associée à cette note.

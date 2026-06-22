@@ -5,7 +5,7 @@ namespace Database\Factories;
 use App\Models\EmploiDuTemps;
 use App\Models\Classe;
 use App\Models\User;
-use App\Models\Matiere;
+use App\Models\Matieres;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class EmploiDuTempsFactory extends Factory
@@ -22,7 +22,7 @@ class EmploiDuTempsFactory extends Factory
             'salle' => fake()->bothify('Salle ###'),
             'id_classe' => Classe::factory(),
             'id_enseignant' => User::factory()->enseignant(),
-            'id_matiere' => Matiere::factory(),
+            'id_matiere' => Matieres::factory(),
         ];
     }
 }

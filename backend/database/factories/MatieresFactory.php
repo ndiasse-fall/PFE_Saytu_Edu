@@ -2,12 +2,12 @@
 
 namespace Database\Factories;
 
-use App\Models\Matiere;
+use App\Models\Matieres;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-class MatiereFactory extends Factory
+class MatieresFactory extends Factory
 {
-    protected $model = Matiere::class;
+    protected $model = Matieres::class;
 
     public function definition(): array
     {
