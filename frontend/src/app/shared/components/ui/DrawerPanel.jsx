@@ -21,7 +21,7 @@ export function DrawerPanel({
         },
       }}
     >
-      <Box className="panel users-drawer-panel">
+      <Box className="panel users-drawer-panel" style={{ width }}>
         <div className="panel-header">
           <div>
             <h2>{title}</h2>

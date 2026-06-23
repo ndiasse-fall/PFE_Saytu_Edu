@@ -24,10 +24,6 @@ export function AffectationManagementPage() {
     enseignant_id: "",
   });
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const fetchData = async () => {
     setLoading(true);
     try {
@@ -43,12 +39,17 @@ export function AffectationManagementPage() {
       setAffectations(affectationsRes);
       console.log("Affectations :", affectationsRes);
     } catch (err) {
-  console.error(err);
-  setError(err.message);
+      console.error(err);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchData();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
