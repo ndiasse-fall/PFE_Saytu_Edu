@@ -3,7 +3,6 @@ import { Box, Drawer } from '@mui/material'
 export function DrawerPanel({
   open,
   onClose,
-  width = 460,
   title,
   subtitle = '',
   headerAction = null,

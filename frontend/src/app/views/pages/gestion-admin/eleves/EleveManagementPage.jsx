@@ -27,7 +27,7 @@ const emptyForm = {
   actif: true,
 }
 
-const initialFilters = { search: '', actif: '' }
+const initialFilters = { search: '', actif: '', affecte: '' }
 
 export function EleveManagementPage() {
   const navigate = useNavigate()
@@ -215,7 +215,10 @@ export function EleveManagementPage() {
     }
   }
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> main
   function closeInscription() {
     setShowInscription(false)
     setSelectedEleve(null)

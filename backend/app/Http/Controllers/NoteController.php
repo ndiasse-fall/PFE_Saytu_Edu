@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreNoteRequest;
+use App\Http\Requests\UpdateNoteRequest;
 use App\Models\Note;
 use App\Models\Classe;
 use Illuminate\Http\Request;
@@ -51,11 +53,12 @@ class NoteController extends Controller
     /**
      * Création de notes par un enseignant.
      */
-    public function store(Request $request)
+    public function store(StoreNoteRequest $request)
     {
         $user = $request->user();
+        $validated = $request->validated();
 
-        $classe = Classe::find($request->id_classe);
+        $classe = Classe::with(['enseignants', 'eleves'])->find($validated['id_classe']);
         if (! $classe || ! $classe->enseignants->contains($user->id)) {
             return response()->json([
                 'message' => 'Accès refusé: vous n\'êtes pas affecté à cette classe.'
@@ -63,7 +66,7 @@ class NoteController extends Controller
         }
 
         // Vérifier que tous les élèves appartiennent à la classe
-        $invalidEleves = collect($request->notes)->pluck('id_eleve')
+        $invalidEleves = collect($validated['notes'])->pluck('id_eleve')
             ->filter(fn($id) => ! $classe->eleves->contains($id));
 
         if ($invalidEleves->isNotEmpty()) {
@@ -74,19 +77,19 @@ class NoteController extends Controller
         }
 
         $notes = [];
-        foreach ($request->notes as $noteData) {
+        foreach ($validated['notes'] as $noteData) {
             $notes[] = Note::updateOrCreate(
                 [
                     'id_eleve' => $noteData['id_eleve'],
-                    'id_classe' => $request->id_classe,
-                    'id_matiere' => $request->id_matiere,
-                    'type_evaluation' => $request->type_evaluation,
-                    'periode' => $request->periode,
+                    'id_classe' => $validated['id_classe'],
+                    'id_matiere' => $validated['id_matiere'],
+                    'type_evaluation' => $validated['type_evaluation'],
+                    'periode' => $validated['periode'],
                 ],
                 [
                     'valeur' => $noteData['valeur'],
-                    'type_evaluation' => $request->type_evaluation,
-                    'periode' => $request->periode,
+                    'type_evaluation' => $validated['type_evaluation'],
+                    'periode' => $validated['periode'],
                 ]
             );
         }
@@ -128,15 +131,19 @@ class NoteController extends Controller
     /**
      * Mise à jour d'une note.
      */
-    public function update(Request $request, int $id)
+    public function update(UpdateNoteRequest $request, int $id)
     {
-        $note = Note::find($id);
+        $note = Note::with('classe.enseignants')->find($id);
 
         if (! $note) {
             return response()->json(['message' => 'Not Found'], 404);
         }
 
-        $note->update($request->only(['valeur', 'type_evaluation', 'periode']));
+        if (! $note->classe || ! $note->classe->enseignants->contains($request->user()->id)) {
+            return response()->json(['message' => 'Not Found'], 404);
+        }
+
+        $note->update($request->validated());
 
         return response()->json([
             'success' => true,
@@ -147,11 +154,15 @@ class NoteController extends Controller
     /**
      * Suppression d'une note.
      */
-    public function destroy(int $id)
+    public function destroy(Request $request, int $id)
     {
-        $note = Note::find($id);
+        $note = Note::with('classe.enseignants')->find($id);
 
         if (! $note) {
+            return response()->json(['message' => 'Not Found'], 404);
+        }
+
+        if (! $note->classe || ! $note->classe->enseignants->contains($request->user()->id)) {
             return response()->json(['message' => 'Not Found'], 404);
         }
 

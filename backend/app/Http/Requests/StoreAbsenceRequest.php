@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreAbsenceRequest extends FormRequest
 {
@@ -22,8 +23,12 @@ class StoreAbsenceRequest extends FormRequest
         return [
             'date_absence' => 'required|date',
             'absents' => 'required|array|min:1',
-            'absents.*' => 'integer|exists:users,id',
+            'absents.*' => [
+                'integer',
+                Rule::exists('users', 'id')->where('role', 'ELEVE'),
+            ],
             'motif' => 'nullable|string|max:255',
+            'est_justifiee' => 'nullable|boolean',
         ];
     }
 

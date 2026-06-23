@@ -61,6 +61,18 @@ export function ListeEleves({
                             <option value="0">Inactif</option>
                         </select>
                     </label>
+                    <label className="users-toolbar-field">
+                        <span>Affectation</span>
+                        <select
+                            name="affecte"
+                            value={filters.affecte ?? ""}
+                            onChange={onFilterChange}
+                        >
+                            <option value="">Tous</option>
+                            <option value="1">Affecté à une classe</option>
+                            <option value="0">Non affecté</option>
+                        </select>
+                    </label>
                     <div className="form-actions users-toolbar-actions">
                         <button type="submit">Filtrer</button>
                         <button
@@ -87,6 +99,7 @@ export function ListeEleves({
                     <table className="users-table">
                         <colgroup>
                             <col className="users-col-user" />
+                            <col className="users-col-matricule" style={{ width: "130px" }} />
                             <col className="users-col-classe" />
                             <col className="users-col-contact" />
                             <col className="users-col-status" />
@@ -95,6 +108,7 @@ export function ListeEleves({
                         <thead>
                             <tr>
                                 <th scope="col">Élève</th>
+                                <th scope="col">Matricule</th>
                                 <th scope="col">Classe</th>
                                 <th scope="col">Contact</th>
                                 <th scope="col">Statut</th>
@@ -112,10 +126,23 @@ export function ListeEleves({
                                             >
                                                 {getInitials(eleve)}
                                             </span>
-                                            <strong>
+                                            <strong translate="no">
                                                 {eleve.prenom} {eleve.nom}
                                             </strong>
                                         </span>
+                                    </td>
+                                    <td>
+                                        <code style={{ 
+                                            fontFamily: "monospace", 
+                                            fontWeight: "600",
+                                            color: "var(--text-color)",
+                                            backgroundColor: "rgba(0, 0, 0, 0.05)",
+                                            padding: "2px 6px",
+                                            borderRadius: "4px",
+                                            fontSize: "0.9rem"
+                                        }}>
+                                            {eleve.matricule_eleve || "-"}
+                                        </code>
                                     </td>
                                     <td>
                                         {eleve.classes &&

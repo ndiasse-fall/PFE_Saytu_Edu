@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 export function PrimaryButton({ children, disabled = false, type = 'button', block = false, className = '', ...props }) {
   return (
     <button
@@ -9,4 +10,23 @@ export function PrimaryButton({ children, disabled = false, type = 'button', blo
       {children}
     </button>
   )
+=======
+export function PrimaryButton({
+    children,
+    disabled = false,
+    type = "button",
+    block = false,
+    className = "",
+}) {
+    return (
+        <button
+            type={type}
+            disabled={disabled}
+            translate="no"
+            className={`btn-primary${block ? " btn-block" : ""}${className ? ` ${className}` : ""}`}
+        >
+            {children}
+        </button>
+    );
+>>>>>>> main
 }

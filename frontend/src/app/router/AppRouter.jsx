@@ -12,6 +12,16 @@ const LoginPage = lazy(() =>
         default: module.LoginPage,
     })),
 );
+const ForgotPasswordPage = lazy(() =>
+    import("../views/pages/auth/forgot-password/ForgotPasswordPage").then(
+        (module) => ({ default: module.ForgotPasswordPage }),
+    ),
+);
+const ResetPasswordPage = lazy(() =>
+    import("../views/pages/auth/reset-password/ResetPasswordPage").then(
+        (module) => ({ default: module.ResetPasswordPage }),
+    ),
+);
 const DashboardPage = lazy(() =>
     import("../views/pages/gestion-admin/dashboard/DashboardPage").then(
         (module) => ({ default: module.DashboardPage }),
@@ -30,6 +40,11 @@ const EleveManagementPage = lazy(() =>
 const EleveDetailsPage = lazy(() =>
     import("../views/pages/gestion-admin/eleves/details/EleveDetailsPage").then(
         (module) => ({ default: module.EleveDetailsPage }),
+    ),
+);
+const TeacherManagementPage = lazy(() =>
+    import("../views/pages/gestion-admin/professeurs/TeacherManagementPage").then(
+        (module) => ({ default: module.TeacherManagementPage }),
     ),
 );
 const SettingsPage = lazy(() =>
@@ -71,7 +86,6 @@ const AffectationManagementPage = lazy(() =>
 );
 function RoleHomeRedirect() {
     const { user } = useAuth();
-
     return <Navigate to={getDashboardPath(user?.role)} replace />;
 }
 
@@ -86,6 +100,14 @@ export function AppRouter() {
                 <Routes>
                     <Route element={<GuestGuard />}>
                         <Route path="/login" element={<LoginPage />} />
+                        <Route
+                            path="/forgot-password"
+                            element={<ForgotPasswordPage />}
+                        />
+                        <Route
+                            path="/reset-password"
+                            element={<ResetPasswordPage />}
+                        />
                     </Route>
 
                     <Route element={<AuthGuard />}>
@@ -94,6 +116,10 @@ export function AppRouter() {
                             <Route
                                 path="/user/dashboard"
                                 element={<RoleHomeRedirect />}
+                            />
+                            <Route
+                                path="/settings"
+                                element={<SettingsPage />}
                             />
 
                             <Route
@@ -115,9 +141,7 @@ export function AppRouter() {
                                 />
                                 <Route
                                     path="/admin/professeurs"
-                                    element={
-                                        <ModulePlaceholderPage title="Professeurs" />
-                                    }
+                                    element={<TeacherManagementPage />}
                                 />
                                <Route
                                      path="/admin/classes"
@@ -156,8 +180,8 @@ export function AppRouter() {
                                     element={<EleveDetailsPage />}
                                 />
                                 <Route
-                                    path="/admin/settings"
-                                    element={<SettingsPage />}
+                                    path="/admin/gestion-admin/professeurs"
+                                    element={<TeacherManagementPage />}
                                 />
                             </Route>
 
