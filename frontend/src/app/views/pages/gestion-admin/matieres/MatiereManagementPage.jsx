@@ -19,21 +19,22 @@ export function MatiereManagementPage() {
     description: "",
   });
 
-  useEffect(() => {
-    fetchMatieres();
-  }, []);
-
   const fetchMatieres = async () => {
     setLoading(true);
     try {
       const response = await listMatieres();
       setMatieres(response);
     } catch (err) {
+      console.error(err);
       setError("Erreur lors du chargement des matières");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchMatieres();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -95,6 +96,7 @@ export function MatiereManagementPage() {
         setSuccess("Matière supprimée avec succès");
         fetchMatieres();
       } catch (err) {
+        console.error(err);
         setError("Erreur lors de la suppression");
       }
     }

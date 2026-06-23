@@ -19,21 +19,22 @@ export function ClasseManagementPage() {
     annee_scolaire: "",
   });
 
-  useEffect(() => {
-    fetchClasses();
-  }, []);
-
   const fetchClasses = async () => {
     setLoading(true);
     try {
       const response = await listClasses();
       setClasses(response);
     } catch (err) {
+      console.error(err);
       setError("Erreur lors du chargement des classes");
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchClasses();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({
@@ -94,6 +95,7 @@ export function ClasseManagementPage() {
         setSuccess("Classe supprimée avec succès");
         fetchClasses();
       } catch (err) {
+        console.error(err);
         setError("Erreur lors de la suppression");
       }
     }
