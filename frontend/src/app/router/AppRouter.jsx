@@ -67,7 +67,23 @@ const ModulePlaceholderPage = lazy(() =>
         default: module.ModulePlaceholderPage,
     })),
 );
+const ClasseManagementPage = lazy(() =>
+    import("../views/pages/gestion-admin/classes/ClasseManagementPage").then(
+        (module) => ({ default: module.ClasseManagementPage }),
+    ),
+);
 
+const MatiereManagementPage = lazy(() =>
+    import("../views/pages/gestion-admin/matieres/MatiereManagementPage").then(
+        (module) => ({ default: module.MatiereManagementPage }),
+    ),
+);
+
+const AffectationManagementPage = lazy(() =>
+    import("../views/pages/gestion-admin/affectations/AffectationManagementPage").then(
+        (module) => ({ default: module.AffectationManagementPage }),
+    ),
+);
 function RoleHomeRedirect() {
     const { user } = useAuth();
     return <Navigate to={getDashboardPath(user?.role)} replace />;
@@ -127,12 +143,18 @@ export function AppRouter() {
                                     path="/admin/professeurs"
                                     element={<TeacherManagementPage />}
                                 />
-                                <Route
-                                    path="/admin/classes"
-                                    element={
-                                        <ModulePlaceholderPage title="Classes" />
-                                    }
-                                />
+                               <Route
+                                     path="/admin/classes"
+                                     element={<ClasseManagementPage />}
+                                 />
+                                 <Route
+                                       path="/admin/matieres"
+                                       element={<MatiereManagementPage />}
+                                  />
+                                  <Route
+                                       path="/admin/affectations"
+                                      element={<AffectationManagementPage />}
+                                  />
                                 <Route
                                     path="/admin/emploi-du-temps"
                                     element={
