@@ -18,27 +18,7 @@ export const menuItems = [
                 path: "/admin/professeurs",
                 icon: "bi-person-video3",
             },
-            {
-    label: " Classes",
-    icon: "bi-building",
-    children: [
-        {
-            label: "Liste des classes",
-            path: "/admin/classes",
-            icon: "bi-building",
-        },
-        {
-            label: "Matières",
-            path: "/admin/matieres",
-            icon: "bi-book",
-        },
-        {
-            label: "Affectations",
-            path: "/admin/affectations",
-            icon: "bi-diagram-3",
-        },
-    ],
-},
+            { label: "Classes", path: "/admin/classes", icon: "bi-building" },
             {
                 label: "Emploi du temps",
                 path: "/admin/emploi-du-temps",
