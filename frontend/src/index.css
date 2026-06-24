@@ -303,6 +303,14 @@ dd {
         color 0.15s ease;
 }
 
+button.sidebar-link {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    width: calc(100% - 16px);
+    text-align: left;
+}
+
 .sidebar-link-label {
     min-width: 0;
     overflow: hidden;
