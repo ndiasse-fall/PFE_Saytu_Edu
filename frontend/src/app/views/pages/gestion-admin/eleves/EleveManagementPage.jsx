@@ -215,10 +215,6 @@ export function EleveManagementPage() {
     }
   }
 
-<<<<<<< HEAD
-
-=======
->>>>>>> main
   function closeInscription() {
     setShowInscription(false)
     setSelectedEleve(null)
