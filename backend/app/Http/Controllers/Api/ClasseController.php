@@ -11,8 +11,6 @@ class ClasseController extends Controller
 {
     /**
      * Liste toutes les classes.
-     * 
-     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function index()
     {
@@ -21,9 +19,6 @@ class ClasseController extends Controller
 
     /**
      * Crée une nouvelle classe.
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -37,10 +32,7 @@ class ClasseController extends Controller
     }
 
     /**
-     * Affiche les détails d'une classe spécifique.
-     * 
-     * @param string $id
-     * @return Classe
+     * Affiche une classe.
      */
     public function show(string $id)
     {
@@ -48,85 +40,96 @@ class ClasseController extends Controller
     }
 
     /**
-     * Met à jour les informations d'une classe.
-     * 
-     * @param Request $request
-     * @param string $id
-     * @return \Illuminate\Http\JsonResponse
+     * Met à jour une classe.
      */
     public function update(Request $request, string $id)
     {
         $classe = Classe::findOrFail($id);
-
         $classe->update($request->all());
-
         return response()->json($classe);
     }
 
     /**
      * Supprime une classe.
-     * 
-     * @param string $id
-     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(string $id)
     {
         Classe::destroy($id);
-
-        return response()->json([
-            'message' => 'Classe supprimée'
-        ]);
+        return response()->json(['message' => 'Classe supprimée']);
     }
 
     /**
      * Inscrire un élève dans une classe.
-     * 
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
      */
     public function inscrireEleve(Request $request, $id)
     {
         try {
-            $request->validate([
-                'id_eleve' => 'required|exists:users,id'
-            ]);
-
+            $request->validate(['id_eleve' => 'required|exists:users,id']);
             $classe = Classe::findOrFail($id);
+            $classe->eleves()->syncWithoutDetaching([$request->id_eleve]);
 
-            $classe->eleves()->syncWithoutDetaching([
-                $request->id_eleve
-            ]);
-
-            return response()->json([
-                'message' => 'Élève inscrit avec succès'
-            ]);
+            return response()->json(['message' => 'Élève inscrit avec succès']);
         } catch (\Exception $e) {
-            Log::error("Erreur inscription élève: " . $e->getMessage());
-            return response()->json([
-                'message' => 'Erreur lors de l\'inscription',
-                'error' => $e->getMessage()
-            ], 500);
+            Log::error("Erreur inscription élève : " . $e->getMessage());
+            return response()->json(['message' => 'Erreur lors de l\'inscription', 'error' => $e->getMessage()], 500);
         }
     }
 
     /**
      * Affecter un enseignant à une classe.
-     * 
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
      */
     public function affecterEnseignant(Request $request, $id)
     {
         $classe = Classe::findOrFail($id);
+        $classe->enseignants()->syncWithoutDetaching([$request->id_enseignant]);
+        return response()->json(['message' => 'Enseignant affecté avec succès']);
+    }
 
-        $classe->enseignants()->syncWithoutDetaching([
-            $request->id_enseignant
-        ]);
+    /**
+     * Retourne les classes de l'enseignant ou toutes les classes pour l'admin.
+     */
+    public function mesClasses(Request $request)
+    {
+        $user = $request->user();
 
-        return response()->json([
-            'message' => 'Enseignant affecté avec succès'
-        ]);
+        // Si Admin ou Super Admin, on retourne toutes les classes
+        if ($user->role === 'ADMIN' || $user->role === 'SUPER_ADMIN') {
+            return response()->json(Classe::all());
+        }
+
+        // Sinon, seulement les classes affectées
+        $classes = $user->enseignantClasses()
+            ->select('classes.id', 'classes.nom_classe', 'classes.niveau', 'classes.annee_scolaire')
+            ->get();
+
+        return response()->json($classes);
+    }
+
+    /**
+     * Retourne les élèves d'une classe (filtré pour l'enseignant, total pour l'admin).
+     */
+    public function elevesParClasse(Request $request, $id)
+    {
+        $user = $request->user();
+
+        // Si Admin/SuperAdmin, on charge la classe directement
+        if ($user->role === 'ADMIN' || $user->role === 'SUPER_ADMIN') {
+            $classe = Classe::findOrFail($id);
+        } else {
+            // Sinon on vérifie l'autorisation pour l'enseignant
+            $classe = $user->enseignantClasses()->where('classes.id', $id)->first();
+            
+            if (!$classe) {
+                return response()->json(['message' => 'Classe non autorisée'], 403);
+            }
+        }
+
+        $eleves = $classe->eleves()
+            ->select('users.id', 'users.nom', 'users.prenom', 'users.email')
+            ->orderBy('prenom')
+            ->orderBy('nom')
+            ->get();
+
+        return response()->json($eleves);
     }
 }

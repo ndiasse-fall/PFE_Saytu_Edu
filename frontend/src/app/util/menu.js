@@ -34,6 +34,12 @@ export const menuItems = [
                 path: "/admin/emploi-du-temps",
                 icon: "bi-calendar-week",
             },
+             {
+                label: "Gestion des notes",
+                path: "/notes",
+                icon: "bi-journal-text",
+            },
+           
             {
                 label: "Bulletin",
                 path: "/admin/bulletins",
@@ -42,34 +48,7 @@ export const menuItems = [
         ],
     },
 
-    /* ================= NOTES ================= */
-    {
-        section: "Notes & Évaluations",
-        roles: ["ENSEIGNANT", "ADMIN", "SUPER_ADMIN"],
-        items: [
-            {
-                label: "Liste des notes",
-                path: "/notes",
-                icon: "bi-journal-text",
-            },
-            {
-                label: "Ajouter note",
-                path: "/notes/create",
-                icon: "bi-plus-circle",
-            },
-            {
-                label: "Résultats classe",
-                path: "/notes/resultats/classe",
-                icon: "bi-bar-chart",
-            },
-            {
-                label: "Résultats élève",
-                path: "/notes/resultats/eleve",
-                icon: "bi-person-badge",
-            },
-        ],
-    },
-
+  
     /* ================= USER ================= */
     {
         section: "Espace utilisateur",
@@ -82,7 +61,19 @@ export const menuItems = [
             },
         ],
     },
-
+     /* ================= ENSEIGNANT ================= */
+    {
+        section: "Espace utilisateur",
+        roles: ["ENSEIGNANT", "ELEVE"],
+        items: [
+            {
+                label: "Gestion des notes",
+                path: "/notes",
+                icon: "bi-journal-text",
+            },
+            
+        ],
+    },
     /* ================= ELEVE ================= */
     {
         section: "Élève",
