@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreNoteRequest extends FormRequest
 {
@@ -22,7 +23,11 @@ class StoreNoteRequest extends FormRequest
             'type_evaluation' => ['required', 'string', 'max:100'],
             'periode' => ['required', 'string', 'max:100'],
             'notes' => ['required', 'array', 'min:1'],
-            'notes.*.id_eleve' => ['required', 'integer', 'exists:users,id'],
+            'notes.*.id_eleve' => [
+                'required',
+                'integer',
+                Rule::exists('users', 'id')->where('role', 'ELEVE'),
+            ],
             'notes.*.valeur' => ['required', 'numeric', 'min:0', 'max:20'],
         ];
     }

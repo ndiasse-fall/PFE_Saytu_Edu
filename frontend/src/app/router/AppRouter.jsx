@@ -15,7 +15,16 @@ const LoginPage = lazy(() =>
         default: m.LoginPage,
     }))
 );
-
+const ForgotPasswordPage = lazy(() =>
+    import("../views/pages/auth/forgot-password/ForgotPasswordPage").then(
+        (module) => ({ default: module.ForgotPasswordPage }),
+    ),
+);
+const ResetPasswordPage = lazy(() =>
+    import("../views/pages/auth/reset-password/ResetPasswordPage").then(
+        (module) => ({ default: module.ResetPasswordPage }),
+    ),
+);
 const DashboardPage = lazy(() =>
     import("../views/pages/gestion-admin/dashboard/DashboardPage").then((m) => ({
         default: m.DashboardPage,
@@ -97,6 +106,14 @@ export function AppRouter() {
                     {/* LOGIN */}
                     <Route element={<GuestGuard />}>
                         <Route path="/login" element={<LoginPage />} />
+                        <Route
+                            path="/forgot-password"
+                            element={<ForgotPasswordPage />}
+                        />
+                        <Route
+                            path="/reset-password"
+                            element={<ResetPasswordPage />}
+                        />
                     </Route>
 
                     {/* AUTH */}
