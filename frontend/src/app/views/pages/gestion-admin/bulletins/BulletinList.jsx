@@ -9,14 +9,17 @@ export default function BulletinList() {
   }, []);
 
   const loadData = async () => {
-    const data = await getBulletins();
-    setBulletins(data);
+    try {
+      const data = await getBulletins();
+      setBulletins(data.data ?? data);
+    } catch (error) {
+      console.error("Erreur chargement bulletins:", error);
+    }
   };
 
   return (
     <div className="container">
       <h2>Liste des Bulletins</h2>
-
       <table className="table">
         <thead>
           <tr>
@@ -25,12 +28,11 @@ export default function BulletinList() {
             <th>Moyenne</th>
           </tr>
         </thead>
-
         <tbody>
           {bulletins.map((item) => (
             <tr key={item.id}>
-              <td>{item.eleve.nom}</td>
-              <td>{item.periode.nom}</td>
+              <td>{item.eleve?.nom}</td>
+              <td>{item.periode?.nom}</td>
               <td>{item.moyenne}</td>
             </tr>
           ))}

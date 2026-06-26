@@ -1,39 +1,24 @@
-import axios from "axios";
-
-const API_URL = "/api/bulletins";
+import { apiClient } from "../../core/api/apiClient";
 
 export const getBulletins = async () => {
-  const { data } = await axios.get(API_URL);
-  return data;
+  return await apiClient("/bulletins", { method: "GET" });
 };
 
 export const getBulletinById = async (id) => {
-  const { data } = await axios.get(`${API_URL}/${id}`);
-  return data;
+  return await apiClient(`/bulletins/${id}`, { method: "GET" });
 };
 
 export const getBulletinByEleve = async (eleveId) => {
-  const { data } = await axios.get(
-    `${API_URL}/eleve/${eleveId}`
-  );
-  return data;
+  return await apiClient(`/bulletins/eleve/${eleveId}`, { method: "GET" });
 };
 
 export const getBulletinByPeriode = async (periodeId) => {
-  const { data } = await axios.get(
-    `${API_URL}/periode/${periodeId}`
-  );
-  return data;
+  return await apiClient(`/bulletins/periode/${periodeId}`, { method: "GET" });
 };
 
 export const genererBulletin = async (eleveId, periodeId) => {
-  const { data } = await axios.post(
-    `${API_URL}/generer`,
-    {
-      eleveId,
-      periodeId,
-    }
-  );
-
-  return data;
+  return await apiClient("/bulletins/generer", {
+    method: "POST",
+    data: { eleveId, periodeId },
+  });
 };
