@@ -2,7 +2,7 @@
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
-
+import { getStoredUser } from "../../../../core/storage/authStorage";
 import React, { useEffect, useState } from "react";
 import {
     getNotes,
@@ -10,35 +10,27 @@ import {
     updateNote,
     deleteNote,
 } from "../../../../services/notes/noteService";
-
 import { apiClient } from "../../../../core/api/apiClient";
-
 import TablePagination from "@mui/material/TablePagination";
 import { DrawerPanel } from "../../../../shared/components/ui/DrawerPanel";
 
 export default function NoteList() {
 
     /* ===================== STATES ===================== */
-
     const [notes, setNotes] = useState([]);
     const [loading, setLoading] = useState(false);
-
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerMode, setDrawerMode] = useState("create");
-
     const [eleves, setEleves] = useState([]);
     const [matieres, setMatieres] = useState([]);
     const [classes, setClasses] = useState([]);
-
     const [selectedRow, setSelectedRow] = useState(null);
     const [search, setSearch] = useState("");
-
     const [filters, setFilters] = useState({
         classe: "",
         matiere: "",
         periode: ""
     });
-
     const [form, setForm] = useState({
         id_note: "",
         id_eleve: "",
@@ -48,10 +40,8 @@ export default function NoteList() {
         periode: "Semestre 1",
         valeur: ""
     });
-
     const [anchorEl, setAnchorEl] = useState(null);
     const [selectedItemForMenu, setSelectedItemForMenu] = useState(null);
-
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(15);
 
@@ -62,30 +52,24 @@ export default function NoteList() {
         loadClasses();
     }, []);
 
+    // Chargement des élèves dès que la classe change
     useEffect(() => {
-        const fetchAllData = async () => {
+        if (filters.classe) {
             setLoading(true);
+            loadEleves(filters.classe).finally(() => setLoading(false));
             setPage(0);
+        } else {
+            setEleves([]);
+            setNotes([]);
+        }
+    }, [filters.classe]);
 
-            try {
-                if (filters.classe) {
-                    await Promise.all([
-                        loadNotes(),
-                        loadEleves(filters.classe)
-                    ]);
-                } else {
-                    setNotes([]);
-                    setEleves([]);
-                }
-            } catch (error) {
-                console.error("Erreur globale :", error);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchAllData();
-    }, [search, filters.classe, filters.matiere, filters.periode]);
+    // Chargement des notes dès que les paramètres de filtrage changent
+    useEffect(() => {
+        if (filters.classe) {
+            loadNotes();
+        }
+    }, [filters.classe, filters.matiere, filters.periode, search]);
 
     const loadNotes = async () => {
         try {
@@ -103,10 +87,6 @@ export default function NoteList() {
     };
 
     const loadEleves = async (idClasse) => {
-        if (!idClasse) {
-            setEleves([]);
-            return;
-        }
         try {
             const res = await apiClient(`/mes-classes/${idClasse}/eleves`);
             const data = res?.data || res;
@@ -128,41 +108,24 @@ export default function NoteList() {
         }
     };
 
-   const loadClasses = async () => {
-    try {
-        // On récupère l'utilisateur depuis le localStorage
-        const userData = localStorage.getItem("user");
-        const user = userData ? JSON.parse(userData) : null;
-        
-        // La logique conditionnelle qui préserve l'accès "Enseignant"
-        const url = (user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") 
-            ? "/classes" 
-            : "/mes-classes";
-            
-        const res = await apiClient(url);
-        const data = res?.data || res;
-        
-        setClasses(Array.isArray(data) ? data : []);
-    } catch (err) {
-        console.error("Erreur lors du chargement des classes :", err);
-        setClasses([]);
-    }
-};
-
-
-   
-    /* ===================== PAGINATION ===================== */
-
-    const handleChangePage = (event, newPage) => {
-        setPage(newPage);
+    const loadClasses = async () => {
+        try {
+            const user = getStoredUser();
+            const url = (user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") ? "/classes" : "/mes-classes";
+            const res = await apiClient(url);
+            setClasses(Array.isArray(res) ? res : []);
+        } catch (err) {
+            console.error("Erreur lors du chargement des classes :", err);
+            setClasses([]);
+        }
     };
 
+    /* ===================== PAGINATION & DRAWER ===================== */
+    const handleChangePage = (event, newPage) => setPage(newPage);
     const handleChangeRowsPerPage = (event) => {
         setRowsPerPage(parseInt(event.target.value, 10));
         setPage(0);
     };
-
-    /* ===================== DRAWER ACTIONS ===================== */
 
     const openCreateDrawer = (eleve) => {
         setDrawerMode("create");
@@ -197,29 +160,21 @@ export default function NoteList() {
     const handleSave = async () => {
         try {
             if (drawerMode === "create") {
-                const payload = {
+                await createNote({
                     id_classe: form.id_classe,
                     id_matiere: form.id_matiere,
                     type_evaluation: form.type_evaluation,
                     periode: form.periode,
-                    notes: [
-                        {
-                            id_eleve: form.id_eleve,
-                            valeur: Number(form.valeur)
-                        }
-                    ]
-                };
-                await createNote(payload);
-            } else if (drawerMode === "edit") {
-                const updatePayload = {
+                    notes: [{ id_eleve: form.id_eleve, valeur: Number(form.valeur) }]
+                });
+            } else {
+                await updateNote(form.id_note, {
                     valeur: form.valeur,
                     type_evaluation: form.type_evaluation,
                     periode: form.periode,
                     id_matiere: form.id_matiere
-                };
-                await updateNote(form.id_note, updatePayload);
+                });
             }
-
             setShowDrawer(false);
             loadNotes();
         } catch (error) {
@@ -228,8 +183,7 @@ export default function NoteList() {
     };
 
     const handleDeleteAction = async (idNote) => {
-        if (!idNote) return;
-        if (!window.confirm("Supprimer définitivement cette note ?")) return;
+        if (!idNote || !window.confirm("Supprimer définitivement cette note ?")) return;
         try {
             await deleteNote(idNote);
             setShowDrawer(false);
@@ -239,33 +193,17 @@ export default function NoteList() {
         }
     };
 
-    /* ===================== MENU HANDLERS ===================== */
+    const handleOpenMenu = (event, item) => { setAnchorEl(event.currentTarget); setSelectedItemForMenu(item); };
+    const handleCloseMenu = () => { setAnchorEl(null); setSelectedItemForMenu(null); };
 
-    const handleOpenMenu = (event, item) => {
-        setAnchorEl(event.currentTarget);
-        setSelectedItemForMenu(item);
-    };
-
-    const handleCloseMenu = () => {
-        setAnchorEl(null);
-        setSelectedItemForMenu(null);
-    };
-
-    /* ===================== COMBINE ROWS ===================== */
-
-    const filteredRows = eleves.map(eleve => {
-        const noteAssociee = notes.find(n => n.eleve?.id === eleve.id || n.id_eleve === eleve.id);
-        return {
-            eleve,
-            note: noteAssociee || null
-        };
-    }).filter(row => {
+    /* ===================== RENDER HELPERS ===================== */
+    const filteredRows = eleves.map(eleve => ({
+        eleve,
+        note: notes.find(n => n.eleve?.id === eleve.id || n.id_eleve === eleve.id) || null
+    })).filter(row => {
         if (!search) return true;
         const t = search.toLowerCase();
-        return (
-            row.eleve.nom?.toLowerCase().includes(t) ||
-            row.eleve.prenom?.toLowerCase().includes(t)
-        );
+        return (row.eleve.nom?.toLowerCase().includes(t) || row.eleve.prenom?.toLowerCase().includes(t));
     });
 
     const displayRows = filteredRows.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
@@ -273,45 +211,18 @@ export default function NoteList() {
     return (
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">Gestion des Notes</h1>
-
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-6">
-                {/* --- Select mis à jour --- */}
-                <select
-                    className="border p-2 rounded bg-white shadow-xs outline-hidden min-w-[240px]"
-                    value={filters.classe}
-                    onChange={(e) => setFilters({ ...filters, classe: e.target.value })}
-                >
-                    
+                <select className="border p-2 rounded bg-white shadow-xs outline-hidden min-w-[240px]" value={filters.classe} onChange={(e) => setFilters({ ...filters, classe: e.target.value })}>
                     <option value="">Sélectionner une classe</option>
-                    {classes.map((c) => (
-                        <option key={c.id} value={c.id}>{c.nom_classe}</option>
-                    ))}
+                    {classes.map((c) => <option key={c.id} value={c.id}>{c.nom_classe}</option>)}
                 </select>
-
-                <br />
-                 <br />
-                 
-                 
-                <button
-                    className="bg-blue-600 hover:bg-blue-700 text-white rounded p-2 px-4 transition-colors shadow-xs"
-                    onClick={() => setFilters({ classe: "", matiere: "", periode: "" })}
-                >
-                    Réinitialiser
-                </button>
+                <button className="bg-blue-600 hover:bg-blue-700 text-white rounded p-2 px-4 transition-colors shadow-xs" onClick={() => setFilters({ classe: "", matiere: "", periode: "" })}>Réinitialiser</button>
             </div>
-            <br />
-
-            <input
-                className="border p-2 mb-4 w-full md:w-1/3 rounded shadow-xs outline-hidden"
-                placeholder="Rechercher un élève..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-            />
+            
+            <input className="border p-2 mb-4 w-full md:w-1/3 rounded shadow-xs outline-hidden" placeholder="Rechercher un élève..." value={search} onChange={(e) => setSearch(e.target.value)} />
 
             <div className="bg-white shadow rounded p-4">
-                {loading && filters.classe ? (
-                    <p>Chargement...</p>
-                ) : (
+                {loading ? <p>Chargement...</p> : (
                     <>
                         <div className="max-h-[500px] overflow-y-auto">
                             <table className="w-full text-left border-collapse">
@@ -326,49 +237,25 @@ export default function NoteList() {
                                 </thead>
                                 <tbody>
                                     {!filters.classe ? (
-                                        <tr>
-                                            <td colSpan="5" className="text-center py-6 text-gray-500 font-medium">
-                                                Veuillez sélectionner une classe pour afficher les élèves et leurs notes.
-                                            </td>
-                                        </tr>
+                                        <tr><td colSpan="5" className="text-center py-6 text-gray-500 font-medium">Veuillez sélectionner une classe.</td></tr>
                                     ) : displayRows.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="5" className="text-center py-4 text-gray-500">
-                                                Aucun élève trouvé.
-                                            </td>
-                                        </tr>
+                                        <tr><td colSpan="5" className="text-center py-4 text-gray-500">Aucun élève trouvé.</td></tr>
                                     ) : (
                                         displayRows.map(({ eleve, note }) => (
                                             <tr key={eleve.id} className="border-b hover:bg-slate-50 transition-colors">
                                                 <td className="py-2">{eleve.prenom} {eleve.nom}</td>
                                                 <td className="py-2">{note ? note.type_evaluation : "--"}</td>
                                                 <td className="py-2">{note ? note.periode : "--"}</td>
-                                                <td className="py-2 font-medium text-slate-700">
-                                                    {note ? `${note.valeur} /20` : <span className="text-gray-400 italic font-normal">Pas de note</span>}
-                                                </td>
+                                                <td className="py-2 font-medium text-slate-700">{note ? `${note.valeur} /20` : <span className="text-gray-400 italic font-normal">Pas de note</span>}</td>
                                                 <td className="py-2">
-                                                    <IconButton onClick={(e) => handleOpenMenu(e, { eleve, note })}>
-                                                        <MoreVertIcon />
-                                                    </IconButton>
-                                                    <Menu
-                                                        anchorEl={anchorEl}
-                                                        open={Boolean(anchorEl) && selectedItemForMenu?.eleve?.id === eleve.id}
-                                                        onClose={handleCloseMenu}
-                                                    >
+                                                    <IconButton onClick={(e) => handleOpenMenu(e, { eleve, note })}><MoreVertIcon /></IconButton>
+                                                    <Menu anchorEl={anchorEl} open={Boolean(anchorEl) && selectedItemForMenu?.eleve?.id === eleve.id} onClose={handleCloseMenu}>
                                                         {!selectedItemForMenu?.note ? (
-                                                            <MenuItem onClick={() => { openCreateDrawer(selectedItemForMenu.eleve); handleCloseMenu(); }} className="text-blue-600 font-medium">
-                                                                Ajouter une note
-                                                            </MenuItem>
-                                                        ) : (
-                                                            [
-                                                                <MenuItem key="edit" onClick={() => { openEditDrawer(selectedItemForMenu.eleve, selectedItemForMenu.note); handleCloseMenu(); }} className="text-slate-700">
-                                                                    Modifier 
-                                                                </MenuItem>,
-                                                                <MenuItem key="delete" onClick={() => { handleDeleteAction(selectedItemForMenu.note.id); handleCloseMenu(); }} className="text-red-600 font-medium">
-                                                                    Supprimer
-                                                                </MenuItem>
-                                                            ]
-                                                        )}
+                                                            <MenuItem onClick={() => { openCreateDrawer(selectedItemForMenu.eleve); handleCloseMenu(); }} className="text-blue-600 font-medium">Ajouter une note</MenuItem>
+                                                        ) : [
+                                                            <MenuItem key="edit" onClick={() => { openEditDrawer(selectedItemForMenu.eleve, selectedItemForMenu.note); handleCloseMenu(); }}>Modifier</MenuItem>,
+                                                            <MenuItem key="delete" onClick={() => { handleDeleteAction(selectedItemForMenu.note.id); handleCloseMenu(); }} className="text-red-600 font-medium">Supprimer</MenuItem>
+                                                        ]}
                                                     </Menu>
                                                 </td>
                                             </tr>
@@ -377,114 +264,46 @@ export default function NoteList() {
                                 </tbody>
                             </table>
                         </div>
-
                         {filters.classe && filteredRows.length > 0 && (
-                            <TablePagination
-                                component="div"
-                                count={filteredRows.length}
-                                page={page}
-                                onPageChange={handleChangePage}
-                                rowsPerPage={rowsPerPage}
-                                onRowsPerPageChange={handleChangeRowsPerPage}
-                                rowsPerPageOptions={[5, 10, 15, 25]}
-                                labelRowsPerPage="Lignes par page :"
-                                labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
-                                className="border-t mt-2"
-                            />
+                            <TablePagination component="div" count={filteredRows.length} page={page} onPageChange={handleChangePage} rowsPerPage={rowsPerPage} onRowsPerPageChange={handleChangeRowsPerPage} rowsPerPageOptions={[5, 10, 15, 25]} />
                         )}
                     </>
                 )}
             </div>
 
-            <DrawerPanel
-                open={showDrawer}
-                onClose={() => setShowDrawer(false)}
-                title={drawerMode === "create" ? "Ajouter une note" : "Modifier la note"}
-                headerAction={
-                    <button onClick={() => setShowDrawer(false)} className="border border-gray-300 hover:bg-gray-100 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        Fermer
-                    </button>
-                }
-            >
-                {/* ... (Le contenu du Drawer reste inchangé) ... */}
+            <DrawerPanel open={showDrawer} onClose={() => setShowDrawer(false)} title={drawerMode === "create" ? "Ajouter une note" : "Modifier la note"}>
                 <div className="flex flex-col justify-between h-full pt-4">
                     <div className="space-y-5">
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Élève 
-                            </label>
-                            <input
-                                type="text"
-                                disabled
-                                className="border border-gray-200 bg-slate-100 rounded-lg p-3 w-full outline-hidden text-slate-500 cursor-not-allowed font-medium"
-                                value={selectedRow?.eleve ? `${selectedRow.eleve.prenom} ${selectedRow.eleve.nom}` : ""}
-                            />
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Élève</label>
+                            <input type="text" disabled className="border border-gray-200 bg-slate-100 rounded-lg p-3 w-full text-slate-500 cursor-not-allowed" value={selectedRow?.eleve ? `${selectedRow.eleve.prenom} ${selectedRow.eleve.nom}` : ""} />
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Note (sur 20)
-                            </label>
-                            <input
-                                type="number"
-                                min="0"
-                                max="20"
-                                step="0.25"
-                                className="border border-gray-300 rounded-lg p-3 w-full outline-hidden focus:border-blue-500 font-semibold text-lg"
-                                value={form.valeur}
-                                onChange={(e) => setForm({ ...form, valeur: e.target.value })}
-                                placeholder="Ex: 15.5"
-                            />
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Note (sur 20)</label>
+                            <input type="number" min="0" max="20" step="0.25" className="border border-gray-300 rounded-lg p-3 w-full" value={form.valeur} onChange={(e) => setForm({ ...form, valeur: e.target.value })} placeholder="Ex: 15.5" />
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Type d'évaluation
-                            </label>
-                            <select
-                                className="border border-gray-300 rounded-lg p-3 w-full outline-hidden bg-white"
-                                value={form.type_evaluation}
-                                onChange={(e) => setForm({ ...form, type_evaluation: e.target.value })}
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Type d'évaluation</label>
+                            <select className="border border-gray-300 rounded-lg p-3 w-full bg-white" value={form.type_evaluation} onChange={(e) => setForm({ ...form, type_evaluation: e.target.value })}>
                                 <option value="Devoir 1">Devoir 1</option>
                                 <option value="Devoir 2">Devoir 2</option>
                                 <option value="Composition">Composition</option>
                             </select>
                         </div>
-
                         <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1">
-                                Période
-                            </label>
-                            <select
-                                className="border border-gray-300 rounded-lg p-3 w-full outline-hidden bg-white"
-                                value={form.periode}
-                                onChange={(e) => setForm({ ...form, periode: e.target.value })}
-                            >
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Période</label>
+                            <select className="border border-gray-300 rounded-lg p-3 w-full bg-white" value={form.periode} onChange={(e) => setForm({ ...form, periode: e.target.value })}>
                                 <option value="Semestre 1">Semestre 1</option>
                                 <option value="Semestre 2">Semestre 2</option>
                                 <option value="Annuel">Annuel</option>
                             </select>
                         </div>
                     </div>
-
-                    <div className="flex flex-col gap-3 border-t pt-4 mt-8"> 
-                        <div className="flex gap-4">
-                            <button
-                                onClick={handleSave}
-                                className={`flex-1 text-white font-medium py-3 px-4 rounded-lg transition-colors shadow-xs ${
-                                    drawerMode === "create" ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"
-                                }`}
-                            >
-                                {drawerMode === "create" ? "Ajouter la note" : "Enregistrer les modifications"}
-                            </button>
-                            <button
-                                onClick={() => setShowDrawer(false)}
-                                className="flex-1 bg-gray-100 hover:bg-gray-200 text-slate-700 font-medium py-3 px-4 rounded-lg transition-colors"
-                            >
-                                Annuler
-                            </button>
-                        </div>
+                    <div className="flex gap-4 border-t pt-4 mt-8">
+                        <button onClick={handleSave} className={`flex-1 text-white font-medium py-3 rounded-lg ${drawerMode === "create" ? "bg-green-600" : "bg-blue-600"}`}>
+                            {drawerMode === "create" ? "Ajouter la note" : "Enregistrer"}
+                        </button>
+                        <button onClick={() => setShowDrawer(false)} className="flex-1 bg-gray-100 text-slate-700 py-3 rounded-lg">Annuler</button>
                     </div>
                 </div>
             </DrawerPanel>
