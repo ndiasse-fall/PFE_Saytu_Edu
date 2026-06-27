@@ -15,6 +15,13 @@ export function logout() {
   })
 }
 
+export function changePassword(payload) {
+  return apiClient('/change-password', {
+    method: 'POST',
+    data: payload,
+  })
+}
+
 export async function getCurrentUser() {
   if (!currentUserRequest) {
     currentUserRequest = apiClient('/me')
@@ -25,4 +32,13 @@ export async function getCurrentUser() {
   }
 
   return currentUserRequest
+}
+
+export async function updateCurrentUserProfile(payload) {
+  const response = await apiClient('/me', {
+    method: 'PATCH',
+    data: payload,
+  })
+
+  return response.data
 }

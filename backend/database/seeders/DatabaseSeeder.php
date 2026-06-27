@@ -28,39 +28,57 @@ class DatabaseSeeder extends Seeder
 
         // Inscrire les élèves dans des classes
         foreach ($eleves as $eleve) {
-            $eleve->classes()->attach($classes->random()->id);
+            if ($eleve->classes()->exists()) {
+                continue;
+            }
+
+            $eleve->classes()->syncWithoutDetaching([$classes->random()->id]);
         }
 
         // Affecter les enseignants aux classes
         foreach ($enseignants as $enseignant) {
-            $enseignant->classes()->attach($classes->random(2)->pluck('id'));
+            if ($enseignant->classes()->count() >= 2) {
+                continue;
+            }
+
+            $enseignant->classes()->syncWithoutDetaching(
+                $classes->random(min(2, $classes->count()))->pluck('id')->all()
+            );
         }
 
         // Créer des notes, absences, bulletins
         foreach ($eleves as $eleve) {
-            Note::factory()->count(5)->create([
-                'id_eleve' => $eleve->id,
-                'id_matiere' => $matieres->random()->id,
-            ]);
+            if (! Note::where('id_eleve', $eleve->id)->exists()) {
+                Note::factory()->count(5)->create([
+                    'id_eleve' => $eleve->id,
+                    'id_matiere' => $matieres->random()->id,
+                ]);
+            }
 
-            Absence::factory()->count(2)->create([
-                'id_eleve' => $eleve->id,
-            ]);
+            if (! Absence::where('id_eleve', $eleve->id)->exists()) {
+                Absence::factory()->count(2)->create([
+                    'id_eleve' => $eleve->id,
+                ]);
+            }
 
-            Bulletin::factory()->create([
-                'id_eleve' => $eleve->id,
-                'id_classe' => $eleve->classes()->first()?->id ?? $classes->random()->id,
-            ]);
+            if (! Bulletin::where('id_eleve', $eleve->id)->exists()) {
+                Bulletin::factory()->create([
+                    'id_eleve' => $eleve->id,
+                    'id_classe' => $eleve->classes()->first()?->id ?? $classes->random()->id,
+                ]);
+            }
         }
 
         // Créer l'emploi du temps
-        foreach ($classes as $classe) {
-            foreach ($matieres->random(3) as $matiere) {
-                EmploiDuTemps::factory()->create([
-                    'id_classe' => $classe->id,
-                    'id_matiere' => $matiere->id,
-                    'id_enseignant' => $enseignants->random()->id,
-                ]);
+        if (! EmploiDuTemps::query()->exists()) {
+            foreach ($classes as $classe) {
+                foreach ($matieres->random(min(3, $matieres->count())) as $matiere) {
+                    EmploiDuTemps::factory()->create([
+                        'id_classe' => $classe->id,
+                        'id_matiere' => $matiere->id,
+                        'id_enseignant' => $enseignants->random()->id,
+                    ]);
+                }
             }
         }
     }

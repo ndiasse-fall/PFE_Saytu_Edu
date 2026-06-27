@@ -6,8 +6,10 @@ use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class UserService
@@ -97,14 +99,26 @@ class UserService
     public function createUser(array $data): User
     {
         $this->assertSuperAdminRoleIsNotManagedHere($data);
+        $explicitStudentMatricule = filled($data['matricule_eleve'] ?? null);
+        $explicitTeacherMatricule = filled($data['matricule_enseignant'] ?? null);
 
-        $plainPassword = $data['password'];
+        $generatedPassword = blank($data['password'] ?? null)
+            && $this->roleUsesTemporaryPassword($data['role'] ?? null);
+
+        $plainPassword = $generatedPassword
+            ? $this->generateTemporaryPassword()
+            : (string) $data['password'];
 
         $data['password'] = Hash::make($plainPassword);
         $data['actif'] = $data['actif'] ?? true;
+        $data['must_change_password'] = $generatedPassword;
         $data = $this->syncLegacyFields($data);
 
-        $user = User::create($data);
+        $user = $this->createUserWithMatriculeRetry(
+            $data,
+            $explicitStudentMatricule || $explicitTeacherMatricule
+        );
+        $user->setAttribute('temporary_password', $generatedPassword ? $plainPassword : null);
 
         event(new \App\Events\UserCreated($user, $plainPassword));
 
@@ -245,5 +259,59 @@ class UserService
         throw ValidationException::withMessages([
             'role' => 'Le compte Super Admin est réservé au seeder système.',
         ]);
+    }
+
+    private function roleUsesTemporaryPassword(RoleEnum|string|null $role): bool
+    {
+        $roleValue = $role instanceof RoleEnum ? $role->value : (string) $role;
+
+        return in_array($roleValue, [
+            RoleEnum::ELEVE->value,
+            RoleEnum::ENSEIGNANT->value,
+        ], true);
+    }
+
+    private function generateTemporaryPassword(): string
+    {
+        return Str::password(length: 12, letters: true, numbers: true, symbols: false, spaces: false);
+    }
+
+    private function createUserWithMatriculeRetry(array $data, bool $usesExplicitMatricule): User
+    {
+        $attempts = $usesExplicitMatricule ? 1 : 3;
+
+        for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+            try {
+                return User::create($data);
+            } catch (QueryException $exception) {
+                if (! $this->isDuplicateMatriculeException($exception)) {
+                    throw $exception;
+                }
+
+                if ($usesExplicitMatricule || $attempt === $attempts) {
+                    throw ValidationException::withMessages([
+                        'matricule' => 'Ce matricule est déjà utilisé. Veuillez réessayer ou laisser le matricule vide pour une génération automatique.',
+                    ]);
+                }
+            }
+        }
+
+        throw ValidationException::withMessages([
+            'matricule' => 'Impossible de générer un matricule unique. Veuillez réessayer.',
+        ]);
+    }
+
+    private function isDuplicateMatriculeException(QueryException $exception): bool
+    {
+        $errorCode = (int) ($exception->errorInfo[1] ?? 0);
+        $message = $exception->getMessage();
+
+        return $errorCode === 1062
+            && (
+                str_contains($message, 'users_matricule_eleve_unique')
+                || str_contains($message, 'users_matricule_enseignant_unique')
+                || str_contains($message, 'matricule_eleve')
+                || str_contains($message, 'matricule_enseignant')
+            );
     }
 }
