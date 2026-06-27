@@ -47,6 +47,23 @@ const TeacherManagementPage = lazy(() =>
         (module) => ({ default: module.TeacherManagementPage }),
     ),
 );
+const ClasseManagementPage = lazy(() =>
+    import("../views/pages/gestion-admin/classes/ClasseManagementPage").then(
+        (module) => ({ default: module.ClasseManagementPage}),
+    ),
+);
+
+const MatiereManagementPage = lazy(() =>
+    import("../views/pages/gestion-admin/matieres/MatiereManagementPage").then(
+        (module) => ({ default: module.MatiereManagementPage }),
+    ),
+);
+
+const AffectationManagementPage = lazy(() =>
+    import("../views/pages/gestion-admin/affectations/AffectationManagementPage").then(
+        (module) => ({ default: module.AffectationManagementPage }),
+    ),
+);
 const SettingsPage = lazy(() =>
     import("../views/pages/settings/SettingsPage").then((module) => ({
         default: module.SettingsPage,
@@ -128,10 +145,18 @@ export function AppRouter() {
                                     element={<TeacherManagementPage />}
                                 />
                                 <Route
-                                    path="/admin/classes"
-                                    element={
-                                        <ModulePlaceholderPage title="Classes" />
-                                    }
+                                    path="/admin/gestion-admin/classes"
+                                    element={<ClasseManagementPage />}
+                                />
+
+                                <Route
+                                    path="/admin/gestion-admin/matieres"
+                                    element={<MatiereManagementPage />}
+                                />
+
+                                <Route
+                                    path="/admin/gestion-admin/affectations"
+                                    element={<AffectationManagementPage />}
                                 />
                                 <Route
                                     path="/admin/emploi-du-temps"

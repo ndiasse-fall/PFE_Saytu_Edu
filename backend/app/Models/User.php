@@ -151,6 +151,11 @@ class User extends Authenticatable
         return $this->hasMany(Absence::class, 'id_eleve');
     }
 
+    public function matieres()
+    {
+        return $this->belongsToMany(Matieres::class, 'user_matiere', 'id_user', 'id_matiere');
+    }
+
     public function isSuperAdministrateur(): bool
     {
         return $this->role === RoleEnum::SUPER_ADMIN;

@@ -1,0 +1,15 @@
+import { apiClient } from '../../core/api/apiClient'
+
+export const listClasses = async () => {
+  const response = await apiClient('/classes')
+  return Array.isArray(response) ? response : (response?.data || [])
+}
+
+export const createClasse = (data) =>
+  apiClient('/classes', { method: 'POST', data })
+
+export const updateClasse = (id, data) =>
+  apiClient(`/classes/${id}`, { method: 'PUT', data })
+
+export const deleteClasse = (id) =>
+  apiClient(`/classes/${id}`, { method: 'DELETE' })

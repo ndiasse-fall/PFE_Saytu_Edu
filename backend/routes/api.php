@@ -12,6 +12,7 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\Api\EleveController;
 use App\Http\Controllers\Api\MatiereController;
+use App\Http\Controllers\Api\AffectationController;
 
 // --- ROUTES PUBLIQUES ---
 Route::post('login', [AuthController::class, 'login']);
@@ -50,6 +51,11 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
 
         Route::apiResource('matieres', MatiereController::class);
+
+        // Routes Affectations
+        Route::get('affectations', [AffectationController::class, 'index']);
+        Route::post('affectations/matiere-classe', [AffectationController::class, 'affecterMatiereClasse']);
+        Route::post('affectations/enseignant-matiere', [AffectationController::class, 'affecterEnseignantMatiere']);
 
         // Écriture Emploi du Temps
         Route::post('emplois-du-temps', [EmploiDuTempsController::class, 'store']);

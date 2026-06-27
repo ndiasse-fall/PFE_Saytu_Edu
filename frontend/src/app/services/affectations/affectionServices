@@ -1,0 +1,30 @@
+import { apiClient } from '../../core/api/apiClient'
+
+export const listAffectations = async () => {
+  const response = await apiClient('/affectations')
+  return Array.isArray(response) ? response : (response?.data || [])
+}
+
+export const affecterMatiereClasse = (
+  classeId,
+  matiereId
+) =>
+  apiClient('/affectations/matiere-classe', {
+    method: 'POST',
+    data: {
+      classe_id: classeId,
+      matiere_id: matiereId
+    }
+  })
+
+export const affecterEnseignantMatiere = (
+  enseignantId,
+  matiereId
+) =>
+  apiClient('/affectations/enseignant-matiere', {
+    method: 'POST',
+    data: {
+      enseignant_id: enseignantId,
+      matiere_id: matiereId
+    }
+  })
