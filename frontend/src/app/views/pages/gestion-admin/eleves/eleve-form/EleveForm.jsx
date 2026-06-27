@@ -9,7 +9,6 @@ export function EleveForm({
 }) {
   const isEditing = mode === 'edit'
   const submitLabel = isEditing ? 'Mettre à jour' : 'Créer'
-  const passwordLabel = isEditing ? 'Mot de passe (optionnel)' : 'Mot de passe'
 
   return (
     <form className="form-grid" onSubmit={onSubmit}>
@@ -28,18 +27,23 @@ export function EleveForm({
         <input name="email" type="email" value={form.email} onChange={onInputChange} autoComplete="email" required />
         {fieldErrors.email ? <small>{fieldErrors.email[0]}</small> : null}
       </label>
-      <label>
-        <span>{passwordLabel}</span>
-        <input
-          name="password"
-          type="password"
-          value={form.password}
-          onChange={onInputChange}
-          autoComplete={isEditing ? 'new-password' : 'current-password'}
-          required={!isEditing}
-        />
-        {fieldErrors.password ? <small>{fieldErrors.password[0]}</small> : null}
-      </label>
+      {isEditing ? (
+        <label>
+          <span>Mot de passe (optionnel)</span>
+          <input
+            name="password"
+            type="password"
+            value={form.password}
+            onChange={onInputChange}
+            autoComplete="new-password"
+          />
+          {fieldErrors.password ? <small>{fieldErrors.password[0]}</small> : null}
+        </label>
+      ) : (
+        <div className="alert alert-info full-width">
+          Un mot de passe temporaire sera généré automatiquement et envoyé par email.
+        </div>
+      )}
       <label>
         <span>Téléphone</span>
         <input name="telephone" value={form.telephone} onChange={onInputChange} autoComplete="tel" inputMode="tel" />

@@ -37,7 +37,6 @@ class WelcomeEmailTest extends TestCase
             'nom' => 'Ndiaye',
             'prenom' => 'Babacar',
             'email' => 'babacar@example.com',
-            'password' => 'passer123',
             'telephone' => '771234567',
             'adresse' => 'Dakar',
             'role' => RoleEnum::ENSEIGNANT->value,
@@ -46,9 +45,11 @@ class WelcomeEmailTest extends TestCase
 
         $response->assertCreated();
 
-        Event::assertDispatched(UserCreated::class, function ($event) {
+        $temporaryPassword = $response->json('temporary_password');
+
+        Event::assertDispatched(UserCreated::class, function ($event) use ($temporaryPassword) {
             return $event->user->email === 'babacar@example.com' 
-                && $event->plainPassword === 'passer123';
+                && $event->plainPassword === $temporaryPassword;
         });
     }
 
