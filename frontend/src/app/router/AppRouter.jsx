@@ -52,6 +52,11 @@ const TeacherManagementPage = lazy(() =>
         (module) => ({ default: module.TeacherManagementPage }),
     ),
 );
+const EmploiDuTempsPage = lazy(() =>
+    import("../views/pages/gestion-admin/emplois-du-temps/EmploiDuTempsPage").then(
+        (module) => ({ default: module.EmploiDuTempsPage }),
+    ),
+);
 const SettingsPage = lazy(() =>
     import("../views/pages/settings/SettingsPage").then((module) => ({
         default: module.SettingsPage,
@@ -141,24 +146,23 @@ export function AppRouter() {
                         </Route>
 
                         {/* AUTH */}
-                        <Route element={<BaseLayout />}>
-                            {/* HOME */}
-                            <Route path="/" element={<RoleHomeRedirect />} />
-                            <Route
-                                path="/user/dashboard"
-                                element={<RoleHomeRedirect />}
-                            />
-
-                            <Route
-                                path="/settings"
-                                element={<SettingsPage />}
-                            />
-
-                            {/* ADMIN */}
-                            <Route
-                                element={
-                                    <RoleGuard
-                                        roles={["SUPER_ADMIN", "ADMIN"]}
+                        <Route element={<AuthGuard />}>
+                            <Route element={<BaseLayout />}>
+    
+                                {/* HOME */}
+                                <Route path="/" element={<RoleHomeRedirect />} />
+                                <Route path="/user/dashboard" element={<RoleHomeRedirect />} />
+    
+                                <Route path="/settings" element={<SettingsPage />} />
+    
+                                {/* ADMIN */}
+                                <Route element={<RoleGuard roles={["SUPER_ADMIN", "ADMIN"]} />}>
+                                    <Route path="/admin/dashboard" element={<DashboardPage />} />
+    
+                                    {/* Gestion Admin */}
+                                    <Route
+                                        path="/admin/gestion-admin/users"
+                                        element={<UserManagementPage />}
                                     />
                                 }
                             >
@@ -166,91 +170,78 @@ export function AppRouter() {
                                     path="/admin/dashboard"
                                     element={<DashboardPage />}
                                 />
-
-                                {/* Gestion Admin */}
+                                <Route
+                                    path="/admin/eleves"
+                                    element={
+                                        <ModulePlaceholderPage title="Élèves" />
+                                    }
+                                />
+                                <Route
+                                    path="/admin/professeurs"
+                                    element={<TeacherManagementPage />}
+                                />
+                                <Route
+                                    path="/admin/classes"
+                                    element={
+                                        <ModulePlaceholderPage title="Classes" />
+                                    }
+                                />
+                                <Route
+                                    path="/admin/emploi-du-temps"
+                                    element={<EmploiDuTempsPage />}
+                                />
+                                <Route
+                                    path="/admin/bulletins"
+                                    element={<BulletinList />}
+                                />
                                 <Route
                                     path="/admin/gestion-admin/users"
                                     element={<UserManagementPage />}
                                 />
+                                <Route
+                                    path="/admin/gestion-admin/eleves"
+                                    element={<EleveManagementPage />}
+                                />
+                                <Route
+                                    path="/admin/gestion-admin/eleves/:id"
+                                    element={<EleveDetailsPage />}
+                                />
+                                <Route
+                                    path="/admin/gestion-admin/professeurs"
+                                    element={<TeacherManagementPage />}
+                                />
                             </Route>
-                            <Route
-                                path="/admin/dashboard"
-                                element={<DashboardPage />}
-                            />
-                            <Route
-                                path="/admin/eleves"
-                                element={
-                                    <ModulePlaceholderPage title="Élèves" />
-                                }
-                            />
-                            <Route
-                                path="/admin/professeurs"
-                                element={<TeacherManagementPage />}
-                            />
-                            <Route
-                                path="/admin/classes"
-                                element={
-                                    <ModulePlaceholderPage title="Classes" />
-                                }
-                            />
-                            <Route
-                                path="/admin/emploi-du-temps"
-                                element={
-                                    <ModulePlaceholderPage title="Emploi du temps" />
-                                }
-                            />
-                            <Route
-                                path="/admin/bulletins"
-                                element={<BulletinList />}
-                            />
-                            <Route
-                                path="/admin/gestion-admin/users"
-                                element={<UserManagementPage />}
-                            />
-                            <Route
-                                path="/admin/gestion-admin/eleves"
-                                element={<EleveManagementPage />}
-                            />
-                            <Route
-                                path="/admin/gestion-admin/eleves/:id"
-                                element={<EleveDetailsPage />}
-                            />
-                            <Route
-                                path="/admin/gestion-admin/professeurs"
-                                element={<TeacherManagementPage />}
-                            />
-                        </Route>
 
-                        <Route element={<RoleGuard roles={["ENSEIGNANT"]} />}>
                             <Route
-                                path="/enseignant/dashboard"
-                                element={<DashboardPage />}
-                            />
-                            <Route
-                                path="/enseignant/eleves"
-                                element={
-                                    <ModulePlaceholderPage title="Élèves" />
-                                }
-                            />
-                            <Route
-                                path="/enseignant/classes"
-                                element={
-                                    <ModulePlaceholderPage title="Classes" />
-                                }
-                            />
-                            <Route
-                                path="/enseignant/emploi-du-temps"
-                                element={
-                                    <ModulePlaceholderPage title="Emploi du temps" />
-                                }
-                            />
-                            <Route
-                                path="/enseignant/bulletins"
-                                element={
-                                    <ModulePlaceholderPage title="Bulletin" />
-                                }
-                            />
-                        </Route>
+                                element={<RoleGuard roles={["ENSEIGNANT"]} />}
+                            >
+                                <Route
+                                    path="/enseignant/dashboard"
+                                    element={<DashboardPage />}
+                                />
+                                <Route
+                                    path="/enseignant/eleves"
+                                    element={
+                                        <ModulePlaceholderPage title="Élèves" />
+                                    }
+                                />
+                                <Route
+                                    path="/enseignant/classes"
+                                    element={
+                                        <ModulePlaceholderPage title="Classes" />
+                                    }
+                                />
+                                <Route
+                                    path="/enseignant/emploi-du-temps"
+                                    element={<EmploiDuTempsPage />}
+                                />
+                                <Route
+                                    path="/enseignant/bulletins"
+                                    element={
+                                        <ModulePlaceholderPage title="Bulletin" />
+                                    }
+                                />
+                            </Route>
 
                         <Route element={<RoleGuard roles={["ELEVE"]} />}>
                             <Route
