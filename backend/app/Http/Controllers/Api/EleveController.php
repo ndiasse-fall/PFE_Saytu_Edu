@@ -33,6 +33,7 @@ class EleveController extends Controller
         $classeIds = $eleve->classes()->pluck('classes.id');
         $emplois = EmploiDuTemps::with(['classe', 'enseignant', 'matiere'])
             ->whereIn('id_classe', $classeIds)
+            ->where('est_publie', true)
             ->orderBy('jour')
             ->orderBy('heure_debut')
             ->get();
