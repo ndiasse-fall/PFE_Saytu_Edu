@@ -5,21 +5,34 @@ import { BrandLogo } from "../../../shared/components/branding/BrandLogo";
 import { menuItems } from "../../../util/menu";
 
 export function Sidebar({ isOpen, onClose, onToggle }) {
-
     const { user, signOut } = useAuth();
-    const navigate = useNavigate()
-    const [profileMenuOpen, setProfileMenuOpen] = useState(false)
-    const [openMenus, setOpenMenus] = useState({})
-    const sections = menuItems.filter((section) => section.roles.includes(user?.role), );
-    const canAccessSettings = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.role === "ELEVE";
-    const accountLabel = useMemo(() => { if (user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") 
-            return "Saytu Admin"
-        
+    const navigate = useNavigate();
+    const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+
+    const sections = menuItems.filter((section) =>
+        section.roles.includes(user?.role),
+    );
+    const canAccessSettings =
+        user?.role === "SUPER_ADMIN" || user?.role === "ADMIN" || user?.role === "ELEVE";
+    const accountLabel = useMemo(() => {
+        if (user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") {
+            return "Saytu Admin";
+        }
+
         return (
             `${user?.prenom ?? ""} ${user?.nom ?? ""}`.trim() || "Utilisateur"
         );
     }, [user?.nom, user?.prenom, user?.role]);
-    async function handleSignOut(path) {
+
+    function handleAccountNavigation(path) {
+        setProfileMenuOpen(false);
+        if (typeof window !== "undefined" && window.innerWidth < 992) {
+            onClose();
+        }
+        navigate(path);
+    }
+
+    async function handleSignOut() {
         setProfileMenuOpen(false);
         if (typeof window !== "undefined" && window.innerWidth < 992) {
             onClose();
@@ -74,88 +87,26 @@ export function Sidebar({ isOpen, onClose, onToggle }) {
                     {sections.map((section) => (
                         <div key={section.section} className="sidebar-section">
                             <p className="sidebar-title">{section.section}</p>
-                            {section.items.map((item) => {
-                                if (item.children) {
-                                    return (
-                                        <div key={item.label}>
-                                            <button
-                                                type="button"
-                                                className="sidebar-link"
-                                                onClick={() =>
-                                                    setOpenMenus((prev) => ({
-                                                        ...prev,
-                                                        [item.label]: !prev[item.label],
-                                                    }))
-                                                }
-                                            >
-                                                {item.icon ? (
-                                                    <i
-                                                        className={`sidebar-link-icon bi ${item.icon}`}
-                                                        aria-hidden="true"
-                                                    />
-                                                ) : null}
-
-                                                <span className="sidebar-link-label">
-                                                    {item.label}
-                                                </span>
-
-                                                <i
-                                                    className={`bi ${
-                                                        openMenus[item.label]
-                                                            ? "bi-chevron-down"
-                                                            : "bi-chevron-right"
-                                                    }`}
-                                                />
-                                            </button>
-
-                                            {openMenus[item.label] && (
-                                                <div style={{ marginLeft: "20px" }}>
-                                                    {item.children.map((child) => (
-                                                        <NavLink
-                                                            key={child.path}
-                                                            to={child.path}
-                                                            className={({ isActive }) =>
-                                                                `sidebar-link${isActive ? " active" : ""}`
-                                                            }
-                                                            onClick={handleNavigationClick}
-                                                        >
-                                                            <i
-                                                                className={`sidebar-link-icon bi ${child.icon}`}
-                                                                aria-hidden="true"
-                                                            />
-                                                            <span className="sidebar-link-label">
-                                                                {child.label}
-                                                            </span>
-                                                        </NavLink>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-                                    );
-                                }
-
-                                return (
-                                    <NavLink
-                                        key={item.path}
-                                        to={item.path}
-                                        className={({ isActive }) =>
-                                            `sidebar-link${isActive ? " active" : ""}`
-                                        }
-                                        onClick={handleNavigationClick}
-                                    >
-                                        {item.icon ? (
-                                            <i
-                                                className={`sidebar-link-icon bi ${item.icon}`}
-                                                aria-hidden="true"
-                                            />
-                                        ) : null}
-
-                                        <span className="sidebar-link-label">
-                                            {item.label}
-                                        </span>
-                                    </NavLink>
-                                );
-                            })}
+                            {section.items.map((item) => (
+                                <NavLink
+                                    key={item.path}
+                                    to={item.path}
+                                    className={({ isActive }) =>
+                                        `sidebar-link${isActive ? " active" : ""} mb-2`
+                                    }
+                                    onClick={handleNavigationClick}
+                                >
+                                    {item.icon ? (
+                                        <i
+                                            className={`sidebar-link-icon bi ${item.icon}`}
+                                            aria-hidden="true"
+                                        />
+                                    ) : null}
+                                    <span className="sidebar-link-label">
+                                        {item.label}
+                                    </span>
+                                </NavLink>
+                            ))}
                         </div>
                     ))}
                 </nav>
