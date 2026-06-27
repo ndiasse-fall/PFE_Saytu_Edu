@@ -12,7 +12,7 @@ use App\Http\Controllers\NoteController;
 use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\Api\EleveController;
 use App\Http\Controllers\Api\MatiereController;
-
+use App\Http\Controllers\Api\BulletinController;
 // --- ROUTES PUBLIQUES ---
 Route::post('login', [AuthController::class, 'login']);
 Route::post('auth/login', [AuthController::class, 'login']);
@@ -20,7 +20,7 @@ Route::post('forgot-password', [PasswordResetController::class, 'forgotPassword'
 Route::post('reset-password', [PasswordResetController::class, 'resetPassword']);
 
 // --- ROUTES PROTÉGÉES ---
-Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
+Route::middleware(['auth:sanctum', 'check.statut'])->group(function () {
     Route::get('me', [AuthController::class, 'me']);
     Route::post('logout', [AuthController::class, 'logout']);
     Route::post('auth/logout', [AuthController::class, 'logout']);
@@ -50,6 +50,15 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         Route::post('classes/{id}/affecter-enseignant', [ClasseController::class, 'affecterEnseignant']);
 
         Route::apiResource('matieres', MatiereController::class);
+
+    // Bulletins
+    Route::apiResource('matieres', MatiereController::class);
+
+        Route::get('bulletins', [BulletinController::class, 'index']);
+        Route::get('bulletins/{id}', [BulletinController::class, 'show']);
+        Route::post('bulletins', [BulletinController::class, 'store']);
+        Route::put('bulletins/{id}', [BulletinController::class, 'update']);
+        Route::delete('bulletins/{id}', [BulletinController::class, 'destroy']);
 
         // Écriture Emploi du Temps
         Route::post('emplois-du-temps', [EmploiDuTempsController::class, 'store']);
