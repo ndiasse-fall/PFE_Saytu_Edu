@@ -72,6 +72,30 @@ const ModulePlaceholderPage = lazy(() =>
         default: module.ModulePlaceholderPage,
     })),
 );
+const BulletinList = lazy(() =>
+    import("../views/pages/gestion-admin/bulletins/BulletinList"),
+);
+
+const MesNotes = lazy(() =>
+    import("../views/pages/gestion-admin/eleves/espace-eleve/MesNotes").then(
+        (module) => ({ default: module.MesNotes }),
+    ),
+);
+const MesAbsences = lazy(() =>
+    import(
+        "../views/pages/gestion-admin/eleves/espace-eleve/MesAbsences"
+    ).then((module) => ({ default: module.MesAbsences })),
+);
+const MonBulletin = lazy(() =>
+    import(
+        "../views/pages/gestion-admin/eleves/espace-eleve/MonBulletin"
+    ).then((module) => ({ default: module.MonBulletin })),
+);
+const MonEmploiTemps = lazy(() =>
+    import(
+        "../views/pages/gestion-admin/eleves/espace-eleve/MonEmploiTemps"
+    ).then((module) => ({ default: module.MonEmploiTemps })),
+);
 
 function RoleHomeRedirect() {
     const { user } = useAuth();
@@ -107,18 +131,33 @@ export function AppRouter() {
                         <Route element={<BaseLayout />}>
                             <Route path="/" element={<RoleHomeRedirect />} />
                             <Route
-                                path="/user/dashboard"
-                                element={<RoleHomeRedirect />}
+                                path="/forgot-password"
+                                element={<ForgotPasswordPage />}
                             />
                             <Route
-                                path="/settings"
-                                element={<SettingsPage />}
+                                path="/reset-password"
+                                element={<ResetPasswordPage />}
                             />
-
-                            <Route
-                                element={
-                                    <RoleGuard
-                                        roles={["SUPER_ADMIN", "ADMIN"]}
+                        </Route>
+    
+                        {/* AUTH */}
+                        <Route element={<AuthGuard />}>
+                            <Route element={<BaseLayout />}>
+    
+                                {/* HOME */}
+                                <Route path="/" element={<RoleHomeRedirect />} />
+                                <Route path="/user/dashboard" element={<RoleHomeRedirect />} />
+    
+                                <Route path="/settings" element={<SettingsPage />} />
+    
+                                {/* ADMIN */}
+                                <Route element={<RoleGuard roles={["SUPER_ADMIN", "ADMIN"]} />}>
+                                    <Route path="/admin/dashboard" element={<DashboardPage />} />
+    
+                                    {/* Gestion Admin */}
+                                    <Route
+                                        path="/admin/gestion-admin/users"
+                                        element={<UserManagementPage />}
                                     />
                                 }
                             >
@@ -150,9 +189,7 @@ export function AppRouter() {
                                 />
                                 <Route
                                     path="/admin/bulletins"
-                                    element={
-                                        <ModulePlaceholderPage title="Bulletin" />
-                                    }
+                                    element={<BulletinList />}
                                 />
                                 <Route
                                     path="/admin/gestion-admin/users"
@@ -211,25 +248,28 @@ export function AppRouter() {
                                     element={<DashboardPage />}
                                 />
                                 <Route
-                                    path="/eleve/emploi-du-temps"
-                                    element={
-                                        <ModulePlaceholderPage title="Emploi du temps" />
-                                    }
+                                    path="/eleve/notes"
+                                    element={<MesNotes />}
+                                />
+                                <Route
+                                    path="/eleve/absences"
+                                    element={<MesAbsences />}
                                 />
                                 <Route
                                     path="/eleve/bulletin"
-                                    element={
-                                        <ModulePlaceholderPage title="Bulletin" />
-                                    }
+                                    element={<MonBulletin />}
+                                />
+                                <Route
+                                    path="/eleve/emploi-du-temps"
+                                    element={<MonEmploiTemps />}
                                 />
                             </Route>
-
-                            <Route
-                                path="/unauthorized"
-                                element={<UnauthorizedPage />}
-                            />
                         </Route>
-                    </Route>
+    
+                        {/* 404 */}
+                        <Route path="*" element={<NotFoundPage />} />
+    
+                    </Routes>
 
                     <Route path="*" element={<NotFoundPage />} />
                 </Routes>
