@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\ChangePasswordRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -45,6 +47,32 @@ class AuthController extends Controller
             'token' => $token,
             'user' => $user,
             'role' => $user->role?->value ?? $user->role,
+            'must_change_password' => (bool) $user->must_change_password,
+        ]);
+    }
+
+    public function changePassword(ChangePasswordRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $data = $request->validated();
+
+        if (! Hash::check($data['current_password'], $user->password)) {
+            return response()->json([
+                'message' => 'Le mot de passe actuel est incorrect.',
+                'errors' => [
+                    'current_password' => ['Le mot de passe actuel est incorrect.'],
+                ],
+            ], 422);
+        }
+
+        $user->forceFill([
+            'password' => Hash::make($data['password']),
+            'must_change_password' => false,
+        ])->save();
+
+        return response()->json([
+            'message' => 'Mot de passe modifié avec succès.',
+            'user' => $user->fresh(),
         ]);
     }
 
@@ -58,6 +86,18 @@ class AuthController extends Controller
     {
         return response()->json([
             'data' => $request->user(),
+        ]);
+    }
+
+    public function updateProfile(UpdateProfileRequest $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $user->forceFill($request->validated())->save();
+
+        return response()->json([
+            'message' => 'Profil mis à jour avec succès.',
+            'data' => $user->fresh(),
         ]);
     }
 

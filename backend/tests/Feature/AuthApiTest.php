@@ -27,7 +27,63 @@ class AuthApiTest extends TestCase
         ])
             ->assertOk()
             ->assertJsonPath('user.id', $user->id)
-            ->assertJsonPath('role', RoleEnum::ADMIN->value);
+            ->assertJsonPath('role', RoleEnum::ADMIN->value)
+            ->assertJsonPath('must_change_password', false);
+    }
+
+    public function test_user_with_temporary_password_must_change_password(): void
+    {
+        $user = User::factory()->eleve()->create([
+            'email' => 'eleve@saytou.test',
+            'password' => Hash::make('temporaire123'),
+            'actif' => true,
+            'must_change_password' => true,
+        ]);
+
+        $loginResponse = $this->postJson('/api/login', [
+            'email' => 'eleve@saytou.test',
+            'password' => 'temporaire123',
+        ]);
+
+        $loginResponse
+            ->assertOk()
+            ->assertJsonPath('user.id', $user->id)
+            ->assertJsonPath('must_change_password', true);
+
+        $token = $loginResponse->json('token');
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/change-password', [
+                'current_password' => 'temporaire123',
+                'password' => 'nouveaupass123',
+                'password_confirmation' => 'nouveaupass123',
+            ])
+            ->assertOk()
+            ->assertJsonPath('user.must_change_password', false);
+
+        $user->refresh();
+
+        $this->assertFalse($user->must_change_password);
+        $this->assertTrue(Hash::check('nouveaupass123', $user->password));
+    }
+
+    public function test_change_password_rejects_wrong_current_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('password123'),
+            'actif' => true,
+            'must_change_password' => true,
+        ]);
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->postJson('/api/change-password', [
+                'current_password' => 'wrong-password',
+                'password' => 'nouveaupass123',
+                'password_confirmation' => 'nouveaupass123',
+            ])
+            ->assertStatus(422)
+            ->assertJsonPath('errors.current_password.0', 'Le mot de passe actuel est incorrect.');
     }
 
     public function test_login_is_rejected_with_invalid_password(): void
@@ -71,6 +127,37 @@ class AuthApiTest extends TestCase
             ->getJson('/api/me')
             ->assertOk()
             ->assertJsonPath('data.id', $user->id);
+    }
+
+    public function test_authenticated_user_can_update_own_profile(): void
+    {
+        $user = User::factory()->create([
+            'nom' => 'Old',
+            'prenom' => 'Name',
+            'email' => 'old.profile@saytou.test',
+            'telephone' => '770000000',
+            'adresse' => 'Ancienne adresse',
+        ]);
+        $token = $user->createToken('test-token')->plainTextToken;
+
+        $this->withHeader('Authorization', "Bearer {$token}")
+            ->patchJson('/api/me', [
+                'nom' => 'Ndiaye',
+                'prenom' => 'Awa',
+                'email' => 'awa.profile@saytou.test',
+                'telephone' => '771111111',
+                'adresse' => 'Dakar',
+            ])
+            ->assertOk()
+            ->assertJsonPath('data.nom', 'Ndiaye')
+            ->assertJsonPath('data.prenom', 'Awa')
+            ->assertJsonPath('data.email', 'awa.profile@saytou.test');
+
+        $this->assertDatabaseHas('users', [
+            'id' => $user->id,
+            'email' => 'awa.profile@saytou.test',
+            'telephone' => '771111111',
+        ]);
     }
 
     public function test_authenticated_user_can_logout_and_token_is_deleted(): void

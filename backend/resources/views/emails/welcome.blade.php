@@ -257,7 +257,7 @@ $appName        = config('app.name', 'Saytu Edu');
                                 rejoindre votre espace de travail.
                             </p>
 
-                            <p class="text-lead">Voici vos identifiants de connexion :</p>
+                            <p class="text-lead">Voici vos identifiants de connexion temporaires :</p>
 
                             <table class="credentials-table" border="0" cellpadding="0" cellspacing="0" width="100%">
                                 <tr>
@@ -268,7 +268,7 @@ $appName        = config('app.name', 'Saytu Edu');
                                                 <td class="value-cell">{{ $user->email }}</td>
                                             </tr>
                                             <tr>
-                                                <td width="35%" class="label-cell" style="padding-bottom: 0;">Password
+                                                <td width="35%" class="label-cell" style="padding-bottom: 0;">Mot de passe temporaire
                                                 </td>
                                                 <td class="value-password" style="padding-bottom: 0;">
                                                     {{ $plainPassword }}
@@ -293,9 +293,8 @@ $appName        = config('app.name', 'Saytu Edu');
                                 <tr>
                                     <td>
                                         <p class="security-text">
-                                            <strong>Sécurité :</strong> Nous vous recommandons de remplacer ce mot de
-                                            passe temporaire dès votre première connexion depuis l'interface de votre
-                                            profil.
+                                            <strong>Sécurité :</strong> ce mot de passe est temporaire. Vous serez
+                                            invité à le remplacer obligatoirement lors de votre première connexion.
                                         </p>
                                     </td>
                                 </tr>

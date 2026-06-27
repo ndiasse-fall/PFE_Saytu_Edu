@@ -22,6 +22,11 @@ const ResetPasswordPage = lazy(() =>
         (module) => ({ default: module.ResetPasswordPage }),
     ),
 );
+const ChangePasswordPage = lazy(() =>
+    import("../views/pages/auth/change-password/ChangePasswordPage").then(
+        (module) => ({ default: module.ChangePasswordPage }),
+    ),
+);
 const DashboardPage = lazy(() =>
     import("../views/pages/gestion-admin/dashboard/DashboardPage").then(
         (module) => ({ default: module.DashboardPage }),
@@ -119,6 +124,10 @@ export function AppRouter() {
                     </Route>
 
                     <Route element={<AuthGuard />}>
+                        <Route
+                            path="/change-password"
+                            element={<ChangePasswordPage />}
+                        />
                         <Route element={<BaseLayout />}>
                             <Route path="/" element={<RoleHomeRedirect />} />
                             <Route
