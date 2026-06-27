@@ -25,4 +25,14 @@ class Classe extends Model
     {
         return $this->hasMany(EmploiDuTemps::class, 'id_classe');
     }
+
+    public function matieres()
+    {
+        return $this->belongsToMany(
+            Matieres::class,
+            'classe_matiere',
+            'id_classe',
+            'id_matiere'
+        );
+    }
 }

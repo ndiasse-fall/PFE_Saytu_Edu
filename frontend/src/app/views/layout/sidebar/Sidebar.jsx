@@ -103,12 +103,16 @@ export function Sidebar({ isOpen, onClose, onToggle }) {
                                                 style={{ background: 'none', border: 'none', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '4px', width: '100%' }}
                                             >
                                                 <i className={`sidebar-link-icon bi ${item.icon}`} aria-hidden="true" />
-                                                <span className="sidebar-link-label" style={{ flex: '1 1 auto', marginRight: '2px' }}>
-                                                    {item.label}
+                                               <span className="sidebar-link-label">
+                                                         {item.label}
                                                 </span>
+                                                 
                                                 <i
                                                     className={`bi ${isOpen ? "bi-chevron-down" : "bi-chevron-right"}`}
-                                                    style={{ fontSize: '12px', marginLeft: '2px', flexShrink: 0 }}
+                                                    style={{
+                                                        fontSize: "12px",
+                                                        marginLeft: "6px"
+                                                    }}
                                                     aria-hidden="true"
                                                 />
                                             </button>
