@@ -33,6 +33,7 @@ class PasswordResetController extends Controller
             function ($user, string $password): void {
                 $user->forceFill([
                     'password' => Hash::make($password),
+                    'must_change_password' => false,
                 ])->save();
 
                 event(new PasswordReset($user));

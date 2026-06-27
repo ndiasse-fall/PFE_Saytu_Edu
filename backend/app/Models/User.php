@@ -34,6 +34,7 @@ class User extends Authenticatable
         'telephone',
         'role',
         'actif',
+        'must_change_password',
     ];
 
     protected $hidden = [
@@ -49,6 +50,7 @@ class User extends Authenticatable
         return [
             'role' => RoleEnum::class,
             'actif' => 'boolean',
+            'must_change_password' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
@@ -218,7 +220,8 @@ class User extends Authenticatable
         $year = date('Y');
         $prefix = "ELV-{$year}";
 
-        $lastUser = self::where('matricule_eleve', 'LIKE', "{$prefix}%")
+        $lastUser = self::withTrashed()
+            ->where('matricule_eleve', 'LIKE', "{$prefix}%")
             ->orderByRaw('LENGTH(matricule_eleve) DESC')
             ->orderBy('matricule_eleve', 'desc')
             ->first();
@@ -233,7 +236,7 @@ class User extends Authenticatable
         $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
         $matricule = "{$prefix}{$suffix}";
 
-        while (self::where('matricule_eleve', $matricule)->exists()) {
+        while (self::withTrashed()->where('matricule_eleve', $matricule)->exists()) {
             $nextNumber++;
             $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
             $matricule = "{$prefix}{$suffix}";
@@ -247,7 +250,8 @@ class User extends Authenticatable
         $year = date('Y');
         $prefix = "ENS-{$year}";
 
-        $lastUser = self::where('matricule_enseignant', 'LIKE', "{$prefix}%")
+        $lastUser = self::withTrashed()
+            ->where('matricule_enseignant', 'LIKE', "{$prefix}%")
             ->orderByRaw('LENGTH(matricule_enseignant) DESC')
             ->orderBy('matricule_enseignant', 'desc')
             ->first();
@@ -262,7 +266,7 @@ class User extends Authenticatable
         $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
         $matricule = "{$prefix}{$suffix}";
 
-        while (self::where('matricule_enseignant', $matricule)->exists()) {
+        while (self::withTrashed()->where('matricule_enseignant', $matricule)->exists()) {
             $nextNumber++;
             $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
             $matricule = "{$prefix}{$suffix}";

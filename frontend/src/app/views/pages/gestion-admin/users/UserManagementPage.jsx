@@ -145,8 +145,11 @@ export function UserManagementPage() {
         await updateUser(editingUserId, payload)
         setSuccess('Utilisateur modifié avec succès.')
       } else {
-        await createUser({ ...payload, password: form.password })
-        setSuccess('Utilisateur créé avec succès.')
+        const response = await createUser({ ...payload, password: form.password })
+        const temporaryPassword = response.temporary_password
+        setSuccess(temporaryPassword
+          ? `Utilisateur créé avec succès. Mot de passe temporaire : ${temporaryPassword}`
+          : 'Utilisateur créé avec succès.')
       }
 
       resetForm()

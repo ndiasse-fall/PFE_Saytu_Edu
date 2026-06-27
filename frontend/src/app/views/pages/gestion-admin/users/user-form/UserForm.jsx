@@ -12,6 +12,7 @@ export function UserForm({
   const isEditing = mode === 'edit'
   const submitLabel = isEditing ? 'Mettre à jour' : 'Créer'
   const passwordLabel = isEditing ? 'Mot de passe (optionnel)' : 'Mot de passe'
+  const usesTemporaryPassword = !isEditing && ['ELEVE', 'ENSEIGNANT'].includes(form.role)
 
   return (
     <form className="form-grid" onSubmit={onSubmit}>
@@ -30,18 +31,24 @@ export function UserForm({
           <input name="email" type="email" value={form.email} onChange={onInputChange} autoComplete="email" required />
           {fieldErrors.email ? <small>{fieldErrors.email[0]}</small> : null}
         </label>
-        <label>
-          <span>{passwordLabel}</span>
-          <input
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={onInputChange}
-            autoComplete={isEditing ? 'new-password' : 'current-password'}
-            required={!isEditing}
-          />
-          {fieldErrors.password ? <small>{fieldErrors.password[0]}</small> : null}
-        </label>
+        {usesTemporaryPassword ? (
+          <div className="alert alert-info full-width">
+            Un mot de passe temporaire sera généré automatiquement pour ce rôle.
+          </div>
+        ) : (
+          <label>
+            <span>{passwordLabel}</span>
+            <input
+              name="password"
+              type="password"
+              value={form.password}
+              onChange={onInputChange}
+              autoComplete={isEditing ? 'new-password' : 'current-password'}
+              required={!isEditing}
+            />
+            {fieldErrors.password ? <small>{fieldErrors.password[0]}</small> : null}
+          </label>
+        )}
         <label>
           <span>Téléphone</span>
           <input name="telephone" value={form.telephone} onChange={onInputChange} autoComplete="tel" inputMode="tel" />

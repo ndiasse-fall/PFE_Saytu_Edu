@@ -33,6 +33,7 @@ class StoreEDTRequest extends FormRequest
                 Rule::exists('users', 'id')->where('role', 'ENSEIGNANT'),
             ],
             'id_matiere' => 'required|exists:matieres,id',
+            'est_publie' => 'sometimes|boolean',
         ];
     }
 
