@@ -122,18 +122,33 @@ export function AppRouter() {
                         <Route element={<BaseLayout />}>
                             <Route path="/" element={<RoleHomeRedirect />} />
                             <Route
-                                path="/user/dashboard"
-                                element={<RoleHomeRedirect />}
+                                path="/forgot-password"
+                                element={<ForgotPasswordPage />}
                             />
                             <Route
-                                path="/settings"
-                                element={<SettingsPage />}
+                                path="/reset-password"
+                                element={<ResetPasswordPage />}
                             />
-
-                            <Route
-                                element={
-                                    <RoleGuard
-                                        roles={["SUPER_ADMIN", "ADMIN"]}
+                        </Route>
+    
+                        {/* AUTH */}
+                        <Route element={<AuthGuard />}>
+                            <Route element={<BaseLayout />}>
+    
+                                {/* HOME */}
+                                <Route path="/" element={<RoleHomeRedirect />} />
+                                <Route path="/user/dashboard" element={<RoleHomeRedirect />} />
+    
+                                <Route path="/settings" element={<SettingsPage />} />
+    
+                                {/* ADMIN */}
+                                <Route element={<RoleGuard roles={["SUPER_ADMIN", "ADMIN"]} />}>
+                                    <Route path="/admin/dashboard" element={<DashboardPage />} />
+    
+                                    {/* Gestion Admin */}
+                                    <Route
+                                        path="/admin/gestion-admin/users"
+                                        element={<UserManagementPage />}
                                     />
                                 }
                             >
@@ -240,13 +255,12 @@ export function AppRouter() {
                                     element={<MonEmploiTemps />}
                                 />
                             </Route>
-
-                            <Route
-                                path="/unauthorized"
-                                element={<UnauthorizedPage />}
-                            />
                         </Route>
-                    </Route>
+    
+                        {/* 404 */}
+                        <Route path="*" element={<NotFoundPage />} />
+    
+                    </Routes>
 
                     <Route path="*" element={<NotFoundPage />} />
                 </Routes>
