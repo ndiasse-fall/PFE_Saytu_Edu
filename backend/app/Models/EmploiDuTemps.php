@@ -18,7 +18,12 @@ class EmploiDuTemps extends Model
         'salle',
         'id_classe',
         'id_enseignant',
-        'id_matiere'
+        'id_matiere',
+        'est_publie'
+    ];
+
+    protected $casts = [
+        'est_publie' => 'boolean',
     ];
 
     public function classe()

@@ -52,6 +52,7 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         Route::apiResource('matieres', MatiereController::class);
 
         // Écriture Emploi du Temps
+        Route::post('emplois-du-temps/publier', [EmploiDuTempsController::class, 'publier']);
         Route::post('emplois-du-temps', [EmploiDuTempsController::class, 'store']);
         Route::put('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'update']);
         Route::delete('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'destroy']);

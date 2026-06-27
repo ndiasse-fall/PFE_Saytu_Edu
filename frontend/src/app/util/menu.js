@@ -45,6 +45,11 @@ export const menuItems = [
                 path: "/admin/gestion-admin/eleves",
                 icon: "bi-mortarboard-fill",
             },
+            {
+                label: "Emploi du temps",
+                path: "/enseignant/emploi-du-temps",
+                icon: "bi-calendar-week",
+            },
         ],
     },
     {

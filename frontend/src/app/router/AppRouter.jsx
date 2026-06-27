@@ -47,6 +47,11 @@ const TeacherManagementPage = lazy(() =>
         (module) => ({ default: module.TeacherManagementPage }),
     ),
 );
+const EmploiDuTempsPage = lazy(() =>
+    import("../views/pages/gestion-admin/emplois-du-temps/EmploiDuTempsPage").then(
+        (module) => ({ default: module.EmploiDuTempsPage }),
+    ),
+);
 const SettingsPage = lazy(() =>
     import("../views/pages/settings/SettingsPage").then((module) => ({
         default: module.SettingsPage,
@@ -135,9 +140,7 @@ export function AppRouter() {
                                 />
                                 <Route
                                     path="/admin/emploi-du-temps"
-                                    element={
-                                        <ModulePlaceholderPage title="Emploi du temps" />
-                                    }
+                                    element={<EmploiDuTempsPage />}
                                 />
                                 <Route
                                     path="/admin/bulletins"
@@ -184,9 +187,7 @@ export function AppRouter() {
                                 />
                                 <Route
                                     path="/enseignant/emploi-du-temps"
-                                    element={
-                                        <ModulePlaceholderPage title="Emploi du temps" />
-                                    }
+                                    element={<EmploiDuTempsPage />}
                                 />
                                 <Route
                                     path="/enseignant/bulletins"
@@ -203,9 +204,7 @@ export function AppRouter() {
                                 />
                                 <Route
                                     path="/eleve/emploi-du-temps"
-                                    element={
-                                        <ModulePlaceholderPage title="Emploi du temps" />
-                                    }
+                                    element={<EmploiDuTempsPage />}
                                 />
                                 <Route
                                     path="/eleve/bulletin"
