@@ -21,10 +21,10 @@ class Matieres extends Model
         return $this->hasMany(EmploiDuTemps::class, 'id_matiere');
     }
 
-    // public function classes()
-    // {
-    //     return $this->belongsToMany(Classe::class, 'classe_matiere', 'id_matiere', 'id_classe');
-    // }
+    public function classes()
+    {
+        return $this->belongsToMany(Classe::class, 'classe_matiere', 'id_matiere', 'id_classe');
+    }
 
     public function enseignants()
     {
