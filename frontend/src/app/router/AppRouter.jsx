@@ -69,8 +69,9 @@ const MesAbsences = lazy(() =>
 const MonBulletin = lazy(() =>
     import(
         "../views/pages/gestion-admin/eleves/espace-eleve/MonBulletin"
-    ).then((module) => ({ default: module.MonBulletin })),
+    ),
 );
+
 const MonEmploiTemps = lazy(() =>
     import(
         "../views/pages/gestion-admin/eleves/espace-eleve/MonEmploiTemps"
