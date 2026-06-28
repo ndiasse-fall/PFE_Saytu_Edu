@@ -104,11 +104,13 @@ export function ClasseManagementPage() {
 
   return (
     <section className="page-section">
-      <header className="page-header">
+      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Gestion des classes</h2>
-        <PrimaryButton onClick={openAddForm}>
-          Ajouter une classe
-        </PrimaryButton>
+        <div className="header-actions" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <PrimaryButton onClick={openAddForm}>
+            Ajouter une classe
+          </PrimaryButton>
+        </div>
       </header>
 
       {error && <div className="alert alert-error">{error}</div>}

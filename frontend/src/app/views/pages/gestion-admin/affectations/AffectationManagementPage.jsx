@@ -89,9 +89,9 @@ export function AffectationManagementPage() {
 
   return (
     <section className="page-section">
-      <header className="page-header">
+      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Gestion des affectations</h2>
-        <div className="header-actions" style={{ display: 'flex', gap: '10px' }}>
+        <div className="header-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
           <PrimaryButton onClick={() => openForm("matiere-classe")}>
             Affecter Matière à Classe
           </PrimaryButton>
