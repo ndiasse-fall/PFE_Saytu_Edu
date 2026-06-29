@@ -55,6 +55,9 @@ const ModulePlaceholderPage = lazy(() =>
 const BulletinList = lazy(() =>
     import("../views/pages/gestion-admin/bulletins/BulletinList"),
 );
+const BulletinDetail = lazy(() =>
+    import("../views/pages/gestion-admin/bulletins/BulletinDetail"),
+);
 
 const MesNotes = lazy(() =>
     import("../views/pages/gestion-admin/eleves/espace-eleve/MesNotes").then(
@@ -71,7 +74,6 @@ const MonBulletin = lazy(() =>
         "../views/pages/gestion-admin/eleves/espace-eleve/MonBulletin"
     ),
 );
-
 const MonEmploiTemps = lazy(() =>
     import(
         "../views/pages/gestion-admin/eleves/espace-eleve/MonEmploiTemps"
@@ -80,7 +82,6 @@ const MonEmploiTemps = lazy(() =>
 
 function RoleHomeRedirect() {
     const { user } = useAuth();
-
     return <Navigate to={getDashboardPath(user?.role)} replace />;
 }
 
@@ -143,6 +144,10 @@ export function AppRouter() {
                                 <Route
                                     path="/admin/bulletins"
                                     element={<BulletinList />}
+                                />
+                                <Route
+                                    path="/admin/bulletins/:id"
+                                    element={<BulletinDetail />}
                                 />
                                 <Route
                                     path="/admin/gestion-admin/users"
