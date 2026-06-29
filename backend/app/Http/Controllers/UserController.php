@@ -33,6 +33,7 @@ class UserController extends Controller
             'search' => ['nullable', 'string', 'max:255'],
             'role' => ['nullable', new Enum(RoleEnum::class)],
             'actif' => ['nullable', 'boolean'],
+            'affecte' => ['nullable', 'boolean'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
         ]);
 
@@ -56,10 +57,13 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): JsonResponse
     {
         $user = $this->userService->createUser($request->validated());
+        $temporaryPassword = $user->getAttribute('temporary_password');
+        $user->offsetUnset('temporary_password');
 
         return response()->json([
             'message' => 'Utilisateur créé avec succès.',
             'data' => $user,
+            'temporary_password' => $temporaryPassword,
         ], 201);
     }
 

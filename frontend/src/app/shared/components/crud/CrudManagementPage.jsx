@@ -181,8 +181,10 @@ export function CrudManagementPage({
         await service.update(editingId, payload)
         setSuccess(`${singularLabel} modifié avec succès.`)
       } else {
-        await service.create(payload)
-        setSuccess(`${singularLabel} créé avec succès.`)
+        const response = await service.create(payload)
+        setSuccess(response?.temporary_password
+          ? `${singularLabel} créé avec succès. Mot de passe temporaire : ${response.temporary_password}`
+          : `${singularLabel} créé avec succès.`)
       }
 
       closeForm()

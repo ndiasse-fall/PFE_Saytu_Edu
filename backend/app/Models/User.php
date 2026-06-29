@@ -34,6 +34,7 @@ class User extends Authenticatable
         'telephone',
         'role',
         'actif',
+        'must_change_password',
     ];
 
     protected $hidden = [
@@ -49,6 +50,7 @@ class User extends Authenticatable
         return [
             'role' => RoleEnum::class,
             'actif' => 'boolean',
+            'must_change_password' => 'boolean',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',
@@ -189,5 +191,82 @@ class User extends Authenticatable
         }
 
         return (string) ($this->role ?? $this->statut);
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            $role = $user->resolvedRole();
+            
+            if ($role === 'ELEVE') {
+                if (empty($user->matricule_eleve)) {
+                    $user->matricule_eleve = self::generateMatriculeEleve();
+                }
+            } elseif ($role === 'ENSEIGNANT') {
+                if (empty($user->matricule_enseignant)) {
+                    $user->matricule_enseignant = self::generateMatriculeEnseignant();
+                }
+            }
+        });
+    }
+
+    public static function generateMatriculeEleve(): string
+    {
+        $year = date('Y');
+        $prefix = "ELV-{$year}";
+
+        $lastUser = self::withTrashed()
+            ->where('matricule_eleve', 'LIKE', "{$prefix}%")
+            ->orderByRaw('LENGTH(matricule_eleve) DESC')
+            ->orderBy('matricule_eleve', 'desc')
+            ->first();
+
+        if ($lastUser && preg_match('/ELV-\d{4}(\d+)/', $lastUser->matricule_eleve, $matches)) {
+            $lastNumber = (int) $matches[1];
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+        $matricule = "{$prefix}{$suffix}";
+
+        while (self::withTrashed()->where('matricule_eleve', $matricule)->exists()) {
+            $nextNumber++;
+            $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+            $matricule = "{$prefix}{$suffix}";
+        }
+
+        return $matricule;
+    }
+
+    public static function generateMatriculeEnseignant(): string
+    {
+        $year = date('Y');
+        $prefix = "ENS-{$year}";
+
+        $lastUser = self::withTrashed()
+            ->where('matricule_enseignant', 'LIKE', "{$prefix}%")
+            ->orderByRaw('LENGTH(matricule_enseignant) DESC')
+            ->orderBy('matricule_enseignant', 'desc')
+            ->first();
+
+        if ($lastUser && preg_match('/ENS-\d{4}(\d+)/', $lastUser->matricule_enseignant, $matches)) {
+            $lastNumber = (int) $matches[1];
+            $nextNumber = $lastNumber + 1;
+        } else {
+            $nextNumber = 1;
+        }
+
+        $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+        $matricule = "{$prefix}{$suffix}";
+
+        while (self::withTrashed()->where('matricule_enseignant', $matricule)->exists()) {
+            $nextNumber++;
+            $suffix = str_pad((string) $nextNumber, 3, '0', STR_PAD_LEFT);
+            $matricule = "{$prefix}{$suffix}";
+        }
+
+        return $matricule;
     }
 }

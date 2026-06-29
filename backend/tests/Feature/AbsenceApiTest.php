@@ -1,0 +1,119 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Enums\RoleEnum;
+use App\Models\Absence;
+use App\Models\Classe;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Laravel\Sanctum\Sanctum;
+use Tests\TestCase;
+
+class AbsenceApiTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private function authenticateAsAdmin(): User
+    {
+        $user = User::factory()->admin()->create(['actif' => true]);
+        Sanctum::actingAs($user);
+
+        return $user;
+    }
+
+    public function test_admin_can_create_absences(): void
+    {
+        $this->authenticateAsAdmin();
+        $eleve1 = User::factory()->eleve()->create(['actif' => true]);
+        $eleve2 = User::factory()->eleve()->create(['actif' => true]);
+
+        $response = $this->postJson('/api/absences', [
+            'date_absence' => '2026-06-20',
+            'absents' => [$eleve1->id, $eleve2->id],
+            'motif' => 'Absent au cours',
+            'est_justifiee' => false,
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('success', true)
+            ->assertJsonCount(2, 'data');
+
+        $this->assertDatabaseHas('absences', [
+            'date_absence' => '2026-06-20',
+            'id_eleve' => $eleve1->id,
+        ]);
+        $this->assertDatabaseHas('absences', [
+            'date_absence' => '2026-06-20',
+            'id_eleve' => $eleve2->id,
+        ]);
+    }
+
+    public function test_cannot_create_absence_for_non_student_user(): void
+    {
+        $this->authenticateAsAdmin();
+        $enseignant = User::factory()->enseignant()->create(['actif' => true]);
+
+        $this->postJson('/api/absences', [
+            'date_absence' => '2026-06-20',
+            'absents' => [$enseignant->id],
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['absents.0']);
+    }
+
+    public function test_enseignant_sees_only_absences_of_his_classes(): void
+    {
+        $enseignant = User::factory()->enseignant()->create(['actif' => true]);
+        Sanctum::actingAs($enseignant);
+
+        $classe = Classe::factory()->create();
+        $autreClasse = Classe::factory()->create();
+        $classe->enseignants()->attach($enseignant->id);
+
+        $eleve = User::factory()->eleve()->create(['actif' => true]);
+        $autreEleve = User::factory()->eleve()->create(['actif' => true]);
+        $classe->eleves()->attach($eleve->id);
+        $autreClasse->eleves()->attach($autreEleve->id);
+
+        Absence::factory()->create(['id_eleve' => $eleve->id]);
+        Absence::factory()->create(['id_eleve' => $autreEleve->id]);
+
+        $this->getJson('/api/absences')
+            ->assertOk()
+            ->assertJsonPath('count', 1)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id_eleve', $eleve->id);
+    }
+
+    public function test_eleve_sees_only_his_absences(): void
+    {
+        $eleve = User::factory()->eleve()->create(['actif' => true]);
+        $autreEleve = User::factory()->eleve()->create(['actif' => true]);
+        Sanctum::actingAs($eleve);
+
+        Absence::factory()->create(['id_eleve' => $eleve->id]);
+        Absence::factory()->create(['id_eleve' => $autreEleve->id]);
+
+        $this->getJson('/api/absences')
+            ->assertOk()
+            ->assertJsonPath('count', 1)
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.id_eleve', $eleve->id);
+    }
+
+    public function test_enseignant_cannot_manage_absences(): void
+    {
+        $enseignant = User::factory()->enseignant()->create([
+            'role' => RoleEnum::ENSEIGNANT,
+            'actif' => true,
+        ]);
+        Sanctum::actingAs($enseignant);
+
+        $absence = Absence::factory()->create();
+
+        $this->postJson('/api/absences', [])->assertForbidden();
+        $this->putJson("/api/absences/{$absence->id}", [])->assertForbidden();
+        $this->deleteJson("/api/absences/{$absence->id}")->assertForbidden();
+    }
+}

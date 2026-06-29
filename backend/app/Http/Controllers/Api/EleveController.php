@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
+use App\Models\EmploiDuTemps;
 use Illuminate\Http\Request;
 use App\Services\BulletinService;
 use App\Models\Matieres;
@@ -80,8 +81,17 @@ class EleveController extends Controller
     public function monEmploiDuTemps(Request $request)
     {
         $eleve = $request->user();
+$classeIds = $eleve->classes()->pluck('classes.id');
+        $emplois = EmploiDuTemps::with(['classe', 'enseignant', 'matiere'])
+            ->whereIn('id_classe', $classeIds)
+            ->where('est_publie', true)
+            ->orderBy('jour')
+            ->orderBy('heure_debut')
+            ->get();
         return response()->json([
-            'message' => 'Emploi du temps de l\'élève'
+            'success' => true,
+            'count' => $emplois->count(),
+            'data' => $emplois,
         ]);
     }
 }

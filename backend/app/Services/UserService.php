@@ -6,8 +6,10 @@ use App\Enums\RoleEnum;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
 class UserService
@@ -61,6 +63,31 @@ class UserService
             $query->with(['eleveClasses', 'enseignantClasses']);
         }
 
+        if (isset($filters['affecte']) && $filters['affecte'] !== null && $filters['affecte'] !== '') {
+            $affecte = filter_var($filters['affecte'], FILTER_VALIDATE_BOOLEAN);
+            if ($role === RoleEnum::ELEVE) {
+                if ($affecte) {
+                    $query->has('eleveClasses');
+                } else {
+                    $query->doesntHave('eleveClasses');
+                }
+            } elseif ($role === RoleEnum::ENSEIGNANT) {
+                if ($affecte) {
+                    $query->has('enseignantClasses');
+                } else {
+                    $query->doesntHave('enseignantClasses');
+                }
+            } else {
+                if ($affecte) {
+                    $query->where(function ($q) {
+                        $q->has('eleveClasses')->orHas('enseignantClasses');
+                    });
+                } else {
+                    $query->doesntHave('eleveClasses')->doesntHave('enseignantClasses');
+                }
+            }
+        }
+
         return $query->withoutTrashed()
             ->search($filters['search'] ?? null)
             ->byRole($role)
@@ -72,14 +99,26 @@ class UserService
     public function createUser(array $data): User
     {
         $this->assertSuperAdminRoleIsNotManagedHere($data);
+        $explicitStudentMatricule = filled($data['matricule_eleve'] ?? null);
+        $explicitTeacherMatricule = filled($data['matricule_enseignant'] ?? null);
 
-        $plainPassword = $data['password'];
+        $generatedPassword = blank($data['password'] ?? null)
+            && $this->roleUsesTemporaryPassword($data['role'] ?? null);
+
+        $plainPassword = $generatedPassword
+            ? $this->generateTemporaryPassword()
+            : (string) $data['password'];
 
         $data['password'] = Hash::make($plainPassword);
         $data['actif'] = $data['actif'] ?? true;
+        $data['must_change_password'] = $generatedPassword;
         $data = $this->syncLegacyFields($data);
 
-        $user = User::create($data);
+        $user = $this->createUserWithMatriculeRetry(
+            $data,
+            $explicitStudentMatricule || $explicitTeacherMatricule
+        );
+        $user->setAttribute('temporary_password', $generatedPassword ? $plainPassword : null);
 
         event(new \App\Events\UserCreated($user, $plainPassword));
 

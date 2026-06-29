@@ -29,11 +29,13 @@ class UserApiTest extends TestCase
             'nom' => 'Diallo',
             'prenom' => 'Aminata',
             'email' => 'aminata@example.com',
-            'password' => 'motdepasse123',
             'telephone' => '770000000',
             'adresse' => 'Dakar',
             'role' => RoleEnum::ENSEIGNANT->value,
             'actif' => true,
+            'matricule_enseignant' => 'ENS-2026-001',
+            'specialite' => 'Mathematiques',
+            'date_embauche' => '2026-01-15',
         ]);
 
         $response
@@ -42,15 +44,19 @@ class UserApiTest extends TestCase
             ->assertJsonPath('data.prenom', 'Aminata')
             ->assertJsonPath('data.email', 'aminata@example.com')
             ->assertJsonPath('data.role', RoleEnum::ENSEIGNANT->value)
-            ->assertJsonPath('data.actif', true);
+            ->assertJsonPath('data.actif', true)
+            ->assertJsonPath('data.must_change_password', true);
 
         $this->assertDatabaseHas('users', [
             'email' => 'aminata@example.com',
             'role' => RoleEnum::ENSEIGNANT->value,
+            'must_change_password' => true,
         ]);
 
         $user = User::where('email', 'aminata@example.com')->firstOrFail();
-        $this->assertTrue(Hash::check('motdepasse123', $user->password));
+        $temporaryPassword = $response->json('temporary_password');
+        $this->assertIsString($temporaryPassword);
+        $this->assertTrue(Hash::check($temporaryPassword, $user->password));
     }
 
     public function test_can_list_users_with_filters(): void
@@ -78,6 +84,37 @@ class UserApiTest extends TestCase
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.nom', 'Fall')
             ->assertJsonPath('data.0.role', RoleEnum::ADMIN->value);
+    }
+
+    public function test_can_list_users_filtered_by_classe_affectation(): void
+    {
+        $this->authenticate();
+
+        $eleveAffecte = User::factory()->eleve()->create([
+            'nom' => 'Affecte',
+            'prenom' => 'Jean',
+        ]);
+        $classe = \App\Models\Classe::factory()->create();
+        $classe->eleves()->attach($eleveAffecte->id);
+
+        $eleveNonAffecte = User::factory()->eleve()->create([
+            'nom' => 'NonAffecte',
+            'prenom' => 'Paul',
+        ]);
+
+        // Filter: affecte = 1 (True)
+        $response1 = $this->getJson('/api/users?role=ELEVE&affecte=1');
+        $response1
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.nom', 'Affecte');
+
+        // Filter: affecte = 0 (False)
+        $response0 = $this->getJson('/api/users?role=ELEVE&affecte=0');
+        $response0
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.nom', 'NonAffecte');
     }
 
     public function test_can_load_dashboard_summary_in_one_request(): void
@@ -133,6 +170,9 @@ class UserApiTest extends TestCase
             'password' => 'nouveaupass123',
             'role' => RoleEnum::ENSEIGNANT->value,
             'actif' => false,
+            'matricule_enseignant' => 'ENS-2026-002',
+            'specialite' => 'Physique',
+            'date_embauche' => '2026-02-01',
         ]);
 
         $response
@@ -147,6 +187,46 @@ class UserApiTest extends TestCase
         $this->assertSame(RoleEnum::ENSEIGNANT, $user->role);
         $this->assertFalse($user->actif);
         $this->assertTrue(Hash::check('nouveaupass123', $user->password));
+    }
+
+    public function test_create_enseignant_generates_missing_teacher_matricule(): void
+    {
+        $this->authenticate();
+
+        $response = $this->postJson('/api/users', [
+            'nom' => 'Diop',
+            'prenom' => 'Mamadou',
+            'email' => 'mamadou.diop@example.com',
+            'role' => RoleEnum::ENSEIGNANT->value,
+            'actif' => true,
+        ]);
+
+        $response->assertCreated();
+
+        $user = User::where('email', 'mamadou.diop@example.com')->firstOrFail();
+        $this->assertNotNull($user->matricule_enseignant);
+        $this->assertTrue($user->must_change_password);
+        $this->assertNotEmpty($response->json('temporary_password'));
+    }
+
+    public function test_create_eleve_generates_missing_student_matricule(): void
+    {
+        $this->authenticate();
+
+        $response = $this->postJson('/api/users', [
+            'nom' => 'Ndiaye',
+            'prenom' => 'Awa',
+            'email' => 'awa.ndiaye@example.com',
+            'role' => RoleEnum::ELEVE->value,
+            'actif' => true,
+        ]);
+
+        $response->assertCreated();
+
+        $user = User::where('email', 'awa.ndiaye@example.com')->firstOrFail();
+        $this->assertNotNull($user->matricule_eleve);
+        $this->assertTrue($user->must_change_password);
+        $this->assertNotEmpty($response->json('temporary_password'));
     }
 
     public function test_can_toggle_user_status(): void
@@ -176,5 +256,134 @@ class UserApiTest extends TestCase
         $this->assertSoftDeleted('users', [
             'id' => $user->id,
         ]);
+    }
+
+    public function test_can_generate_automatic_matricule_for_eleve(): void
+    {
+        $this->authenticate();
+
+        $response = $this->postJson('/api/users', [
+            'nom' => 'Sene',
+            'prenom' => 'Babacar',
+            'email' => 'babacar.sene@example.com',
+            'role' => RoleEnum::ELEVE->value,
+            'actif' => true,
+        ]);
+
+        $response->assertCreated();
+
+        $user = User::where('email', 'babacar.sene@example.com')->firstOrFail();
+        
+        $year = date('Y');
+        $this->assertNotNull($user->matricule_eleve);
+        $this->assertStringStartsWith("ELV-{$year}", $user->matricule_eleve);
+        $this->assertNull($user->matricule_enseignant);
+    }
+
+    public function test_can_generate_automatic_matricule_for_enseignant(): void
+    {
+        $this->authenticate();
+
+        $response = $this->postJson('/api/users', [
+            'nom' => 'Diop',
+            'prenom' => 'Khadim',
+            'email' => 'khadim.diop@example.com',
+            'role' => RoleEnum::ENSEIGNANT->value,
+            'actif' => true,
+        ]);
+
+        $response->assertCreated();
+
+        $user = User::where('email', 'khadim.diop@example.com')->firstOrFail();
+
+        $year = date('Y');
+        $this->assertNotNull($user->matricule_enseignant);
+        $this->assertStringStartsWith("ENS-{$year}", $user->matricule_enseignant);
+        $this->assertNull($user->matricule_eleve);
+    }
+
+    public function test_avoids_duplicate_matricule_generation(): void
+    {
+        $this->authenticate();
+
+        $year = date('Y');
+        // On crée un premier élève avec un matricule spécifique
+        $user1 = User::factory()->eleve()->create([
+            'matricule_eleve' => "ELV-{$year}001",
+        ]);
+
+        // On crée un second élève sans matricule
+        $user2 = User::factory()->eleve()->create();
+
+        // Le second élève doit avoir le matricule suivant : ELV-YYYY002
+        $this->assertSame("ELV-{$year}002", $user2->matricule_eleve);
+    }
+
+    public function test_student_matricule_generation_ignores_neither_soft_deleted_users_nor_unique_index(): void
+    {
+        $this->authenticate();
+
+        $year = date('Y');
+        $deletedUser = User::factory()->eleve()->create([
+            'matricule_eleve' => "ELV-{$year}051",
+        ]);
+        $deletedUser->delete();
+
+        $response = $this->postJson('/api/users', [
+            'nom' => 'Seck',
+            'prenom' => 'Baye',
+            'email' => 'baye.seck@example.com',
+            'role' => RoleEnum::ELEVE->value,
+            'actif' => true,
+        ]);
+
+        $response->assertCreated();
+
+        $user = User::where('email', 'baye.seck@example.com')->firstOrFail();
+        $this->assertSame("ELV-{$year}052", $user->matricule_eleve);
+    }
+
+    public function test_teacher_matricule_generation_ignores_neither_soft_deleted_users_nor_unique_index(): void
+    {
+        $this->authenticate();
+
+        $year = date('Y');
+        $deletedUser = User::factory()->enseignant()->create([
+            'matricule_enseignant' => "ENS-{$year}051",
+        ]);
+        $deletedUser->delete();
+
+        $response = $this->postJson('/api/users', [
+            'nom' => 'Ndao',
+            'prenom' => 'Aminata',
+            'email' => 'aminata.ndao@example.com',
+            'role' => RoleEnum::ENSEIGNANT->value,
+            'actif' => true,
+        ]);
+
+        $response->assertCreated();
+
+        $user = User::where('email', 'aminata.ndao@example.com')->firstOrFail();
+        $this->assertSame("ENS-{$year}052", $user->matricule_enseignant);
+    }
+
+    public function test_manual_duplicate_student_matricule_returns_validation_error(): void
+    {
+        $this->authenticate();
+
+        User::factory()->eleve()->create([
+            'matricule_eleve' => 'ELV-2026999',
+        ]);
+
+        $this->postJson('/api/users', [
+            'nom' => 'Duplicate',
+            'prenom' => 'Student',
+            'email' => 'duplicate.student@example.com',
+            'role' => RoleEnum::ELEVE->value,
+            'matricule_eleve' => 'ELV-2026999',
+            'actif' => true,
+        ])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('matricule_eleve');
     }
 }

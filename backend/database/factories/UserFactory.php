@@ -67,7 +67,6 @@ class UserFactory extends Factory
         return $this->state(fn(array $attributes) => [
             'role' => RoleEnum::ENSEIGNANT->value,
             'statut' => RoleEnum::ENSEIGNANT->value,
-            'matricule_enseignant' => 'ENS-' . fake()->unique()->numberBetween(1000, 9999),
             'specialite' => fake()->word(),
             'date_embauche' => fake()->date(),
         ]);
@@ -78,7 +77,6 @@ class UserFactory extends Factory
         return $this->state(fn(array $attributes) => [
             'role' => RoleEnum::ELEVE->value,
             'statut' => RoleEnum::ELEVE->value,
-            'matricule_eleve' => 'ELV-' . fake()->unique()->numberBetween(10000, 99999),
             'date_naissance' => fake()->date('Y-m-d', '-10 years'),
             'telephone_parent' => fake()->numerify('##########'),
         ]);
