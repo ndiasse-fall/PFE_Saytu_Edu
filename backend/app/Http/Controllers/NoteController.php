@@ -18,16 +18,17 @@ class NoteController extends Controller
     public function index(Request $request)
 {
     $user = $request->user();
+    $role = $user?->resolvedRole();
 
     $query = Note::with(['eleve', 'matiere', 'classe']);
 
     /* ================= ELEVE ================= */
-    if ($user->role === 'ELEVE') {
+    if ($role === 'ELEVE') {
         $query->where('id_eleve', $user->id);
     }
 
     /* ================= ENSEIGNANT ================= */
-    if ($user->role === 'ENSEIGNANT') {
+    if ($role === 'ENSEIGNANT') {
         $query->whereHas('classe.enseignants', function ($q) use ($user) {
             $q->where('users.id', $user->id);
         });
@@ -82,12 +83,14 @@ class NoteController extends Controller
     {
         $validated = $request->validated();
         $user = $request->user();
+        $role = $user?->resolvedRole();
 
         $classe = Classe::with(['enseignants', 'eleves'])
             ->find($validated['id_classe']);
 
-        // Vérifier enseignant affecté à la classe
-        if (! $classe || ! $classe->enseignants->contains($user->id)) {
+        $canManageClass = in_array($role, ['ADMIN', 'SUPER_ADMIN'], true) || ($classe && $classe->enseignants->contains($user->id));
+
+        if (! $classe || ! $canManageClass) {
             return response()->json([
                 'message' => "Accès refusé: vous n'êtes pas affecté à cette classe."
             ], 403);
@@ -108,6 +111,21 @@ class NoteController extends Controller
         $created = [];
 
         foreach ($validated['notes'] as $noteData) {
+            $existingNote = Note::where([
+                'id_eleve' => $noteData['id_eleve'],
+                'id_classe' => $validated['id_classe'],
+                'id_matiere' => $validated['id_matiere'],
+                'type_evaluation' => $validated['type_evaluation'],
+                'periode' => $validated['periode'],
+            ])->first();
+
+            if ($existingNote) {
+                $existingNote->valeur = $noteData['valeur'];
+                $existingNote->save();
+                $created[] = $existingNote;
+                continue;
+            }
+
             $created[] = Note::create([
                 'id_eleve' => $noteData['id_eleve'],
                 'id_classe' => $validated['id_classe'],
@@ -164,9 +182,11 @@ class NoteController extends Controller
         }
 
         $user = $request->user();
+        $role = $user?->resolvedRole();
 
-        // Vérification enseignant propriétaire de la classe
-        if (! $note->classe || ! $note->classe->enseignants->contains($user->id)) {
+        $canManageNote = in_array($role, ['ADMIN', 'SUPER_ADMIN'], true) || ($note->classe && $note->classe->enseignants->contains($user->id));
+
+        if (! $note->classe || ! $canManageNote) {
             return response()->json(['message' => 'Not Found'], 404);
         }
 
@@ -196,8 +216,11 @@ class NoteController extends Controller
         }
 
         $user = $request->user();
+        $role = $user?->resolvedRole();
 
-        if (! $note->classe || ! $note->classe->enseignants->contains($user->id)) {
+        $canManageNote = in_array($role, ['ADMIN', 'SUPER_ADMIN'], true) || ($note->classe && $note->classe->enseignants->contains($user->id));
+
+        if (! $note->classe || ! $canManageNote) {
             return response()->json(['message' => 'Not Found'], 404);
         }
 
