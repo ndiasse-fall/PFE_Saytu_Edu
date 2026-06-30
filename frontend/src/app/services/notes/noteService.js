@@ -22,11 +22,22 @@ import { apiClient } from "../../core/api/apiClient";
     /**
      * AJOUTER
      */
-    export const createNote = (data) => {
-        return apiClient("/notes", {
-            method: "POST",
-            data,
-        });
+    export const createNote = async (data) => {
+        try {
+            return await apiClient("/notes/saisir", {
+                method: "POST",
+                data,
+            });
+        } catch (error) {
+            if (error?.status === 404 || error?.status === 405) {
+                return apiClient("/notes", {
+                    method: "POST",
+                    data,
+                });
+            }
+
+            throw error;
+        }
     };
     
     /**
