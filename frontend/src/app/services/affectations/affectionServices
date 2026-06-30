@@ -1,4 +1,5 @@
 import { apiClient } from '../../core/api/apiClient'
+import axios from "axios";
 export const listAffectations = async () => {
   const response = await apiClient('/affectations')
   return Array.isArray(response) ? response : (response?.data || [])
@@ -15,10 +16,15 @@ export const affecterMatiereClasse = (
       matiere_id: matiereId,
     },
   })
-export const deleteAffectation = (compositeId) =>
-  apiClient(`/affectations/${compositeId}`, {
-    method: 'DELETE',
-  })
+export const deleteAffectation = async (compositeId) => {
+  
+  const segments = compositeId.toString().split('-');
+  const realId = segments[segments.length - 1]; // Récupère "4"
+
+  // On envoie le vrai ID numérique à Laravel
+  const response = await axios.delete(`/api/affectations/${realId}`);
+  return response.data;
+};
 
 export const affecterEnseignantMatiere = (
   enseignantId,
