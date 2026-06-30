@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
+import TablePagination from "@mui/material/TablePagination";
 import { DrawerPanel } from "../../../../shared/components/ui/DrawerPanel";
 import { SelectField } from "../../../../shared/components/forms/SelectField";
 import { PrimaryButton } from "../../../../shared/components/ui/PrimaryButton";
 import { listClasses } from "../../../../services/classes/ClasseServices";
 import { listMatieres } from "../../../../services/matieres/matiereService";
 import { listUsers } from "../../../../services/user/userService";
-import { affecterMatiereClasse, affecterEnseignantMatiere, listAffectations } from "../../../../services/affectations/affectionServices";
+import { affecterMatiereClasse, affecterEnseignantMatiere, listAffectations ,
+  deleteAffectation,} from "../../../../services/affectations/affectionServices";
+import { ActionMenu } from "../../../../shared/components/ui/ActionMenu";
 
 export function AffectationManagementPage() {
   const [classes, setClasses] = useState([]);
@@ -18,13 +21,24 @@ export function AffectationManagementPage() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [searchClasse, setSearchClasse] = useState("");
-  
   const [searchEnseignant, setSearchEnseignant] = useState("");
+  const [pageClasse, setPageClasse] = useState(0);
+  const [rowsPerPageClasse, setRowsPerPageClasse] = useState(10);
+  const [pageEnseignant, setPageEnseignant] = useState(0);
+  const [rowsPerPageEnseignant, setRowsPerPageEnseignant] = useState(10);
+
+  useEffect(() => {
+    setPageClasse(0);
+  }, [searchClasse]);
+
+  useEffect(() => {
+    setPageEnseignant(0);
+  }, [searchEnseignant]);
+
   const [formData, setFormData] = useState({
     classe_id: "",
     matiere_id: "",
     enseignant_id: "",
-    
   });
 
   const fetchData = async () => {
@@ -50,7 +64,6 @@ export function AffectationManagementPage() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchData();
   }, []);
 
@@ -64,25 +77,67 @@ export function AffectationManagementPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+    console.log(formData); 
     setError(null);
     setSuccess(null);
     try {
       if (type === "matiere-classe") {
-        await affecterMatiereClasse({
-    classe_id: formData.classe_id,
-    matiere_id: formData.matiere_id,
-    
-});
+        await affecterMatiereClasse(formData.classe_id, formData.matiere_id);
       } else {
         await affecterEnseignantMatiere(formData.enseignant_id, formData.matiere_id);
       }
       setSuccess("Affectation réussie !");
       setIsOpen(false);
-      fetchData(); // Rafraîchir la liste après affectation
+      fetchData();
     } catch (err) {
       setError(err.message || "Erreur lors de l'affectation");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEdit = (affectation) => {
+    console.log(affectation);
+
+    const segments = affectation.id.toString().split("-");
+    const typePrefix = segments[0]; // "cm" ou "em"
+    const targetId = Number(segments[1]); // ID classe ou enseignant
+    const matiereId = Number(segments[2]); // ID matière
+
+    if (typePrefix === "cm") {
+      setType("matiere-classe");
+      setFormData({
+        classe_id: targetId,
+        matiere_id: matiereId,
+        enseignant_id: "",
+      });
+    } else {
+      setType("enseignant-matiere");
+      setFormData({
+        classe_id: "",
+        matiere_id: matiereId,
+        enseignant_id: targetId,
+      });
+    }
+
+    setIsOpen(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Voulez-vous supprimer cette affectation ?")) {
+      return;
+    }
+
+    try {
+      // On transmet l'ID composite complet (ex: "em-11-4") que le backend sait analyser
+      await deleteAffectation(id);
+
+      fetchData();
+      setSuccess("Affectation supprimée avec succès.");
+      setError(null);
+    } catch (err) {
+      console.log(err);
+      setError(err.response?.data?.message || err.message);
     }
   };
 
@@ -93,6 +148,30 @@ export function AffectationManagementPage() {
     setSuccess(null);
     setIsOpen(true);
   };
+
+  const affectationsClasseFiltrees = affectations
+    .filter((aff) => aff.type === "Matière à Classe")
+    .filter((aff) =>
+      aff.target_name.toLowerCase().includes(searchClasse.toLowerCase()) ||
+      aff.matiere_nom.toLowerCase().includes(searchClasse.toLowerCase())
+    );
+
+  const affectationsEnseignantFiltrees = affectations
+    .filter((aff) => aff.type === "Enseignant à Matière")
+    .filter((aff) =>
+      aff.target_name.toLowerCase().includes(searchEnseignant.toLowerCase()) ||
+      aff.matiere_nom.toLowerCase().includes(searchEnseignant.toLowerCase())
+    );
+
+  const paginatedAffectationsEnseignant = affectationsEnseignantFiltrees.slice(
+    pageEnseignant * rowsPerPageEnseignant,
+    (pageEnseignant + 1) * rowsPerPageEnseignant
+  );
+
+  const paginatedAffectationsClasse = affectationsClasseFiltrees.slice(
+    pageClasse * rowsPerPageClasse,
+    (pageClasse + 1) * rowsPerPageClasse
+  );
 
   return (
     <section className="page-section">
@@ -112,6 +191,7 @@ export function AffectationManagementPage() {
       {success && <div className="alert alert-success">{success}</div>}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "20px", marginTop: "20px" }}>
+        
         {/* Table 1: Enseignant à Matière */}
         <div className="panel">
           <div className="panel-header" style={{ marginBottom: "15px" }}>
@@ -119,21 +199,17 @@ export function AffectationManagementPage() {
               Affectations Enseignant à Matière
             </h3>
           </div>
-          <div style={{ marginBottom: 15 }}>
-  <input
-    type="text"
-    placeholder="Rechercher un enseignant..."
-    value={searchEnseignant}
-    onChange={(e) => setSearchEnseignant(e.target.value)}
-    style={{
-      width: "100%",
-      padding: 10,
-      borderRadius: 8,
-      border: "1px solid #ddd",
-    }}
-  />
-</div>
           <div className="table-wrapper">
+            <div style={{ marginBottom: "15px" }}>
+              <input
+                type="text"
+                placeholder="🔍 Rechercher un enseignant ou une matière..."
+                value={searchEnseignant}
+                onChange={(e) => setSearchEnseignant(e.target.value)}
+                style={{ width: "100%", padding: "12px", border: "1px solid #ddd", borderRadius: "10px", fontSize: "15px" }}
+              />
+            </div>
+            
             <table className="users-table">
               <thead>
                 <tr>
@@ -143,26 +219,28 @@ export function AffectationManagementPage() {
                 </tr>
               </thead>
               <tbody>
-                {affectations.filter((aff) => aff.type === "Enseignant à Matière").length === 0 ? (
+                {affectationsEnseignantFiltrees.length === 0 ? (
                   <tr>
-                    <td colSpan="2" style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>
+                    <td colSpan="3" style={{ textAlign: "center", padding: "20px" }}>
                       Aucune affectation enseignant-matière
                     </td>
                   </tr>
                 ) : (
-                  affectations
-                  .filter((aff) => aff.type === "Enseignant à Matière")
-                  .filter((aff) =>
-                    aff.target_name
-                      ?.toLowerCase()
-                      .includes(searchEnseignant.toLowerCase())
-                  )
-                  .map((aff) => (
-                      <tr key={aff.id}>
-                        <td>{aff.target_name}</td>
-                        <td>{aff.matiere_nom}</td>
-                      </tr>
-                    ))
+                  affectationsEnseignantFiltrees.map((aff) => (
+                    <tr key={aff.id}>
+                      <td>{aff.target_name}</td>
+                      <td>{aff.matiere_nom}</td>
+                      <td>
+                        <ActionMenu
+                          items={[
+                            // FIX: Changement de openEditForm à handleEdit
+                            { label: 'Modifier', onClick: () => handleEdit(aff) },
+                            { label: 'Supprimer', onClick: () => handleDelete(aff.id), danger: true },
+                          ]}
+                        />
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -176,54 +254,47 @@ export function AffectationManagementPage() {
               Affectations Matière à Classe
             </h3>
           </div>
-          <div
-  style={{
-    display: "flex",
-    gap: 15,
-    marginBottom: 15,
-    flexWrap: "wrap",
-  }}
->
-  <input
-    type="text"
-    placeholder="Rechercher une classe..."
-    value={searchClasse}
-    onChange={(e) => setSearchClasse(e.target.value)}
-    style={{
-      padding: 10,
-      borderRadius: 8,
-      border: "1px solid #ddd",
-      flex: 1,
-    }}
-  />
-
-  
-</div>
           <div className="table-wrapper">
+            <div style={{ marginBottom: "15px" }}>
+              <input
+                type="text"
+                placeholder="🔍 Rechercher une classe ou une matière..."
+                value={searchClasse}
+                onChange={(e) => setSearchClasse(e.target.value)}
+                style={{ width: "100%", padding: "12px", border: "1px solid #ddd", borderRadius: "10px", fontSize: "15px" }}
+              />
+            </div>
             <table className="users-table">
               <thead>
                 <tr>
                   <th>Classe</th>
                   <th>Matière</th>
-                  
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {affectations.filter((aff) => aff.type === "Matière à Classe").length === 0 ? (
+                {affectationsClasseFiltrees.length === 0 ? (
                   <tr>
-                    <td colSpan="2" style={{ textAlign: "center", padding: "20px", color: "var(--text-muted)" }}>
+                    <td colSpan="3" style={{ textAlign: "center", padding: "20px" }}>
                       Aucune affectation matière-classe
                     </td>
                   </tr>
                 ) : (
-                  affectations
-  .filter((aff) => aff.type === "Matière à Classe")
-  .filter((aff) =>
-      aff.target_name
-        ?.toLowerCase()
-        .includes(searchClasse.toLowerCase())
-  )
- 
+                  affectationsClasseFiltrees.map((aff) => (
+                    <tr key={aff.id}>
+                      <td>{aff.target_name}</td>
+                      <td>{aff.matiere_nom}</td>
+                      <td>
+                        <ActionMenu
+                          items={[
+                            // FIX: Changement de openEditForm à handleEdit
+                            { label: 'Modifier', onClick: () => handleEdit(aff) },
+                            { label: 'Supprimer', onClick: () => handleDelete(aff.id), danger: true },
+                          ]}
+                        />
+                      </td>
+                    </tr>
+                  ))
                 )}
               </tbody>
             </table>
@@ -231,25 +302,13 @@ export function AffectationManagementPage() {
         </div>
       </div>
 
-   <DrawerPanel
-  open={isOpen}
-  onClose={() => setIsOpen(false)}
-  title={
-    type === "matiere-classe"
-      ? "Affecter une matière à une classe"
-      : "Affecter un enseignant à une matière"
-  }
-  width={750}
-  headerAction={
-    <button
-      type="button"
-      className="ghost-button"
-      onClick={() => setIsOpen(false)}
-    >
-      Fermer
-    </button>
-  }
->
+      <DrawerPanel
+        open={isOpen}
+        onClose={() => setIsOpen(false)}
+        title={type === "matiere-classe" ? "Affecter une matière à une classe" : "Affecter un enseignant à une matière"}
+        width={750}
+        headerAction={<button type="button" className="ghost-button" onClick={() => setIsOpen(false)}>Fermer</button>}
+      >
         <form onSubmit={handleSubmit} className="auth-form">
           {type === "matiere-classe" ? (
             <SelectField
@@ -282,9 +341,7 @@ export function AffectationManagementPage() {
             placeholder="Sélectionner une matière"
             required
           />
-<div className="form-group">
-  
-</div>
+
           <div className="mt-6">
             <PrimaryButton type="submit" disabled={loading} block>
               {loading ? "Traitement..." : "Enregistrer l'affectation"}

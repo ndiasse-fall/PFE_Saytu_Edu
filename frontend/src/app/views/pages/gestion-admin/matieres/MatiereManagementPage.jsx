@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import TablePagination from "@mui/material/TablePagination";
 import { DrawerPanel } from "../../../../shared/components/ui/DrawerPanel";
 import { TextField } from "../../../../shared/components/forms/TextField";
 import { PrimaryButton } from "../../../../shared/components/ui/PrimaryButton";
@@ -12,10 +13,17 @@ export function MatiereManagementPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-const [search, setSearch] = useState("");
-const [matiereFilter, setMatiereFilter] = useState("Toutes");
-const [sortBy, setSortBy] = useState("nom");
- const [formData, setFormData] = useState({
+  const [search, setSearch] = useState("");
+  const [matiereFilter, setMatiereFilter] = useState("Toutes");
+  const [sortBy, setSortBy] = useState("nom");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
+  
+  useEffect(() => {
+    setPage(0);
+  }, [search, matiereFilter, sortBy]);
+
+  const [formData, setFormData] = useState({
   nom_matiere: "",
   coefficient: 1,
   description: "",
@@ -137,6 +145,12 @@ return recherche && filtreMatiere;
 
     return 0;
   });
+
+  const paginatedMatieres = filteredMatieres.slice(
+    page * rowsPerPage,
+    (page + 1) * rowsPerPage
+  );
+
   return (
     <section className="page-section">
       <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

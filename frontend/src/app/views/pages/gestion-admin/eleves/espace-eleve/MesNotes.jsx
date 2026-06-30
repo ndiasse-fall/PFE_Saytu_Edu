@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { apiClient } from "../../../../../core/api/apiClient";
 
 export default function MesNotes() {
   const [notes, setNotes] = useState([]);
@@ -9,11 +9,12 @@ export default function MesNotes() {
   }, []);
 
   const fetchNotes = async () => {
-    const { data } = await axios.get(
-      "/api/espace-eleve/notes"
-    );
-
-    setNotes(data);
+    try {
+      const data = await apiClient("/espace-eleve/notes");
+      setNotes(data || []);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (

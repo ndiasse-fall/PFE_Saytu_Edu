@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import TablePagination from "@mui/material/TablePagination";
 import { DrawerPanel } from "../../../../shared/components/ui/DrawerPanel";
 import { TextField } from "../../../../shared/components/forms/TextField";
 import { PrimaryButton } from "../../../../shared/components/ui/PrimaryButton";
@@ -12,14 +13,20 @@ export function ClasseManagementPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-const [search, setSearch] = useState("");
-const [niveauFilter, setNiveauFilter] = useState("Tous");
-const [sortBy, setSortBy] = useState("nom");
+  const [search, setSearch] = useState("");
+  const [niveauFilter, setNiveauFilter] = useState("Tous");
+  const [sortBy, setSortBy] = useState("nom");
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
   const [formData, setFormData] = useState({
     nom_classe: "",
     niveau: "",
     annee_scolaire: "",
   });
+
+  useEffect(() => {
+    setPage(0);
+  }, [search, niveauFilter, sortBy]);
 
   const fetchClasses = async () => {
     setLoading(true);
@@ -131,6 +138,12 @@ const filteredClasses = classes
 
     return 0;
   });
+
+  const paginatedClasses = filteredClasses.slice(
+    page * rowsPerPage,
+    (page + 1) * rowsPerPage
+  );
+
   return (
     <section className="page-section">
       <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

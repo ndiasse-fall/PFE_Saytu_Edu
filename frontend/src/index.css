@@ -2489,6 +2489,10 @@ small {
     overflow-y: auto;
 }
 
+.users-drawer-paper .field-label {
+    color: var(--text-strong);
+}
+
 @media (min-width: 600px) {
     .users-drawer-paper {
         width: auto !important;

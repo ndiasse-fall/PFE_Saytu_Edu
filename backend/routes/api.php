@@ -98,7 +98,12 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function () {
         Route::get('affectations', [AffectationController::class, 'index']);
         Route::post('affectations/matiere-classe', [AffectationController::class, 'affecterMatiereClasse']);
         Route::post('affectations/enseignant-matiere', [AffectationController::class, 'affecterEnseignantMatiere']);
+Route::put(
+    'affectations/{id}',
+    [AffectationController::class, 'update']
+);
 
+Route::delete('/affectations/{id}', [AffectationController::class, 'destroy']);
         /*
         |--------------------------------------------------------------------------
         | EMPLOI DU TEMPS
