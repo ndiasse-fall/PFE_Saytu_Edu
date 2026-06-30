@@ -29,8 +29,9 @@ export function AuthProvider({ children }) {
 
       try {
         const currentUser = await getCurrentUser()
-        setUser(currentUser)
-        storeUser(currentUser)
+        const normalizedUser = currentUser?.user ?? currentUser
+        setUser(normalizedUser)
+        storeUser(normalizedUser)
       } catch {
         clearStoredAuth()
         setToken(null)

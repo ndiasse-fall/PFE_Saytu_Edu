@@ -83,3 +83,5 @@ export function TeacherManagementPage() {
     />
   )
 }
+
+export default TeacherManagementPage;

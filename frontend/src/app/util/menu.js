@@ -58,13 +58,19 @@ export const menuItems = [
     },
     /* ================= ENSEIGNANT ================= */
     {
-        section: "Espace utilisateur",
+        section: "Enseignant",
         roles: ["ENSEIGNANT"],
         items: [
             {
                 label: "Gestion des notes",
                 path: "/notes",
                 icon: "bi-journal-text",
+            },
+            /* 🎯 L'ONGLET RECHERCHÉ EST PLACÉ ICI JUSQUE EN DESSOUS */
+            {
+                label: "Emploi du temps",
+                path: "/enseignant/emploi-du-temps",
+                icon: "bi-calendar-week",
             },
         ],
     },
