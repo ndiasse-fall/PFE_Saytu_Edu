@@ -88,6 +88,14 @@ const ModulePlaceholderPage = lazy(() =>
     })),
 );
 
+// 🛠️ CORRECTION : Import sécurisé de la page Unauthorized (évite le plantage)
+const UnauthorizedPage = lazy(() =>
+    import("../views/pages/system/NotFoundPage").then((module) => ({
+        // Utilise temporairement NotFoundPage si le fichier n'existe pas encore sur votre main
+        default: module.UnauthorizedPage || module.NotFoundPage,
+    })),
+);
+
 // BulletinList avec double vérification de l'export
 const BulletinList = lazy(() =>
     import("../views/pages/gestion-admin/bulletins/BulletinList").then(
@@ -165,16 +173,18 @@ export function AppRouter() {
                                 <Route path="/admin/emploi-du-temps" element={<EmploiDuTempsPage />} />
                                 <Route path="/admin/bulletins" element={<BulletinList />} />
                                 
-                                {/* 🛠️ NETTOYAGE : URLs d'administration uniformisées sans doublons conflictuels */}
                                 <Route path="/admin/users" element={<UserManagementPage />} />
                                 <Route path="/admin/eleves" element={<EleveManagementPage />} />
-                               <Route path="/admin/gestion-admin/eleves/:id" element={<EleveDetailsPage />} />
+                                <Route path="/admin/gestion-admin/eleves/:id" element={<EleveDetailsPage />} />
                                 <Route path="/admin/professeurs" element={<TeacherManagementPage />} />
+                                <Route path="/admin/classes" element={<ClasseManagementPage />} />
+                                <Route path="/admin/matieres" element={<MatiereManagementPage />} />
+                                <Route path="/admin/affectations" element={<AffectationManagementPage />} />
                                 
-                                {/* Fallbacks au cas où l'ancienne structure d'URL ("gestion-admin") est appelée quelque part */}
+                                {/* Fallbacks / Redirections clean */}
                                 <Route path="/admin/gestion-admin/users" element={<Navigate to="/admin/users" replace />} />
                                 <Route path="/admin/gestion-admin/eleves" element={<Navigate to="/admin/eleves" replace />} />
-                                <Route path="/admin/gestion-admin/eleves/:id" element={<Route path="/admin/eleves/:id" />} />
+                                <Route path="/admin/gestion-admin/eleves/:id" element={<Navigate to="/admin/eleves/:id" replace />} />
                                 <Route path="/admin/gestion-admin/professeurs" element={<Navigate to="/admin/professeurs" replace />} />
                             </Route>
 
@@ -186,7 +196,6 @@ export function AppRouter() {
                                 <Route path="/enseignant/emploi-du-temps" element={<MonEmploiTempsProfesseur />} />
                                 <Route path="/enseignant/bulletins" element={<ModulePlaceholderPage title="Bulletin" />} />
                                 
-                                {/* 🛠️ ALIAS DE SÉCURITÉ : Redirection automatique de /professeur vers /enseignant */}
                                 <Route path="/professeur/emploi-du-temps" element={<Navigate to="/enseignant/emploi-du-temps" replace />} />
                             </Route>
 
