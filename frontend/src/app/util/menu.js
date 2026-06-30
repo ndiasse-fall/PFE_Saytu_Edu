@@ -30,7 +30,7 @@ export const menuItems = [
                 path: "/admin/emploi-du-temps",
                 icon: "bi-calendar-week",
             },
-             {
+            {
                 label: "Gestion des notes",
                 path: "/notes",
                 icon: "bi-journal-text",
@@ -59,7 +59,7 @@ export const menuItems = [
     },
      /* ================= ENSEIGNANT ================= */
     {
-        section: "Espace utilisateur",
+        section: "Enseignant",
         roles: ["ENSEIGNANT"],
         items: [
             {
@@ -67,7 +67,12 @@ export const menuItems = [
                 path: "/notes",
                 icon: "bi-journal-text",
             },
-            
+            /* 🎯 L'ONGLET RECHERCHÉ EST PLACÉ ICI JUSQUE EN DESSOUS */
+            {
+                label: "Emploi du temps",
+                path: "/enseignant/emploi-du-temps",
+                icon: "bi-calendar-week",
+            },
         ],
     },
     /* ================= ELEVE ================= */

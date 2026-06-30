@@ -41,12 +41,16 @@ class AuthController extends Controller
 
         // Création du token Sanctum
         $token = $user->createToken('saytou-edu-web')->plainTextToken;
+        $resolvedRole = $user->role?->value ?? $user->role ?? $user->statut;
+        $normalizedUser = $user->toArray();
+        $normalizedUser['role'] = $resolvedRole;
+        $normalizedUser['statut'] = $user->statut ?? $resolvedRole;
 
         return response()->json([
             'message' => 'Connexion réussie.',
             'token' => $token,
-            'user' => $user,
-            'role' => $user->role?->value ?? $user->role,
+            'user' => $normalizedUser,
+            'role' => $resolvedRole,
             'must_change_password' => (bool) $user->must_change_password,
         ]);
     }
@@ -84,8 +88,14 @@ class AuthController extends Controller
      */
     public function me(Request $request): JsonResponse
     {
+        $user = $request->user();
+        $resolvedRole = $user->role?->value ?? $user->role ?? $user->statut;
+        $normalizedUser = $user->toArray();
+        $normalizedUser['role'] = $resolvedRole;
+        $normalizedUser['statut'] = $user->statut ?? $resolvedRole;
+
         return response()->json([
-            'data' => $request->user(),
+            'data' => $normalizedUser,
         ]);
     }
 
