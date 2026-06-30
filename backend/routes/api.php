@@ -186,6 +186,7 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function () {
             |--------------------------------------------------------------------------
             */
             Route::post('notes', [NoteController::class, 'store']);
+            Route::post('notes/saisir', [NoteController::class, 'store']);
 
             Route::put(
                 'notes/{id}',
