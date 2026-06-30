@@ -10,6 +10,13 @@ export function EmploiDuTempsDetails({ session, onEdit, onDelete, onClose, isAdm
     return parts.slice(0, 2).join(':')
   }
 
+  // Helper cosmétique pour afficher le jour proprement (ex: "mercredi" -> "Mercredi")
+  const capitalize = (s) => {
+    if (!s) return ''
+    const string = String(s).trim()
+    return string.charAt(0).toUpperCase() + string.slice(1).toLowerCase()
+  }
+
   return (
     <div className="session-details-card" style={{ padding: '8px' }}>
       <div className="details-header" style={{ marginBottom: '24px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
@@ -17,7 +24,8 @@ export function EmploiDuTempsDetails({ session, onEdit, onDelete, onClose, isAdm
           {session.classe?.nom_classe || 'Classe inconnue'}
         </span>
         <h3 style={{ margin: '4px 0 0 0', fontSize: '1.4rem', color: 'var(--text-strong)', fontWeight: '600' }}>
-          {session.matiere?.nom || 'Matière inconnue'}
+          {/* 🛠️ CORRECTION : Utilisation de nom_matiere au lieu de nom */}
+          {session.matiere?.nom_matiere || session.matiere?.nom || 'Matière inconnue'}
         </h3>
       </div>
 
@@ -40,7 +48,7 @@ export function EmploiDuTempsDetails({ session, onEdit, onDelete, onClose, isAdm
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Jour</div>
-            <strong style={{ color: 'var(--text-strong)' }}>{session.jour}</strong>
+            <strong style={{ color: 'var(--text-strong)' }}>{capitalize(session.jour)}</strong>
           </div>
         </div>
 
@@ -72,7 +80,7 @@ export function EmploiDuTempsDetails({ session, onEdit, onDelete, onClose, isAdm
           type="button"
           className="ghost-button"
           onClick={onClose}
-          style={{ flex: 1, padding: '10px 16px', borderRadius: '6px' }}
+          style={{ flex: 1, padding: '10px 16px', borderRadius: '6px', cursor: 'pointer' }}
         >
           Fermer
         </button>
@@ -91,7 +99,8 @@ export function EmploiDuTempsDetails({ session, onEdit, onDelete, onClose, isAdm
                 backgroundColor: 'transparent',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '8px'
+                gap: '8px',
+                cursor: 'pointer'
               }}
             >
               <i className="bi bi-pencil-square"></i> Modifier

@@ -1,8 +1,8 @@
 const dashboardPaths = {
   SUPER_ADMIN: '/admin/dashboard',
   ADMIN: '/admin/dashboard',
-  ENSEIGNANT: '/enseignant/dashboard',
-  ELEVE: '/eleve/dashboard',
+  ENSEIGNANT: '/enseignant/emploi-du-temps',
+  ELEVE: '/eleve/emploi-du-temps',
 }
 
 export function getDashboardPath(role) {

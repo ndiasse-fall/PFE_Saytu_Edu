@@ -87,32 +87,11 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function () {
 
         // Écriture Emploi du Temps
         Route::post('emplois-du-temps/publier', [EmploiDuTempsController::class, 'publier']);
-        Route::post('emplois-du-temps', [EmploiDuTempsController::class, 'store']);
-        Route::put('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'update']);
-        Route::delete('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'destroy']);
+        Route::apiResource('emplois-du-temps', EmploiDuTempsController::class)
+            ->except(['index', 'show']);
 
         Route::apiResource('matieres', MatiereController::class)
             ->except(['index', 'show']);
-
-        /*
-        |--------------------------------------------------------------------------
-        | EMPLOI DU TEMPS
-        |--------------------------------------------------------------------------
-        */
-        Route::post(
-            'emplois-du-temps',
-            [EmploiDuTempsController::class, 'store']
-        );
-
-        Route::put(
-            'emplois-du-temps/{id}',
-            [EmploiDuTempsController::class, 'update']
-        );
-
-        Route::delete(
-            'emplois-du-temps/{id}',
-            [EmploiDuTempsController::class, 'destroy']
-        );
 
         /*
         |--------------------------------------------------------------------------

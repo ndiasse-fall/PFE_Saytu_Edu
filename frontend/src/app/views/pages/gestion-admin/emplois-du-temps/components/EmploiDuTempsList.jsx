@@ -31,7 +31,7 @@ export function EmploiDuTempsList({
   return (
     <section className="panel users-table-panel">
       <FilterToolbar className="users-filter-shell">
-        <div className="users-filter-toolbar">
+        <div className="users-filter-toolbar" style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', gap: '16px' }}>
           {/* Classe */}
           {!isStudent && (
             <label className="users-toolbar-field">
@@ -81,7 +81,7 @@ export function EmploiDuTempsList({
               <option value="">Toutes les matières</option>
               {matieres.map((m) => (
                 <option key={m.id} value={m.id}>
-                  {m.nom}
+                  {m.nom_matiere}
                 </option>
               ))}
             </select>
@@ -104,12 +104,24 @@ export function EmploiDuTempsList({
             </select>
           </label>
 
-          <div className="form-actions users-toolbar-actions">
+          {/* Bouton Réinitialiser modifié en bleu */}
+          <div className="form-actions users-toolbar-actions" style={{ marginTop: '0', marginBottom: '4px' }}>
             <button
               type="button"
-              className="ghost-button"
               onClick={onClearFilters}
-              style={{ padding: '8px 16px', fontSize: '0.9rem' }}
+              style={{ 
+                padding: '8px 16px', 
+                fontSize: '0.9rem', 
+                height: '38px', 
+                display: 'flex', 
+                alignItems: 'center',
+                backgroundColor: 'var(--primary, #3b82f6)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '6px',
+                fontWeight: '500',
+                cursor: 'pointer'
+              }}
             >
               Réinitialiser
             </button>
@@ -153,7 +165,7 @@ export function EmploiDuTempsList({
                 <tr key={session.id}>
                   <td>
                     <strong translate="no" style={{ color: 'var(--text-strong)' }}>
-                      {session.matiere?.nom || '-'}
+                      {session.matiere?.nom_matiere || '-'}
                     </strong>
                   </td>
                   <td>

@@ -70,6 +70,23 @@ body {
     color: var(--text);
 }
 
+/* Mettre à jour la section <style> existante */
+.fc .fc-col-header-cell-cushion {
+  display: inline-block !important;
+  padding: 4px 2px !important;
+  color: #374151 !important;
+  text-decoration: none !important;
+}
+
+/* 🌟 FORCE LE MASQUAGE DU TEXTE SOUHAITÉ HORS-ÉCRAN ET DES LIENS DOUBLÉS */
+.fc-col-header-cell .fc-scrollgrid-sync-inner a + a,
+.fc-col-header-cell-cushion .fc-visually-hidden,
+.fc .fc-visually-hidden {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  position: absolute !important;
+}
 a {
     color: inherit;
     text-decoration: none;
