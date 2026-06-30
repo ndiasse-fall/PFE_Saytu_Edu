@@ -177,9 +177,9 @@ export function AppRouter() {
                                 <Route path="/admin/eleves" element={<EleveManagementPage />} />
                                 <Route path="/admin/gestion-admin/eleves/:id" element={<EleveDetailsPage />} />
                                 <Route path="/admin/professeurs" element={<TeacherManagementPage />} />
-                                <Route path="/admin/classes" element={<ClasseManagementPage />} />
-                                <Route path="/admin/matieres" element={<MatiereManagementPage />} />
-                                <Route path="/admin/affectations" element={<AffectationManagementPage />} />
+                                <Route path="/admin/gestion-admin/classes" element={<ClasseManagementPage />} />
+                                <Route path="/admin/gestion-admin/matieres" element={<MatiereManagementPage />} />
+                                <Route path="/admin/gestion-admin/affectations" element={<AffectationManagementPage />} />
                                 
                                 {/* Fallbacks / Redirections clean */}
                                 <Route path="/admin/gestion-admin/users" element={<Navigate to="/admin/users" replace />} />
