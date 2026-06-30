@@ -88,9 +88,8 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function () {
 
         // Écriture Emploi du Temps
         Route::post('emplois-du-temps/publier', [EmploiDuTempsController::class, 'publier']);
-        Route::post('emplois-du-temps', [EmploiDuTempsController::class, 'store']);
-        Route::put('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'update']);
-        Route::delete('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'destroy']);
+        Route::apiResource('emplois-du-temps', EmploiDuTempsController::class)
+            ->except(['index', 'show']);
 
         Route::apiResource('matieres', MatiereController::class)
             ->except(['index', 'show']);
@@ -104,26 +103,6 @@ Route::put(
 );
 
 Route::delete('/affectations/{id}', [AffectationController::class, 'destroy']);
-        /*
-        |--------------------------------------------------------------------------
-        | EMPLOI DU TEMPS
-        |--------------------------------------------------------------------------
-        */
-        Route::post(
-            'emplois-du-temps',
-            [EmploiDuTempsController::class, 'store']
-        );
-
-        Route::put(
-            'emplois-du-temps/{id}',
-            [EmploiDuTempsController::class, 'update']
-        );
-
-        Route::delete(
-            'emplois-du-temps/{id}',
-            [EmploiDuTempsController::class, 'destroy']
-        );
-
         /*
         |--------------------------------------------------------------------------
         | ABSENCES
@@ -217,6 +196,7 @@ Route::delete('/affectations/{id}', [AffectationController::class, 'destroy']);
             |--------------------------------------------------------------------------
             */
             Route::post('notes', [NoteController::class, 'store']);
+            Route::post('notes/saisir', [NoteController::class, 'store']);
 
             Route::put(
                 'notes/{id}',
