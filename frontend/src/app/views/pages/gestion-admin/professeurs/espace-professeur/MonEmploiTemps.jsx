@@ -4,7 +4,7 @@ import timeGridPlugin from '@fullcalendar/timegrid';
 import frLocale from '@fullcalendar/core/locales/fr';
 
 import { useAuth } from '../../../../../core/context/useAuth';
-import { listMonEmploiDuTemps, normalizeApiResponse } from '../../../../../services/emplois-du-temps/emploiDuTempsService';
+import { listEmplois, normalizeApiResponse } from '../../../../../services/emplois-du-temps/emploiDuTempsService';
 
 export function MonEmploiTemps() {
   const { user } = useAuth();
@@ -14,7 +14,7 @@ export function MonEmploiTemps() {
   const loadSessions = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await listMonEmploiDuTemps();
+      const response = await listEmplois();
       const extractedData = normalizeApiResponse(response);
       setSessions(Array.isArray(extractedData) ? extractedData : []);
     } catch (err) {
@@ -42,9 +42,7 @@ export function MonEmploiTemps() {
     return sessions.map(session => {
       const jourNormalise = String(session.jour || '').toLowerCase().trim();
       const dayIndex = joursMap[jourNormalise] !== undefined ? joursMap[jourNormalise] : 1;
-      const enseignantNom = session.enseignant
-        ? `${session.enseignant.prenom} ${session.enseignant.nom}`
-        : 'Non assigné';
+      const classeNom = session.classe?.nom_classe || 'N/A';
 
       return {
         id: String(session.id),
@@ -53,7 +51,7 @@ export function MonEmploiTemps() {
         startTime: session.heure_debut,
         endTime: session.heure_fin,
         extendedProps: {
-          enseignant: enseignantNom,
+          classe: classeNom,
           salle: session.salle || 'N/A'
         }
       };
@@ -63,7 +61,7 @@ export function MonEmploiTemps() {
   return (
     <div style={{ padding: "24px", width: "100%", boxSizing: "border-box" }}>
       <style>{`
-        /* Styles personnalisés pour le calendrier de l'élève */
+        /* Styles personnalisés pour le calendrier de l'enseignant */
         .fc .fc-col-header-cell-cushion {
           display: inline-block !important;
           padding: 8px 4px !important;
@@ -142,7 +140,7 @@ export function MonEmploiTemps() {
         </div>
       ) : sessions.length === 0 ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
-          Aucun cours programmé pour vous cette semaine.
+          Aucun cours assigné pour cette semaine.
         </div>
       ) : (
         <div style={{ marginTop: "24px", backgroundColor: "#ffffff", padding: "20px", borderRadius: "12px", border: "1px solid #e2e8f0" }}>
@@ -174,8 +172,8 @@ export function MonEmploiTemps() {
                   <div className="fc-event-title">{eventInfo.event.title}</div>
                   <div className="calendar-custom-details">
                     <span>
-                      <i className="bi bi-person" style={{ marginRight: '5px' }}></i>
-                      {eventInfo.event.extendedProps.enseignant}
+                      <i className="bi bi-building" style={{ marginRight: '5px' }}></i>
+                      {eventInfo.event.extendedProps.classe}
                     </span>
                     {eventInfo.event.extendedProps.salle && (
                       <span>
