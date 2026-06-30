@@ -1,5 +1,4 @@
 import { apiClient } from '../../core/api/apiClient'
-
 export const listAffectations = async () => {
   const response = await apiClient('/affectations')
   return Array.isArray(response) ? response : (response?.data || [])
@@ -13,8 +12,12 @@ export const affecterMatiereClasse = (
     method: 'POST',
     data: {
       classe_id: classeId,
-      matiere_id: matiereId
-    }
+      matiere_id: matiereId,
+    },
+  })
+export const deleteAffectation = (compositeId) =>
+  apiClient(`/affectations/${compositeId}`, {
+    method: 'DELETE',
   })
 
 export const affecterEnseignantMatiere = (

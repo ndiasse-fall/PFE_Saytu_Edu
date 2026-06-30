@@ -17,11 +17,14 @@ export function AffectationManagementPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-
+  const [searchClasse, setSearchClasse] = useState("");
+  
+  const [searchEnseignant, setSearchEnseignant] = useState("");
   const [formData, setFormData] = useState({
     classe_id: "",
     matiere_id: "",
     enseignant_id: "",
+    
   });
 
   const fetchData = async () => {
@@ -65,7 +68,11 @@ export function AffectationManagementPage() {
     setSuccess(null);
     try {
       if (type === "matiere-classe") {
-        await affecterMatiereClasse(formData.classe_id, formData.matiere_id);
+        await affecterMatiereClasse({
+    classe_id: formData.classe_id,
+    matiere_id: formData.matiere_id,
+    
+});
       } else {
         await affecterEnseignantMatiere(formData.enseignant_id, formData.matiere_id);
       }
@@ -112,12 +119,27 @@ export function AffectationManagementPage() {
               Affectations Enseignant à Matière
             </h3>
           </div>
+          <div style={{ marginBottom: 15 }}>
+  <input
+    type="text"
+    placeholder="Rechercher un enseignant..."
+    value={searchEnseignant}
+    onChange={(e) => setSearchEnseignant(e.target.value)}
+    style={{
+      width: "100%",
+      padding: 10,
+      borderRadius: 8,
+      border: "1px solid #ddd",
+    }}
+  />
+</div>
           <div className="table-wrapper">
             <table className="users-table">
               <thead>
                 <tr>
                   <th>Enseignant</th>
                   <th>Matière</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -129,8 +151,13 @@ export function AffectationManagementPage() {
                   </tr>
                 ) : (
                   affectations
-                    .filter((aff) => aff.type === "Enseignant à Matière")
-                    .map((aff) => (
+                  .filter((aff) => aff.type === "Enseignant à Matière")
+                  .filter((aff) =>
+                    aff.target_name
+                      ?.toLowerCase()
+                      .includes(searchEnseignant.toLowerCase())
+                  )
+                  .map((aff) => (
                       <tr key={aff.id}>
                         <td>{aff.target_name}</td>
                         <td>{aff.matiere_nom}</td>
@@ -149,12 +176,36 @@ export function AffectationManagementPage() {
               Affectations Matière à Classe
             </h3>
           </div>
+          <div
+  style={{
+    display: "flex",
+    gap: 15,
+    marginBottom: 15,
+    flexWrap: "wrap",
+  }}
+>
+  <input
+    type="text"
+    placeholder="Rechercher une classe..."
+    value={searchClasse}
+    onChange={(e) => setSearchClasse(e.target.value)}
+    style={{
+      padding: 10,
+      borderRadius: 8,
+      border: "1px solid #ddd",
+      flex: 1,
+    }}
+  />
+
+  
+</div>
           <div className="table-wrapper">
             <table className="users-table">
               <thead>
                 <tr>
                   <th>Classe</th>
                   <th>Matière</th>
+                  
                 </tr>
               </thead>
               <tbody>
@@ -166,13 +217,13 @@ export function AffectationManagementPage() {
                   </tr>
                 ) : (
                   affectations
-                    .filter((aff) => aff.type === "Matière à Classe")
-                    .map((aff) => (
-                      <tr key={aff.id}>
-                        <td>{aff.target_name}</td>
-                        <td>{aff.matiere_nom}</td>
-                      </tr>
-                    ))
+  .filter((aff) => aff.type === "Matière à Classe")
+  .filter((aff) =>
+      aff.target_name
+        ?.toLowerCase()
+        .includes(searchClasse.toLowerCase())
+  )
+ 
                 )}
               </tbody>
             </table>
@@ -231,7 +282,9 @@ export function AffectationManagementPage() {
             placeholder="Sélectionner une matière"
             required
           />
-
+<div className="form-group">
+  
+</div>
           <div className="mt-6">
             <PrimaryButton type="submit" disabled={loading} block>
               {loading ? "Traitement..." : "Enregistrer l'affectation"}

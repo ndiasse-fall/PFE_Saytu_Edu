@@ -12,7 +12,9 @@ export function ClasseManagementPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
-
+const [search, setSearch] = useState("");
+const [niveauFilter, setNiveauFilter] = useState("Tous");
+const [sortBy, setSortBy] = useState("nom");
   const [formData, setFormData] = useState({
     nom_classe: "",
     niveau: "",
@@ -101,7 +103,34 @@ export function ClasseManagementPage() {
       }
     }
   };
+const niveaux = ["Tous", ...new Set(classes.map((c) => c.niveau))];
 
+const filteredClasses = classes
+  .filter((classe) => {
+    const recherche =
+      classe.nom_classe.toLowerCase().includes(search.toLowerCase()) ||
+      classe.niveau.toLowerCase().includes(search.toLowerCase());
+
+    const niveau =
+      niveauFilter === "Tous" || classe.niveau === niveauFilter;
+
+    return recherche && niveau;
+  })
+  .sort((a, b) => {
+    if (sortBy === "nom") {
+      return a.nom_classe.localeCompare(b.nom_classe);
+    }
+
+    if (sortBy === "niveau") {
+      return a.niveau.localeCompare(b.niveau);
+    }
+
+    if (sortBy === "annee") {
+      return b.annee_scolaire.localeCompare(a.annee_scolaire);
+    }
+
+    return 0;
+  });
   return (
     <section className="page-section">
       <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -115,7 +144,84 @@ export function ClasseManagementPage() {
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
+<div
+  className="panel"
+  style={{
+    marginTop: "20px",
+    marginBottom: "20px",
+    padding: "20px",
+    borderRadius: "16px",
+  }}
+>
+  {/* Recherche */}
+  <input
+    type="text"
+    placeholder="🔍 Rechercher une classe..."
+    value={search}
+    onChange={(e) => setSearch(e.target.value)}
+    style={{
+      width: "100%",
+      padding: "14px",
+      borderRadius: "12px",
+      border: "1px solid #ddd",
+      fontSize: "16px",
+      marginBottom: "20px",
+    }}
+  />
 
+  {/* Filtres */}
+  <div
+    style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      flexWrap: "wrap",
+      gap: "15px",
+    }}
+  >
+    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+      {niveaux.map((niveau) => (
+        <button
+          key={niveau}
+          onClick={() => setNiveauFilter(niveau)}
+          style={{
+            padding: "10px 18px",
+            borderRadius: "10px",
+            border: "none",
+            cursor: "pointer",
+            fontWeight: "600",
+            background:
+              niveauFilter === niveau ? "#1d4ed8" : "#f3f4f6",
+            color:
+              niveauFilter === niveau ? "#fff" : "#333",
+          }}
+        >
+          {niveau}
+        </button>
+      ))}
+    </div>
+
+    <div>
+      <label style={{ marginRight: "10px" }}>
+        Trier :
+      </label>
+
+      <select
+        value={sortBy}
+        onChange={(e) => setSortBy(e.target.value)}
+        style={{
+          padding: "10px",
+          borderRadius: "10px",
+          border: "1px solid #ddd",
+        }}
+      >
+        <option value="nom">Nom (A-Z)</option>
+        <option value="niveau">Niveau</option>
+        <option value="annee">Année scolaire</option>
+      </select>
+    </div>
+  </div>
+</div>
       <div className="panel mt-4">
         {loading && classes.length === 0 ? (
           <div className="screen-state">Chargement...</div>
@@ -133,7 +239,7 @@ export function ClasseManagementPage() {
                 </tr>
               </thead>
               <tbody>
-                {classes.map((classe) => (
+                {filteredClasses.map((classe) => (
                   <tr key={classe.id}>
                     <td><strong>{classe.nom_classe}</strong></td>
                     <td>{classe.niveau}</td>
