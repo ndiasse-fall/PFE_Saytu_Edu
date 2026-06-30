@@ -90,6 +90,37 @@ class NoteApiTest extends TestCase
         ]);
     }
 
+    public function test_admin_can_create_note_for_any_class(): void
+    {
+        $admin = User::factory()->create([
+            'role' => RoleEnum::ADMIN,
+            'actif' => true,
+        ]);
+        Sanctum::actingAs($admin);
+
+        $classe = Classe::factory()->create();
+        $matiere = Matieres::factory()->create();
+        $eleve = User::factory()->eleve()->create(['actif' => true]);
+
+        $classe->eleves()->attach($eleve->id);
+
+        $this->postJson('/api/notes', [
+            'id_classe' => $classe->id,
+            'id_matiere' => $matiere->id,
+            'type_evaluation' => 'Devoir',
+            'periode' => 'Semestre 1',
+            'notes' => [
+                [
+                    'id_eleve' => $eleve->id,
+                    'valeur' => 13,
+                ],
+            ],
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.0.id_eleve', $eleve->id)
+            ->assertJsonPath('data.0.id_classe', $classe->id);
+    }
+
     public function test_enseignant_cannot_saisir_notes_for_unassigned_class(): void
     {
         $enseignant = User::factory()->create([
