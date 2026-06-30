@@ -14,11 +14,7 @@ export const menuItems = [
                 path: "/admin/gestion-admin/eleves",
                 icon: "bi-mortarboard-fill",
             },
-            {
-                label: "Utilisateurs",
-                path: "/admin/gestion-admin/users",
-                icon: "bi-people-fill",
-            },
+          
             {
                 label: "Professeurs",
                 path: "/admin/professeurs",
@@ -63,7 +59,7 @@ export const menuItems = [
     /* ================= ENSEIGNANT ================= */
     {
         section: "Espace utilisateur",
-        roles: ["ENSEIGNANT", "ELEVE"],
+        roles: ["ENSEIGNANT"],
         items: [
             {
                 label: "Gestion des notes",
