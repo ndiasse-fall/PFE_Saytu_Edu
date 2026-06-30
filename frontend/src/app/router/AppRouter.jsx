@@ -86,6 +86,9 @@ const MesNotes = lazy(() =>
         (module) => ({ default: module.MesNotes }),
     ),
 );
+const NoteList = lazy(
+    () => import("../views/pages/gestion-admin/notes/NoteList"),
+);
 const MesAbsences = lazy(() =>
     import("../views/pages/gestion-admin/eleves/espace-eleve/MesAbsences").then(
         (module) => ({ default: module.MesAbsences }),
@@ -146,29 +149,49 @@ export function AppRouter() {
                         </Route>
 
                         {/* AUTH */}
-                        <Route element={<AuthGuard />}>
-                            <Route element={<BaseLayout />}>
-    
-                                {/* HOME */}
-                                <Route path="/" element={<RoleHomeRedirect />} />
-                                <Route path="/user/dashboard" element={<RoleHomeRedirect />} />
-    
-                                <Route path="/settings" element={<SettingsPage />} />
-    
-                                {/* ADMIN */}
-                                <Route element={<RoleGuard roles={["SUPER_ADMIN", "ADMIN"]} />}>
-                                    <Route path="/admin/dashboard" element={<DashboardPage />} />
-    
-                                    {/* Gestion Admin */}
-                                    <Route
-                                        path="/admin/gestion-admin/users"
-                                        element={<UserManagementPage />}
+                        <Route element={<BaseLayout />}>
+                            {/* HOME */}
+                            <Route path="/" element={<RoleHomeRedirect />} />
+                            <Route
+                                path="/user/dashboard"
+                                element={<RoleHomeRedirect />}
+                            />
+
+                            <Route
+                                path="/settings"
+                                element={<SettingsPage />}
+                            />
+                            {/* ROUTES PARTAGÉES (ADMIN + ENSEIGNANT) */}
+                            <Route
+                                element={
+                                    <RoleGuard
+                                        roles={[
+                                            "SUPER_ADMIN",
+                                            "ADMIN",
+                                            "ENSEIGNANT",
+                                        ]}
+                                    />
+                                }
+                            >
+                                <Route path="/notes" element={<NoteList />} />
+                            </Route>
+                            {/* ADMIN */}
+                            <Route
+                                element={
+                                    <RoleGuard
+                                        roles={["SUPER_ADMIN", "ADMIN"]}
                                     />
                                 }
                             >
                                 <Route
                                     path="/admin/dashboard"
                                     element={<DashboardPage />}
+                                />
+
+                                {/* Gestion Admin */}
+                                <Route
+                                    path="/admin/gestion-admin/users"
+                                    element={<UserManagementPage />}
                                 />
                                 <Route
                                     path="/admin/eleves"
@@ -243,24 +266,28 @@ export function AppRouter() {
                                 />
                             </Route>
 
-                        <Route element={<RoleGuard roles={["ELEVE"]} />}>
-                            <Route
-                                path="/eleve/dashboard"
-                                element={<DashboardPage />}
-                            />
-                            <Route path="/eleve/notes" element={<MesNotes />} />
-                            <Route
-                                path="/eleve/absences"
-                                element={<MesAbsences />}
-                            />
-                            <Route
-                                path="/eleve/bulletin"
-                                element={<MonBulletin />}
-                            />
-                            <Route
-                                path="/eleve/emploi-du-temps"
-                                element={<MonEmploiTemps />}
-                            />
+                            <Route element={<RoleGuard roles={["ELEVE"]} />}>
+                                <Route
+                                    path="/eleve/dashboard"
+                                    element={<DashboardPage />}
+                                />
+                                <Route
+                                    path="/eleve/notes"
+                                    element={<MesNotes />}
+                                />
+                                <Route
+                                    path="/eleve/absences"
+                                    element={<MesAbsences />}
+                                />
+                                <Route
+                                    path="/eleve/bulletin"
+                                    element={<MonBulletin />}
+                                />
+                                <Route
+                                    path="/eleve/emploi-du-temps"
+                                    element={<MonEmploiTemps />}
+                                />
+                            </Route>
                         </Route>
                     </Route>
 

@@ -11,7 +11,7 @@ export const menuItems = [
             },
             {
                 label: "Élèves",
-                path: "/admin/eleves",
+                path: "/admin/gestion-admin/eleves",
                 icon: "bi-mortarboard-fill",
             },
             {
@@ -34,12 +34,12 @@ export const menuItems = [
                 path: "/admin/emploi-du-temps",
                 icon: "bi-calendar-week",
             },
-             {
+            {
                 label: "Gestion des notes",
                 path: "/notes",
                 icon: "bi-journal-text",
             },
-           
+
             {
                 label: "Bulletin",
                 path: "/admin/bulletins",
@@ -48,7 +48,6 @@ export const menuItems = [
         ],
     },
 
-  
     /* ================= USER ================= */
     {
         section: "Espace utilisateur",
@@ -61,7 +60,7 @@ export const menuItems = [
             },
         ],
     },
-     /* ================= ENSEIGNANT ================= */
+    /* ================= ENSEIGNANT ================= */
     {
         section: "Espace utilisateur",
         roles: ["ENSEIGNANT", "ELEVE"],
@@ -71,7 +70,6 @@ export const menuItems = [
                 path: "/notes",
                 icon: "bi-journal-text",
             },
-            
         ],
     },
     /* ================= ELEVE ================= */
