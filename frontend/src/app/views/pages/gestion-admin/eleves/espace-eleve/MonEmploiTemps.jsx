@@ -42,9 +42,16 @@ export function MonEmploiTemps() {
     return sessions.map(session => {
       const jourNormalise = String(session.jour || '').toLowerCase().trim();
       const dayIndex = joursMap[jourNormalise] !== undefined ? joursMap[jourNormalise] : 1;
+      
       const enseignantNom = session.enseignant
         ? `${session.enseignant.prenom} ${session.enseignant.nom}`
         : 'Non assigné';
+
+      // Élimine le doublon "SalleSalle"
+      let salleClean = session.salle || 'N/A';
+      if (salleClean.toLowerCase().startsWith('salle')) {
+        salleClean = salleClean.replace(/^salle\s*/i, '');
+      }
 
       return {
         id: String(session.id),
@@ -54,7 +61,7 @@ export function MonEmploiTemps() {
         endTime: session.heure_fin,
         extendedProps: {
           enseignant: enseignantNom,
-          salle: session.salle || 'N/A'
+          salle: salleClean
         }
       };
     });
@@ -63,66 +70,99 @@ export function MonEmploiTemps() {
   return (
     <div style={{ padding: "24px", width: "100%", boxSizing: "border-box" }}>
       <style>{`
-        /* Styles personnalisés pour le calendrier de l'élève */
-        .fc .fc-col-header-cell-cushion {
+        /* 🎯 1. SUPPRIME LES TEXTES DOUBLÉS (ex: lundilundi, 08:0008:00) */
+        .fc .fc-col-header-cell-cushion,
+        .fc .fc-timegrid-slot-label-cushion {
           display: inline-block !important;
-          padding: 8px 4px !important;
-          color: #1e293b !important;
-          font-weight: 600 !important;
+          padding: 6px 4px !important;
+          color: #374151 !important;
           text-decoration: none !important;
-          font-size: 0.95rem !important;
+          text-transform: capitalize;
+        }
+        
+        .fc .fc-col-header-cell .fc-scrollgrid-sync-inner a + a,
+        .fc-timegrid-slot-label-cushion .fc-visually-hidden,
+        .fc-col-header-cell-cushion .fc-visually-hidden {
+          display: none !important;
         }
 
+        /* 🚀 2. AUGMENTE LA HAUTEUR DES LIGNES PAR HEURE */
+        .fc .fc-timegrid-slot,
+        .fc .fc-timegrid-slot-lane,
+        .fc .fc-timegrid-time-slot {
+          height: 140px !important;
+        }
+
+        /* ⚡ 3. FORCE LE CONTENEUR INTERNE À S'ADAPTER AU TEXTE */
         .fc .fc-timegrid-event-harness {
+          height: max-content !important;
+          min-height: 100px !important;
           margin: 2px 4px !important;
         }
 
-        .fc .fc-timegrid-event {
-          background-color: #eff6ff !important;
+        /* 🎨 4. BLOC DE COULEUR ENGLOBANT ENTIÈREMENT LE TEXTE */
+        .fc .fc-timegrid-event,
+        .fc-v-event {
+          background-color: #e0ebff !important;
           border: none !important;
-          border-left: 4px solid #3b82f6 !important;
+          border-left: 10px solid #2563eb !important; /* Grosse bande bleue à gauche */
           border-radius: 8px !important;
-          padding: 8px 10px !important;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04) !important;
+          padding: 14px 12px !important;
+          box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+          
+          height: 100% !important;
+          min-height: max-content !important;
+          overflow: visible !important;
+          display: block !important;
         }
 
         .fc .fc-timegrid-event:hover {
-          background-color: #e0f2fe !important;
+          background-color: #dbeafe !important;
         }
 
-        .fc-event-main {
+        .fc .fc-event-main {
+          padding: 0 !important;
           color: #1e40af !important;
+          display: flex !important;
+          flex-direction: column !important;
+          height: 100% !important;
+        }
+
+        .calendar-custom-card {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
         }
 
         .fc-event-title {
           font-weight: 700 !important;
-          font-size: 0.85rem !important;
+          font-size: 1.15rem !important;
           color: #1e3a8a !important;
-          margin-bottom: 4px !important;
+          white-space: normal !important;
+          margin-bottom: 2px;
         }
 
         .calendar-custom-details {
-          font-size: 0.75rem !important;
-          color: #475569 !important;
+          font-size: 0.92rem !important;
+          color: #4b5563 !important;
           display: flex;
           flex-direction: column;
-          gap: 3px;
+          gap: 6px;
+          font-weight: 500;
         }
 
         .calendar-custom-details span {
           display: flex;
           align-items: center;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
+          gap: 8px;
         }
 
         .fc-theme-standard td, .fc-theme-standard th {
-          border-color: #f1f5f9 !important;
+          border-color: #f3f4f6 !important;
         }
 
         .fc-col-header-cell {
-          background-color: #f8fafc !important;
+          background-color: #f9fafb !important;
           padding: 6px 0 !important;
         }
       `}</style>
@@ -160,26 +200,26 @@ export function MonEmploiTemps() {
             contentHeight="auto"
             events={events}
             
-            // Format des étiquettes d'heures (axe vertical)
+            /* ⚡ FORCE L'ÉTIREMENT ET LA HAUTEUR DES LIGNES */
+            slotMinHeight={140}
+            expandRows={true}
+            
             slotLabelFormat={{ hour: '2-digit', minute: '2-digit', omitZeroMinute: false, meridiem: false }}
             eventTimeFormat={{ hour: '2-digit', minute: '2-digit', meridiem: false }}
-            
-            // Format d'en-tête de jour
             dayHeaderFormat={{ weekday: 'long' }}
 
-            // Rendu de chaque bloc de cours
             eventContent={(eventInfo) => {
               return (
                 <div className="calendar-custom-card">
                   <div className="fc-event-title">{eventInfo.event.title}</div>
                   <div className="calendar-custom-details">
                     <span>
-                      <i className="bi bi-person" style={{ marginRight: '5px' }}></i>
+                      <i className="bi bi-person"></i>
                       {eventInfo.event.extendedProps.enseignant}
                     </span>
                     {eventInfo.event.extendedProps.salle && (
                       <span>
-                        <i className="bi bi-geo-alt" style={{ marginRight: '5px' }}></i>
+                        <i className="bi bi-geo-alt"></i>
                         Salle {eventInfo.event.extendedProps.salle}
                       </span>
                     )}
