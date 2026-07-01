@@ -104,4 +104,24 @@ class ClasseControllerTest extends TestCase
             'id_enseignant' => $enseignant->id
         ]);
     }
+
+    public function test_super_admin_can_list_all_classes_and_students_for_any_class(): void
+    {
+        $superAdmin = User::factory()->superAdmin()->create();
+        $this->actingAs($superAdmin);
+
+        $classeA = Classe::factory()->create(['niveau' => '6ème', 'nom_classe' => '6A']);
+        $classeB = Classe::factory()->create(['niveau' => '5ème', 'nom_classe' => '5B']);
+        $eleve = User::factory()->eleve()->create(['prenom' => 'Amina', 'nom' => 'Diallo']);
+        $classeA->eleves()->attach($eleve->id);
+
+        $response = $this->getJson('/api/mes-classes');
+        $response->assertOk()
+            ->assertJsonFragment(['id' => $classeA->id])
+            ->assertJsonFragment(['id' => $classeB->id]);
+
+        $studentsResponse = $this->getJson("/api/mes-classes/{$classeA->id}/eleves");
+        $studentsResponse->assertOk()
+            ->assertJsonFragment(['id' => $eleve->id]);
+    }
 }

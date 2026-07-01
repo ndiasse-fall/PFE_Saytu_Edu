@@ -13,6 +13,7 @@ use App\Http\Controllers\AbsenceController;
 use App\Http\Controllers\Api\EleveController;
 use App\Http\Controllers\Api\MatiereController;
 use App\Http\Controllers\Api\BulletinController;
+use App\Http\Controllers\Api\AffectationController;
 // --- ROUTES PUBLIQUES ---
 Route::post('login', [AuthController::class, 'login']);
 Route::post('auth/login', [AuthController::class, 'login']);
@@ -76,6 +77,11 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function () {
             [ClasseController::class, 'inscrireEleve']
         );
 
+        Route::post(
+            'classes/{id}/affecter-enseignant',
+            [ClasseController::class, 'affecterEnseignant']
+        );
+
     // Bulletins
     Route::apiResource('matieres', MatiereController::class);
 
@@ -93,6 +99,15 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function () {
         Route::apiResource('matieres', MatiereController::class)
             ->except(['index', 'show']);
 
+        Route::get('affectations', [AffectationController::class, 'index']);
+        Route::post('affectations/matiere-classe', [AffectationController::class, 'affecterMatiereClasse']);
+        Route::post('affectations/enseignant-matiere', [AffectationController::class, 'affecterEnseignantMatiere']);
+Route::put(
+    'affectations/{id}',
+    [AffectationController::class, 'update']
+);
+
+Route::delete('/affectations/{id}', [AffectationController::class, 'destroy']);
         /*
         |--------------------------------------------------------------------------
         | ABSENCES

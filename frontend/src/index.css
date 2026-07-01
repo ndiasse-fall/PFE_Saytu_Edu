@@ -326,6 +326,14 @@ dd {
         color 0.15s ease;
 }
 
+button.sidebar-link {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    width: calc(100% - 16px);
+    text-align: left;
+}
+
 .sidebar-link-label {
     min-width: 0;
     overflow: hidden;
@@ -2496,6 +2504,10 @@ small {
     box-shadow: var(--shadow) !important;
     padding: 12px !important;
     overflow-y: auto;
+}
+
+.users-drawer-paper .field-label {
+    color: var(--text-strong);
 }
 
 @media (min-width: 600px) {
