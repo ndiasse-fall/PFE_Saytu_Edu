@@ -22,6 +22,8 @@ const SettingsPage = lazy(() => import("../views/pages/settings/SettingsPage").t
 const NotFoundPage = lazy(() => import("../views/pages/system/NotFoundPage").then((module) => ({ default: module.NotFoundPage })));
 const ModulePlaceholderPage = lazy(() => import("../views/pages/system/ModulePlaceholderPage").then((module) => ({ default: module.ModulePlaceholderPage })));
 const BulletinList = lazy(() => import("../views/pages/gestion-admin/bulletins/BulletinList"));
+const BulletinDetail = lazy(() => import("../views/pages/gestion-admin/bulletins/BulletinDetail"));
+
 const NoteList = lazy(() => import("../views/pages/gestion-admin/notes/NoteList"));
 const EleveNotesDetailPage = lazy(() => import("../views/pages/gestion-admin/notes/EleveNotesDetailPage"));
 const MesNotes = lazy(() => import("../views/pages/gestion-admin/eleves/espace-eleve/MesNotes").then((module) => ({ default: module.MesNotes })));
@@ -71,6 +73,7 @@ export function AppRouter() {
                                 <Route path="/admin/classes" element={<ModulePlaceholderPage title="Classes" />} />
                                 <Route path="/admin/emploi-du-temps" element={<EmploiDuTempsPage />} />
                                 <Route path="/admin/bulletins" element={<BulletinList />} />
+                                <Route path="/admin/bulletins/:id" element={<BulletinDetail />} />
                                 <Route path="/admin/gestion-admin/users" element={<UserManagementPage />} />
                                 <Route path="/admin/gestion-admin/eleves" element={<EleveManagementPage />} />
                                 <Route path="/admin/gestion-admin/eleves/:id" element={<EleveDetailsPage />} />
