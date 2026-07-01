@@ -129,7 +129,7 @@ export function AppRouter() {
                             {/* ADMIN */}
                             <Route element={<RoleGuard roles={["SUPER_ADMIN", "ADMIN"]} />}>
                                 <Route path="/admin/dashboard" element={<DashboardPage />} />
-                                <Route path="/admin/eleves" element={<ModulePlaceholderPage title="Élèves" />} />
+                                <Route path="/admin/eleves" element={<EleveManagementPage />} />
                                 <Route path="/admin/professeurs" element={<TeacherManagementPage />} />
                                 <Route path="/admin/classes" element={<ModulePlaceholderPage title="Classes" />} />
                                 <Route path="/admin/emploi-du-temps" element={<EmploiDuTempsPage />} />
