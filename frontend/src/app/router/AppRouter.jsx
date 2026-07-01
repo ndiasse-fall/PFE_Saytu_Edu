@@ -211,10 +211,9 @@ export function AppRouter() {
                                 <Route path="/eleve/notes" element={<MesNotes />} />
                                 <Route path="/eleve/absences" element={<MesAbsences />} />
                                 <Route path="/eleve/bulletin" element={<MonBulletin />} />
-                                <Route path="/eleve/emploi-du-temps" element={<MonEmploiTempsEleve />} />
+                                <Route path="/eleve/emploi-du-temps" element={<MonEmploiTemps />} />
                             </Route>
-                            
-                            {/* UNAUTHORIZED */}
+
                             <Route path="/unauthorized" element={<UnauthorizedPage />} />
                         </Route>
                     </Route>
