@@ -91,9 +91,10 @@ class ClasseController extends Controller
     public function mesClasses(Request $request)
     {
         $user = $request->user();
+        $role = $user?->resolvedRole();
 
         // Si Admin ou Super Admin, on retourne toutes les classes
-        if ($user->role === 'ADMIN' || $user->role === 'SUPER_ADMIN') {
+        if (in_array($role, ['ADMIN', 'SUPER_ADMIN'], true)) {
             return response()->json(Classe::all());
         }
 
@@ -111,9 +112,10 @@ class ClasseController extends Controller
     public function elevesParClasse(Request $request, $id)
     {
         $user = $request->user();
+        $role = $user?->resolvedRole();
 
         // Si Admin/SuperAdmin, on charge la classe directement
-        if ($user->role === 'ADMIN' || $user->role === 'SUPER_ADMIN') {
+        if (in_array($role, ['ADMIN', 'SUPER_ADMIN'], true)) {
             $classe = Classe::findOrFail($id);
         } else {
             // Sinon on vérifie l'autorisation pour l'enseignant
