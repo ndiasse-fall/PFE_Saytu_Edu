@@ -22,8 +22,25 @@ export const menuItems = [
             },
             {
                 label: "Classes",
-                path: "/admin/classes",
                 icon: "bi-building",
+                isDropdown: true,
+                children: [
+                    {
+                        label: "Liste des classes",
+                        path: "/admin/gestion-admin/classes",
+                        icon: "bi-building",
+                    },
+                    {
+                        label: "Matières",
+                        path: "/admin/gestion-admin/matieres",
+                        icon: "bi-book",
+                    },
+                    {
+                        label: "Affectations",
+                        path: "/admin/gestion-admin/affectations",
+                        icon: "bi-diagram-3",
+                    },
+                ],
             },
             {
                 label: "Emploi du temps",
