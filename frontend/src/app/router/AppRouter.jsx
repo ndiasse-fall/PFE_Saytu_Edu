@@ -7,119 +7,27 @@ import { useAuth } from "../core/context/useAuth";
 import { getDashboardPath } from "../util/roleNavigation";
 import { BaseLayout } from "../views/layout/base/BaseLayout";
 
-const LoginPage = lazy(() =>
-    import("../views/pages/auth/login/LoginPage").then((module) => ({
-        default: module.LoginPage,
-    })),
-);
-const ForgotPasswordPage = lazy(() =>
-    import("../views/pages/auth/forgot-password/ForgotPasswordPage").then(
-        (module) => ({ default: module.ForgotPasswordPage }),
-    ),
-);
-const ResetPasswordPage = lazy(() =>
-    import("../views/pages/auth/reset-password/ResetPasswordPage").then(
-        (module) => ({ default: module.ResetPasswordPage }),
-    ),
-);
-const ChangePasswordPage = lazy(() =>
-    import("../views/pages/auth/change-password/ChangePasswordPage").then(
-        (module) => ({ default: module.ChangePasswordPage }),
-    ),
-);
-const DashboardPage = lazy(() =>
-    import("../views/pages/gestion-admin/dashboard/DashboardPage").then(
-        (module) => ({ default: module.DashboardPage }),
-    ),
-);
-const UserManagementPage = lazy(() =>
-    import("../views/pages/gestion-admin/users/UserManagementPage").then(
-        (module) => ({ default: module.UserManagementPage }),
-    ),
-);
-const EleveManagementPage = lazy(() =>
-    import("../views/pages/gestion-admin/eleves/EleveManagementPage").then(
-        (module) => ({ default: module.EleveManagementPage }),
-    ),
-);
-const EleveDetailsPage = lazy(() =>
-    import("../views/pages/gestion-admin/eleves/details/EleveDetailsPage").then(
-        (module) => ({ default: module.EleveDetailsPage }),
-    ),
-);
-const TeacherManagementPage = lazy(() =>
-    import("../views/pages/gestion-admin/professeurs/TeacherManagementPage").then(
-        (module) => ({ default: module.TeacherManagementPage }),
-    ),
-);
-const EmploiDuTempsPage = lazy(() =>
-    import("../views/pages/gestion-admin/emplois-du-temps/EmploiDuTempsPage").then(
-        (module) => ({ default: module.EmploiDuTempsPage }),
-    ),
-);
-const SettingsPage = lazy(() =>
-    import("../views/pages/settings/SettingsPage").then((module) => ({
-        default: module.SettingsPage,
-    })),
-);
-const NotFoundPage = lazy(() =>
-    import("../views/pages/system/NotFoundPage").then((module) => ({
-        default: module.NotFoundPage,
-    })),
-);
-const UnauthorizedPage = lazy(() =>
-    import("../views/pages/system/UnauthorizedPage").then((module) => ({
-        default: module.UnauthorizedPage,
-    })),
-);
-const ModulePlaceholderPage = lazy(() =>
-    import("../views/pages/system/ModulePlaceholderPage").then((module) => ({
-        default: module.ModulePlaceholderPage,
-    })),
-);
-
-// BulletinList avec double vérification de l'export
-const BulletinList = lazy(() =>
-    import("../views/pages/gestion-admin/bulletins/BulletinList").then(
-        (module) => ({ default: module.BulletinList || module.default }),
-    ),
-);
-
-// 🛠️ SÉCURISATION DES EXPORTS POUR L'ESPACE ÉLÈVE
-const MesNotes = lazy(() =>
-    import("../views/pages/gestion-admin/eleves/espace-eleve/MesNotes").then(
-        (module) => ({ default: module.MesNotes || module.default }),
-    ),
-);
-const MesAbsences = lazy(() =>
-    import("../views/pages/gestion-admin/eleves/espace-eleve/MesAbsences").then(
-        (module) => ({ default: module.MesAbsences || module.default }),
-    ),
-);
-const MonBulletin = lazy(() =>
-    import("../views/pages/gestion-admin/eleves/espace-eleve/MonBulletin").then(
-        (module) => ({ default: module.MonBulletin || module.default }),
-    ),
-);
-const MonEmploiTempsEleve = lazy(() =>
-    import("../views/pages/gestion-admin/eleves/espace-eleve/MonEmploiTemps").then(
-        (module) => ({ default: module.MonEmploiTemps || module.default }),
-    ),
-);
-
-const MonEmploiTempsProfesseur = lazy(() =>
-    import("../views/pages/gestion-admin/professeurs/espace-professeur/MonEmploiTemps").then(
-        (module) => ({ default: module.MonEmploiTemps || module.default }),
-    ),
-);
-
-const NoteList = lazy(() =>
-    import("../views/pages/gestion-admin/notes/NoteList").then(
-        (module) => ({ default: module.NoteList || module.default }),
-    ),
-);
-const EleveNotesDetailPage = lazy(() => 
-    import("../views/pages/gestion-admin/notes/EleveNotesDetailPage"));
+// --- Imports des composants ---
+const LoginPage = lazy(() => import("../views/pages/auth/login/LoginPage").then((module) => ({ default: module.LoginPage })));
+const ForgotPasswordPage = lazy(() => import("../views/pages/auth/forgot-password/ForgotPasswordPage").then((module) => ({ default: module.ForgotPasswordPage })));
+const ResetPasswordPage = lazy(() => import("../views/pages/auth/reset-password/ResetPasswordPage").then((module) => ({ default: module.ResetPasswordPage })));
+const ChangePasswordPage = lazy(() => import("../views/pages/auth/change-password/ChangePasswordPage").then((module) => ({ default: module.ChangePasswordPage })));
+const DashboardPage = lazy(() => import("../views/pages/gestion-admin/dashboard/DashboardPage").then((module) => ({ default: module.DashboardPage })));
+const UserManagementPage = lazy(() => import("../views/pages/gestion-admin/users/UserManagementPage").then((module) => ({ default: module.UserManagementPage })));
+const EleveManagementPage = lazy(() => import("../views/pages/gestion-admin/eleves/EleveManagementPage").then((module) => ({ default: module.EleveManagementPage })));
+const EleveDetailsPage = lazy(() => import("../views/pages/gestion-admin/eleves/details/EleveDetailsPage").then((module) => ({ default: module.EleveDetailsPage })));
+const TeacherManagementPage = lazy(() => import("../views/pages/gestion-admin/professeurs/TeacherManagementPage").then((module) => ({ default: module.TeacherManagementPage })));
+const EmploiDuTempsPage = lazy(() => import("../views/pages/gestion-admin/emplois-du-temps/EmploiDuTempsPage").then((module) => ({ default: module.EmploiDuTempsPage })));
+const SettingsPage = lazy(() => import("../views/pages/settings/SettingsPage").then((module) => ({ default: module.SettingsPage })));
+const NotFoundPage = lazy(() => import("../views/pages/system/NotFoundPage").then((module) => ({ default: module.NotFoundPage })));
+const ModulePlaceholderPage = lazy(() => import("../views/pages/system/ModulePlaceholderPage").then((module) => ({ default: module.ModulePlaceholderPage })));
+const BulletinList = lazy(() => import("../views/pages/gestion-admin/bulletins/BulletinList"));
+const NoteList = lazy(() => import("../views/pages/gestion-admin/notes/NoteList"));
+const EleveNotesDetailPage = lazy(() => import("../views/pages/gestion-admin/notes/EleveNotesDetailPage"));
+const MesNotes = lazy(() => import("../views/pages/gestion-admin/eleves/espace-eleve/MesNotes").then((module) => ({ default: module.MesNotes })));
+const MesAbsences = lazy(() => import("../views/pages/gestion-admin/eleves/espace-eleve/MesAbsences").then((module) => ({ default: module.MesAbsences })));
+const MonBulletin = lazy(() => import("../views/pages/gestion-admin/eleves/espace-eleve/MonBulletin").then((module) => ({ default: module.MonBulletin })));
+const MonEmploiTemps = lazy(() => import("../views/pages/gestion-admin/eleves/espace-eleve/MonEmploiTemps").then((module) => ({ default: module.MonEmploiTemps })));
 
 function RoleHomeRedirect() {
     const { user } = useAuth();
@@ -131,62 +39,54 @@ export function AppRouter() {
         <BrowserRouter>
             <Suspense fallback={<div className="screen-state">Chargement de la page...</div>}>
                 <Routes>
-                    {/* GUEST ROUTES */}
+                    {/* Public / Guest Routes */}
                     <Route element={<GuestGuard />}>
                         <Route path="/login" element={<LoginPage />} />
                         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                         <Route path="/reset-password" element={<ResetPasswordPage />} />
                     </Route>
 
-                    {/* AUTH ROUTES */}
+                    {/* Authenticated Routes */}
                     <Route element={<AuthGuard />}>
                         <Route path="/change-password" element={<ChangePasswordPage />} />
                         
                         <Route element={<BaseLayout />}>
-                            {/* HOME */}
+                            {/* HOME REDIRECTS */}
                             <Route path="/" element={<RoleHomeRedirect />} />
                             <Route path="/user/dashboard" element={<RoleHomeRedirect />} />
                             <Route path="/settings" element={<SettingsPage />} />
 
-                            {/* ADMIN & SUPER_ADMIN */}
-                            <Route element={<RoleGuard roles={["SUPER_ADMIN", "ADMIN"]} />}>
-                                <Route path="/admin/dashboard" element={<DashboardPage />} />
-                                <Route path="/admin/classes" element={<ModulePlaceholderPage title="Classes" />} />
-                                <Route path="/admin/emploi-du-temps" element={<EmploiDuTempsPage />} />
-                                <Route path="/admin/bulletins" element={<BulletinList />} />
-                                
-                                {/* 🛠️ NETTOYAGE : URLs d'administration uniformisées sans doublons conflictuels */}
-                                <Route path="/admin/users" element={<UserManagementPage />} />
-                                <Route path="/admin/eleves" element={<EleveManagementPage />} />
-                               <Route path="/admin/gestion-admin/eleves/:id" element={<EleveDetailsPage />} />
-                                <Route path="/admin/professeurs" element={<TeacherManagementPage />} />
-                                
-                                {/* Fallbacks au cas où l'ancienne structure d'URL ("gestion-admin") est appelée quelque part */}
-                                <Route path="/admin/gestion-admin/users" element={<Navigate to="/admin/users" replace />} />
-                                <Route path="/admin/gestion-admin/eleves" element={<Navigate to="/admin/eleves" replace />} />
-                                <Route path="/admin/gestion-admin/eleves/:id" element={<Route path="/admin/eleves/:id" />} />
-                                <Route path="/admin/gestion-admin/professeurs" element={<Navigate to="/admin/professeurs" replace />} />
-                            </Route>
-
-                            {/* ENSEIGNANT (PROFESSEUR) */}
-                            <Route element={<RoleGuard roles={["ENSEIGNANT"]} />}>
-                                <Route path="/enseignant/dashboard" element={<DashboardPage />} />
-                                <Route path="/enseignant/eleves" element={<ModulePlaceholderPage title="Élèves" />} />
-                                <Route path="/enseignant/classes" element={<ModulePlaceholderPage title="Classes" />} />
-                                <Route path="/enseignant/emploi-du-temps" element={<MonEmploiTempsProfesseur />} />
-                                <Route path="/enseignant/bulletins" element={<ModulePlaceholderPage title="Bulletin" />} />
-                                
-                                {/* 🛠️ ALIAS DE SÉCURITÉ : Redirection automatique de /professeur vers /enseignant */}
-                                <Route path="/professeur/emploi-du-temps" element={<Navigate to="/enseignant/emploi-du-temps" replace />} />
-                            </Route>
-
-                            {/* PARTAGÉ: ADMIN + ENSEIGNANT */}
+                            {/* ROUTES PARTAGÉES (ADMIN + ENSEIGNANT) */}
                             <Route element={<RoleGuard roles={["SUPER_ADMIN", "ADMIN", "ENSEIGNANT"]} />}>
                                 <Route path="/notes" element={<NoteList />} />
                                 <Route path="/notes/:eleveId" element={<EleveNotesDetailPage />} />
                             </Route>
 
-                            {/* ELEVE */}
+                            {/* ADMIN ROUTES */}
+                            <Route element={<RoleGuard roles={["SUPER_ADMIN", "ADMIN"]} />}>
+                                <Route path="/admin/dashboard" element={<DashboardPage />} />
+                                {/* Route corrigée ici : */}
+                                <Route path="/admin/eleves" element={<EleveManagementPage />} />
+                                <Route path="/admin/professeurs" element={<TeacherManagementPage />} />
+                                <Route path="/admin/classes" element={<ModulePlaceholderPage title="Classes" />} />
+                                <Route path="/admin/emploi-du-temps" element={<EmploiDuTempsPage />} />
+                                <Route path="/admin/bulletins" element={<BulletinList />} />
+                                <Route path="/admin/gestion-admin/users" element={<UserManagementPage />} />
+                                <Route path="/admin/gestion-admin/eleves" element={<EleveManagementPage />} />
+                                <Route path="/admin/gestion-admin/eleves/:id" element={<EleveDetailsPage />} />
+                                <Route path="/admin/gestion-admin/professeurs" element={<TeacherManagementPage />} />
+                            </Route>
+
+                            {/* ENSEIGNANT ROUTES */}
+                            <Route element={<RoleGuard roles={["ENSEIGNANT"]} />}>
+                                <Route path="/enseignant/dashboard" element={<DashboardPage />} />
+                                <Route path="/enseignant/eleves" element={<ModulePlaceholderPage title="Élèves" />} />
+                                <Route path="/enseignant/classes" element={<ModulePlaceholderPage title="Classes" />} />
+                                <Route path="/enseignant/emploi-du-temps" element={<EmploiDuTempsPage />} />
+                                <Route path="/enseignant/bulletins" element={<ModulePlaceholderPage title="Bulletin" />} />
+                            </Route>
+
+                            {/* ELEVE ROUTES */}
                             <Route element={<RoleGuard roles={["ELEVE"]} />}>
                                 <Route path="/eleve/dashboard" element={<DashboardPage />} />
                                 <Route path="/eleve/notes" element={<MesNotes />} />
@@ -194,12 +94,10 @@ export function AppRouter() {
                                 <Route path="/eleve/bulletin" element={<MonBulletin />} />
                                 <Route path="/eleve/emploi-du-temps" element={<MonEmploiTemps />} />
                             </Route>
-
-                            <Route path="/unauthorized" element={<UnauthorizedPage />} />
                         </Route>
                     </Route>
 
-                    {/* 404 GLOBAL */}
+                    {/* Catch-all 404 */}
                     <Route path="*" element={<NotFoundPage />} />
                 </Routes>
             </Suspense>
