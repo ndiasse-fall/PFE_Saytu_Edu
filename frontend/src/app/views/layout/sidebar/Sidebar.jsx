@@ -8,6 +8,9 @@ export function Sidebar({ isOpen, onClose, onToggle }) {
     const { user, signOut } = useAuth();
     const navigate = useNavigate();
     const [profileMenuOpen, setProfileMenuOpen] = useState(false);
+    
+    // État pour gérer les dropdowns (support multiple)
+    const [openDropdowns, setOpenDropdowns] = useState({});
 
     const sections = menuItems.filter((section) =>
         section.roles.includes(user?.role),
@@ -46,6 +49,13 @@ export function Sidebar({ isOpen, onClose, onToggle }) {
         }
     }
 
+    const toggleDropdown = (label) => {
+        setOpenDropdowns((prev) => ({
+            ...prev,
+            [label]: !prev[label],
+        }));
+    };
+
     return (
         <>
             <button
@@ -79,26 +89,81 @@ export function Sidebar({ isOpen, onClose, onToggle }) {
                     {sections.map((section) => (
                         <div key={section.section} className="sidebar-section">
                             <p className="sidebar-title">{section.section}</p>
-                            {section.items.map((item) => (
-                                <NavLink
-                                    key={item.path}
-                                    to={item.path}
-                                    className={({ isActive }) =>
-                                        `sidebar-link${isActive ? " active" : ""} mb-2`
-                                    }
-                                    onClick={handleNavigationClick}
-                                >
-                                    {item.icon ? (
-                                        <i
-                                            className={`sidebar-link-icon bi ${item.icon}`}
-                                            aria-hidden="true"
-                                        />
-                                    ) : null}
-                                    <span className="sidebar-link-label">
-                                        {item.label}
-                                    </span>
-                                </NavLink>
-                            ))}
+                            {section.items.map((item) => {
+                                // --- LOGIQUE DROPDOWN ---
+                                if (item.isDropdown) {
+                                    const isOpen = openDropdowns[item.label] || false;
+                                    return (
+                                        <div key={item.label} className="w-100">
+                                            {/* Bouton Principal déclencheur */}
+                                            <button
+                                                type="button"
+                                                className={`sidebar-link mb-1 w-100`}
+                                                onClick={() => toggleDropdown(item.label)}
+                                                style={{ background: 'none', border: 'none', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '4px', width: '100%' }}
+                                            >
+                                                <i className={`sidebar-link-icon bi ${item.icon}`} aria-hidden="true" />
+                                               <span className="sidebar-link-label">
+                                                         {item.label}
+                                                </span>
+                                                 
+                                                <i
+                                                    className={`bi ${isOpen ? "bi-chevron-down" : "bi-chevron-right"}`}
+                                                    style={{
+                                                        fontSize: "12px",
+                                                        marginLeft: "6px"
+                                                    }}
+                                                    aria-hidden="true"
+                                                />
+                                            </button>
+
+                                            {/* Rendu des enfants si le menu est ouvert */}
+                                            {isOpen && (
+                                                <div className="ps-4 d-flex flex-column">
+                                                    {item.children.map((child) => (
+                                                        <NavLink
+                                                            key={child.path}
+                                                            to={child.path}
+                                                            className={({ isActive }) =>
+                                                                `sidebar-link${isActive ? " active" : ""} mb-1 py-1`
+                                                            }
+                                                            onClick={handleNavigationClick}
+                                                            style={{ fontSize: '14px', paddingLeft: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}
+                                                        >
+                                                            {child.icon && (
+                                                                <i className={`bi ${child.icon}`} aria-hidden="true" style={{ fontSize: '14px' }} />
+                                                            )}
+                                                            <span className="sidebar-link-label">{child.label}</span>
+                                                        </NavLink>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                }
+
+                                // Lien normal (sans dropdown)
+                                return (
+                                    <NavLink
+                                        key={item.path}
+                                        to={item.path}
+                                        className={({ isActive }) =>
+                                            `sidebar-link${isActive ? " active" : ""} mb-2`
+                                        }
+                                        onClick={handleNavigationClick}
+                                    >
+                                        {item.icon ? (
+                                            <i
+                                                className={`sidebar-link-icon bi ${item.icon}`}
+                                                aria-hidden="true"
+                                            />
+                                        ) : null}
+                                        <span className="sidebar-link-label">
+                                            {item.label}
+                                        </span>
+                                    </NavLink>
+                                );
+                            })}
                         </div>
                     ))}
                 </nav>
