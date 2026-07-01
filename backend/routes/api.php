@@ -76,6 +76,11 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function () {
             [ClasseController::class, 'inscrireEleve']
         );
 
+        Route::post(
+            'classes/{id}/affecter-enseignant',
+            [ClasseController::class, 'affecterEnseignant']
+        );
+
     // Bulletins
     Route::apiResource('matieres', MatiereController::class);
 

@@ -84,6 +84,11 @@ const BulletinList = lazy(() =>
         (module) => ({ default: module.BulletinList || module.default }),
     ),
 );
+const BulletinDetails = lazy(() =>
+    import("../views/pages/gestion-admin/bulletins/BulletinDetail").then(
+        (module) => ({ default: module.BulletinDetails || module.default }),
+    ),
+);
 
 // 🛠️ SÉCURISATION DES EXPORTS POUR L'ESPACE ÉLÈVE
 const MesNotes = lazy(() =>
@@ -154,7 +159,8 @@ export function AppRouter() {
                                 <Route path="/admin/classes" element={<ModulePlaceholderPage title="Classes" />} />
                                 <Route path="/admin/emploi-du-temps" element={<EmploiDuTempsPage />} />
                                 <Route path="/admin/bulletins" element={<BulletinList />} />
-                                
+                                <Route path="/admin/bulletins/:id" element={<BulletinDetails />} />
+
                                 {/* 🛠️ NETTOYAGE : URLs d'administration uniformisées sans doublons conflictuels */}
                                 <Route path="/admin/users" element={<UserManagementPage />} />
                                 <Route path="/admin/eleves" element={<EleveManagementPage />} />
@@ -192,7 +198,7 @@ export function AppRouter() {
                                 <Route path="/eleve/notes" element={<MesNotes />} />
                                 <Route path="/eleve/absences" element={<MesAbsences />} />
                                 <Route path="/eleve/bulletin" element={<MonBulletin />} />
-                                <Route path="/eleve/emploi-du-temps" element={<MonEmploiTemps />} />
+                                <Route path="/eleve/emploi-du-temps" element={<MonEmploiTempsEleve />} />
                             </Route>
 
                             <Route path="/unauthorized" element={<UnauthorizedPage />} />
