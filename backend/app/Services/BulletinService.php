@@ -9,22 +9,15 @@ class BulletinService
     public function calculerMoyenne(int $eleveId)
     {
         $eleve = User::with('notes.matiere')->findOrFail($eleveId);
-
         $totalPoints = 0;
         $totalCoef = 0;
-
         foreach ($eleve->notes as $note) {
-            if (!$note->matiere) {
-                continue;
-            }
+            if (!$note->matiere) continue;
             $coef = $note->matiere->coefficient;
             $totalPoints += $note->valeur * $coef;
             $totalCoef += $coef;
         }
-
-        return $totalCoef > 0
-            ? round($totalPoints / $totalCoef, 2)
-            : 0;
+        return $totalCoef > 0 ? round($totalPoints / $totalCoef, 2) : 0;
     }
 
     public function listerBulletins(?string $periode = null): Collection
@@ -35,35 +28,39 @@ class BulletinService
                 if ($periode) {
                     $q->where('periode', $periode);
                 }
-            }])
+            }, 'classes'])
             ->get();
 
-        return $eleves->map(function (User $eleve) use ($periode) {
+        $bulletins = $eleves->map(function (User $eleve) use ($periode) {
             $totalPoints = 0;
             $totalCoef = 0;
-
             foreach ($eleve->notes as $note) {
-                if (!$note->matiere) {
-                    continue;
-                }
+                if (!$note->matiere) continue;
                 $coef = $note->matiere->coefficient;
                 $totalPoints += $note->valeur * $coef;
                 $totalCoef += $coef;
             }
-
-            $moyenne = $totalCoef > 0
-                ? round($totalPoints / $totalCoef, 2)
-                : 0;
+            $moyenne = $totalCoef > 0 ? round($totalPoints / $totalCoef, 2) : 0;
+            $classe = $eleve->classes->first();
 
             return [
                 'id'      => $eleve->id,
                 'eleve'   => [
                     'id'  => $eleve->id,
-                    'nom' => $eleve->name ?? trim(($eleve->prenom ?? '') . ' ' . ($eleve->nom ?? '')),
+                    'nom' => trim(($eleve->prenom ?? '') . ' ' . ($eleve->nom ?? '')),
                 ],
+                'classe'  => $classe ? $classe->nom_classe : 'Sans classe',
                 'periode' => $periode ?? 'Toutes périodes',
                 'moyenne' => $moyenne,
             ];
         });
+
+        // Trier par classe puis par moyenne décroissante
+        return $bulletins
+            ->sortBy('classe')
+            ->groupBy('classe')
+            ->map(fn($groupe) => $groupe->sortByDesc('moyenne'))
+            ->flatten(1)
+            ->values();
     }
 }
