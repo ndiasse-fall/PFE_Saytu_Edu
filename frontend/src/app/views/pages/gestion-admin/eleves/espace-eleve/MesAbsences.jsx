@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { apiClient } from "../../../../../core/api/apiClient";
 
 export default function MesAbsences() {
   const [absences, setAbsences] = useState([]);
@@ -9,11 +9,12 @@ export default function MesAbsences() {
   }, []);
 
   const loadAbsences = async () => {
-    const { data } = await axios.get(
-      "/api/espace-eleve/absences"
-    );
-
-    setAbsences(data);
+    try {
+      const data = await apiClient("/espace-eleve/absences");
+      setAbsences(data || []);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
