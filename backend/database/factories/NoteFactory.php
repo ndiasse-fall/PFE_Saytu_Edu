@@ -23,8 +23,16 @@ class NoteFactory extends Factory
             ]),
             'periode' => fake()->randomElement(['Trimestre 1', 'Trimestre 2']),
             'id_eleve' => User::factory()->eleve(),
-            'id_matiere' => Matieres::query()->inRandomOrder()->first()?->id ?? Matieres::factory(),
-            'id_classe' => Classe::query()->inRandomOrder()->value('id'),
+            'id_matiere' => Matieres::query()->inRandomOrder()->value('id')
+                ?? Matieres::query()->firstOrCreate(
+                    ['nom_matiere' => 'Mathématiques'],
+                    ['coefficient' => 6, 'description' => 'Algèbre, géométrie et raisonnement mathématique.']
+                )->id,
+            'id_classe' => Classe::query()->inRandomOrder()->value('id')
+                ?? Classe::query()->firstOrCreate(
+                    ['nom_classe' => '2nde L A', 'annee_scolaire' => '2025-2026'],
+                    ['niveau' => 'Seconde']
+                )->id,
         ];
     }
 }

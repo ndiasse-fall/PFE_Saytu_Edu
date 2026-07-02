@@ -16,9 +16,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
+            MatiereSeeder::class,
             UserSeeder::class,
             ClasseSeeder::class,
-            MatiereSeeder::class,
         ]);
 
         $eleves = User::where('role', 'ELEVE')->get();

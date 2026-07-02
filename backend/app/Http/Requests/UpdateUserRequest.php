@@ -38,6 +38,7 @@ class UpdateUserRequest extends FormRequest
             'actif' => ['nullable', 'boolean'],
             'matricule_enseignant' => ['nullable', 'string', Rule::unique('users', 'matricule_enseignant')->ignore($userId)],
             'specialite' => [
+                Rule::requiredIf(fn() => $this->input('role') === RoleEnum::ENSEIGNANT->value),
                 'nullable',
                 'string',
                 'max:255',

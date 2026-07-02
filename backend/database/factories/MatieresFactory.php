@@ -25,15 +25,17 @@ class MatieresFactory extends Factory
 
     public function definition(): array
     {
-        if (empty(static::$availableSubjects)) {
-            static::$availableSubjects = self::$subjects;
+        $existingNames = Matieres::query()->pluck('nom_matiere')->all();
+        $availableSubjects = array_values(array_filter(self::$subjects, fn(array $subject): bool => ! in_array($subject['nom_matiere'], $existingNames, true)));
+
+        if (! empty($availableSubjects)) {
+            return $availableSubjects[array_rand($availableSubjects)];
         }
 
-        $index = array_rand(static::$availableSubjects);
-        $subject = static::$availableSubjects[$index];
-        unset(static::$availableSubjects[$index]);
-        static::$availableSubjects = array_values(static::$availableSubjects);
-
-        return $subject;
+        return [
+            'nom_matiere' => 'Matière ' . fake()->unique()->word(),
+            'coefficient' => fake()->numberBetween(1, 6),
+            'description' => fake()->sentence(),
+        ];
     }
 }

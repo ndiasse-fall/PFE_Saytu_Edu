@@ -204,12 +204,72 @@ class UserFactory extends Factory
         ]);
     }
 
+    /**
+     * Specialties available for teacher generation.
+     *
+     * @var string[]
+     */
+    protected static array $availableSpecialites = [];
+
+    private static function refreshAvailableSpecialites(): void
+    {
+        static::$availableSpecialites = Matieres::query()
+            ->inRandomOrder()
+            ->pluck('nom_matiere')
+            ->all();
+
+        if (empty(static::$availableSpecialites)) {
+            static::ensureDefaultMatieres();
+
+            static::$availableSpecialites = Matieres::query()
+                ->inRandomOrder()
+                ->pluck('nom_matiere')
+                ->all();
+        }
+    }
+
+    private static function ensureDefaultMatieres(): void
+    {
+        $defaultMatieres = [
+            ['nom_matiere' => 'Mathématiques', 'coefficient' => 6, 'description' => 'Algèbre, géométrie et raisonnement mathématique.'],
+            ['nom_matiere' => 'Français', 'coefficient' => 5, 'description' => 'Expression écrite, orale et analyse littéraire.'],
+            ['nom_matiere' => 'Histoire-Géo', 'coefficient' => 3, 'description' => 'Histoire, géographie et éducation civique.'],
+            ['nom_matiere' => 'SVT', 'coefficient' => 4, 'description' => 'Sciences de la vie et de la terre.'],
+            ['nom_matiere' => 'Physique-Chimie', 'coefficient' => 4, 'description' => 'Physique et chimie appliquées.'],
+            ['nom_matiere' => 'Anglais', 'coefficient' => 3, 'description' => 'Communication et compréhension en anglais.'],
+            ['nom_matiere' => 'EPS', 'coefficient' => 2, 'description' => 'Éducation physique et sportive.'],
+            ['nom_matiere' => 'Philosophie', 'coefficient' => 2, 'description' => 'Analyse conceptuelle et réflexion critique.'],
+            ['nom_matiere' => 'Informatique', 'coefficient' => 2, 'description' => 'Initiation aux outils numériques et algorithmes.'],
+        ];
+
+        foreach ($defaultMatieres as $matiere) {
+            Matieres::query()->firstOrCreate(
+                ['nom_matiere' => $matiere['nom_matiere']],
+                $matiere
+            );
+        }
+    }
+
+    private static function pullSpecialite(): string
+    {
+        if (empty(static::$availableSpecialites)) {
+            static::refreshAvailableSpecialites();
+        }
+
+        $index = array_rand(static::$availableSpecialites);
+        $specialite = static::$availableSpecialites[$index];
+        unset(static::$availableSpecialites[$index]);
+        static::$availableSpecialites = array_values(static::$availableSpecialites);
+
+        return $specialite;
+    }
+
     public function enseignant(): static
     {
         return $this->state(fn(array $attributes) => [
             'role' => RoleEnum::ENSEIGNANT->value,
             'statut' => RoleEnum::ENSEIGNANT->value,
-            'specialite' => Matieres::query()->inRandomOrder()->first()?->nom_matiere ?? Matieres::factory()->create()->nom_matiere,
+            'specialite' => self::pullSpecialite(),
             'date_embauche' => fake()->date(),
         ]);
     }

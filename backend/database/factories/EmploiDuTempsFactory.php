@@ -22,9 +22,17 @@ class EmploiDuTempsFactory extends Factory
             'heure_fin' => fake()->time('H:i', '18:00'),
             'salle' => fake()->bothify('Salle ###'),
             'est_publie' => true,
-            'id_classe' => Classe::query()->inRandomOrder()->value('id'),
+            'id_classe' => Classe::query()->inRandomOrder()->value('id')
+                ?? Classe::query()->firstOrCreate(
+                    ['nom_classe' => '2nde L A', 'annee_scolaire' => '2025-2026'],
+                    ['niveau' => 'Seconde']
+                )->id,
             'id_enseignant' => User::factory()->enseignant(),
-            'id_matiere' => Matieres::query()->inRandomOrder()->first()?->id ?? Matieres::factory(),
+            'id_matiere' => Matieres::query()->inRandomOrder()->value('id')
+                ?? Matieres::query()->firstOrCreate(
+                    ['nom_matiere' => 'Mathématiques'],
+                    ['coefficient' => 6, 'description' => 'Algèbre, géométrie et raisonnement mathématique.']
+                )->id,
         ];
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\RoleEnum;
+use App\Models\Matieres;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -127,8 +128,8 @@ class User extends Authenticatable
     public function getClassesAttribute()
     {
         // On récupère la relation chargée
-        $classes = $this->relationLoaded('eleveClasses') 
-            ? $this->eleveClasses 
+        $classes = $this->relationLoaded('eleveClasses')
+            ? $this->eleveClasses
             : ($this->relationLoaded('enseignantClasses') ? $this->enseignantClasses : null);
 
         if ($classes) {
@@ -138,7 +139,7 @@ class User extends Authenticatable
         if ($this->relationLoaded('classes')) {
             return $this->relations['classes'];
         }
-        
+
         // Lazy loading fallback
         return $this->classes()->get();
     }
@@ -202,7 +203,12 @@ class User extends Authenticatable
     {
         static::creating(function (User $user) {
             $role = $user->resolvedRole();
-            
+
+            if ($role === 'ENSEIGNANT' && blank($user->specialite)) {
+                $user->specialite = Matieres::query()->inRandomOrder()->value('nom_matiere')
+                    ?? Matieres::factory()->create()->nom_matiere;
+            }
+
             if ($role === 'ELEVE') {
                 if (empty($user->matricule_eleve)) {
                     $user->matricule_eleve = self::generateMatriculeEleve();
