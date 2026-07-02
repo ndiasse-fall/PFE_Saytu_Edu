@@ -233,6 +233,8 @@ export function CrudManagementPage({
   }
 
   function getActions(item) {
+    const extraActions = config.extraActions ? config.extraActions(item) : []
+
     return [
       ...(canShow
         ? [{ label: 'Voir', onClick: () => void handleShow(item) }]
@@ -240,6 +242,7 @@ export function CrudManagementPage({
       ...(canEdit
         ? [{ label: 'Modifier', onClick: () => openEdit(item) }]
         : []),
+      ...extraActions,
       ...(canDelete
         ? [{
             label: 'Supprimer',

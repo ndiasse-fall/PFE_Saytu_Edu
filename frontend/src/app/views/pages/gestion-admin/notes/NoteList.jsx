@@ -229,6 +229,59 @@ const niveaux = React.useMemo(() => {
         </select>
     </div>
 
+    <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
+        <label className="text-xs font-bold text-gray-500 uppercase mb-1">
+            MATIÈRE
+        </label>
+
+        <select
+            className="border rounded p-2 w-80"
+            value={filters.matiere}
+            onChange={(e) =>
+                setFilters({
+                    ...filters,
+                    matiere: e.target.value,
+                })
+            }
+        >
+            <option value="">Toutes les matières</option>
+            {matieres.map((matiere) => (
+                <option key={matiere.id} value={matiere.id}>
+                    {matiere.nom_matiere || matiere.nom || `Matière ${matiere.id}`}
+                </option>
+            ))}
+        </select>
+    </div>
+
+    <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
+        <label className="text-xs font-bold text-gray-500 uppercase mb-1">
+            PÉRIODE
+        </label>
+
+        <select
+            className="border rounded p-2 w-80"
+            value={filters.periode}
+            onChange={(e) =>
+                setFilters({
+                    ...filters,
+                    periode: e.target.value,
+                })
+            }
+        >
+            <option value="">Toutes les périodes</option>
+            <option value="Semestre 1">Semestre 1</option>
+            <option value="Semestre 2">Semestre 2</option>
+        </select>
+    </div>
+
+    <button
+        className="bg-slate-700 hover:bg-slate-800 text-white rounded px-6 h-10"
+        disabled={!filters.classe}
+        onClick={() => navigate(`/notes/resultats/classe/${filters.classe}`)}
+    >
+        Résultats classe
+    </button>
+
     <button
         style={{ marginLeft: "auto", alignSelf: "flex-end" }}
         className="bg-blue-600 hover:bg-blue-700 text-white rounded px-6 h-10"
