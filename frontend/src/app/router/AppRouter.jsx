@@ -5,6 +5,7 @@ import { RoleGuard } from '../core/guards/RoleGuard'
 import { BaseLayout } from '../views/layout/base/BaseLayout'
 import { LoginPage } from '../views/pages/auth/login/LoginPage'
 import { DashboardPage } from '../views/pages/gestion-admin/dashboard/DashboardPage'
+import { AbsenceManagementPage } from '../views/pages/gestion-admin/absences/AbsenceManagementPage'
 import { UserManagementPage } from '../views/pages/gestion-admin/users/UserManagementPage'
 import { SettingsPage } from '../views/pages/settings/SettingsPage'
 import { NotFoundPage } from '../views/pages/system/NotFoundPage'
@@ -29,6 +30,10 @@ export function AppRouter() {
             </Route>
 
             <Route path="/user/dashboard" element={<DashboardPage />} />
+            <Route element={<RoleGuard roles={['SUPER_ADMIN', 'ADMIN', 'ENSEIGNANT', 'ELEVE']} />}>
+              <Route path="/absences" element={<AbsenceManagementPage />} />
+              <Route path="/eleve/absences" element={<AbsenceManagementPage />} />
+            </Route>
             <Route path="/unauthorized" element={<UnauthorizedPage />} />
           </Route>
         </Route>

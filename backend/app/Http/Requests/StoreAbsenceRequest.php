@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreAbsenceRequest extends FormRequest
 {
@@ -20,9 +21,14 @@ class StoreAbsenceRequest extends FormRequest
    public function rules(): array
 {
     return [
+        'id_classe' => ['required', 'integer', 'exists:classes,id'],
         'date_absence' => 'required|date',
         'absents' => 'required|array|min:1',
-        'absents.*' => 'exists:users,id',
+        'absents.*' => [
+            'required',
+            'integer',
+            Rule::exists('users', 'id')->where('role', 'ELEVE'),
+        ],
         'motif' => 'nullable|string|max:255',
     ];
 }
@@ -33,6 +39,7 @@ class StoreAbsenceRequest extends FormRequest
   public function messages(): array
 {
     return [
+        'id_classe.required' => 'La classe est obligatoire',
         'date_absence.required' => 'La date d\'absence est obligatoire',
         'date_absence.date' => 'Format de date invalide',
         'absents.required' => 'Vous devez sélectionner au moins un élève absent',

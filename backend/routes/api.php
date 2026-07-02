@@ -82,6 +82,14 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
     Route::get('emplois-du-temps/{id}', [EmploiDuTempsController::class, 'show']);
 
     // ==================================================
+    // ABSENCES - LECTURE TOUS LES RÔLES CONNECTÉS
+    // ==================================================
+    Route::middleware('check.role:SUPER_ADMIN,ADMIN,ENSEIGNANT,ELEVE')->group(function (): void {
+        Route::get('absences', [AbsenceController::class, 'index']);
+        Route::get('absences/classe/{id}', [AbsenceController::class, 'byClasse']);
+    });
+
+    // ==================================================
     // ENSEIGNANT + ADMIN + SUPER ADMIN
     // ==================================================
     Route::middleware('check.role:ENSEIGNANT,SUPER_ADMIN,ADMIN')->group(function (): void {
@@ -89,25 +97,16 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function (): void {
         // Notes
         Route::post('notes/saisir', [EnseignantController::class, 'saisirNotes']);
 
-        // =========================
-        // ABSENCES MODULE
-        // =========================
+        // Classes utiles pour les modules enseignant
+        Route::get('mes-classes', [ClasseController::class, 'mesClasses']);
+        Route::get('mes-classes/{id}/eleves', [ClasseController::class, 'elevesParClasse']);
+
+        // Absences
+        Route::post('absences', [AbsenceController::class, 'store']);
         Route::post('absences/enregistrer', [AbsenceController::class, 'store']);
-        Route::get('absences', [AbsenceController::class, 'index']);
-        Route::get('absences/classe/{id}', [AbsenceController::class, 'byClasse']);
+        Route::put('absences/{id}', [AbsenceController::class, 'update']);
         Route::put('absences/{id}/justifier', [AbsenceController::class, 'updateJustification']);
-
-        Route::middleware('check.role:ENSEIGNANT,SUPER_ADMIN,ADMIN')->group(function () {
-
-    // création absences
-    Route::post('absences/enregistrer', [AbsenceController::class, 'store']);
-
-    // liste absences
-    Route::get('absences', [AbsenceController::class, 'index']);
-
-    // update absence (justifier / motif)
-    Route::put('absences/{id}', [AbsenceController::class, 'update']);
-});
+        Route::delete('absences/{id}', [AbsenceController::class, 'destroy']);
     });
 
 });

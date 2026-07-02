@@ -116,4 +116,44 @@ class ClasseController extends Controller
             'message' => 'Enseignant affecté avec succès'
         ]);
     }
+
+    public function mesClasses(Request $request)
+    {
+        $user = $request->user();
+        $role = $user?->resolvedRole();
+
+        if (in_array($role, ['ADMIN', 'SUPER_ADMIN'], true)) {
+            return response()->json(Classe::all());
+        }
+
+        $classes = $user->classes()
+            ->select('classes.id', 'classes.nom_classe', 'classes.niveau', 'classes.annee_scolaire')
+            ->get();
+
+        return response()->json($classes);
+    }
+
+    public function elevesParClasse(Request $request, $id)
+    {
+        $user = $request->user();
+        $role = $user?->resolvedRole();
+
+        if (in_array($role, ['ADMIN', 'SUPER_ADMIN'], true)) {
+            $classe = Classe::findOrFail($id);
+        } else {
+            $classe = $user->classes()->where('classes.id', $id)->first();
+
+            if (! $classe) {
+                return response()->json(['message' => 'Classe non autorisée'], 403);
+            }
+        }
+
+        $eleves = $classe->eleves()
+            ->select('users.id', 'users.nom', 'users.prenom', 'users.email')
+            ->orderBy('prenom')
+            ->orderBy('nom')
+            ->get();
+
+        return response()->json($eleves);
+    }
 }
