@@ -13,7 +13,7 @@ export const menuItems = [
                 path: "/admin/eleves",
                 icon: "bi-mortarboard-fill",
             },
-            
+          
             {
                 label: "Professeurs",
                 path: "/admin/professeurs",
