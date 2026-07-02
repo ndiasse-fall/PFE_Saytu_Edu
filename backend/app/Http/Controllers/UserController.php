@@ -23,7 +23,7 @@ class UserController extends Controller
 
     /**
      * Liste les utilisateurs avec filtres (recherche, rôle, actif).
-     * 
+     *
      * @param Request $request
      * @return JsonResponse
      */
@@ -50,7 +50,7 @@ class UserController extends Controller
 
     /**
      * Crée un nouvel utilisateur.
-     * 
+     *
      * @param StoreUserRequest $request
      * @return JsonResponse
      */
@@ -69,7 +69,7 @@ class UserController extends Controller
 
     /**
      * Affiche les détails d'un utilisateur.
-     * 
+     *
      * @param User $user
      * @return JsonResponse
      */
@@ -82,7 +82,7 @@ class UserController extends Controller
 
     /**
      * Met à jour un utilisateur existant.
-     * 
+     *
      * @param UpdateUserRequest $request
      * @param User $user
      * @return JsonResponse
@@ -99,7 +99,7 @@ class UserController extends Controller
 
     /**
      * Supprime un utilisateur (Soft Delete).
-     * 
+     *
      * @param User $user
      * @return JsonResponse
      */
@@ -114,7 +114,7 @@ class UserController extends Controller
 
     /**
      * Active ou désactive un utilisateur.
-     * 
+     *
      * @param User $user
      * @return JsonResponse
      */
@@ -124,6 +124,28 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Statut utilisateur mis à jour avec succès.',
+            'data' => $updatedUser,
+        ]);
+    }
+
+    /**
+     * Attribue une ou plusieurs classes à un enseignant.
+     *
+     * @param Request $request
+     * @param User $user
+     * @return JsonResponse
+     */
+    public function assignClasses(Request $request, User $user): JsonResponse
+    {
+        $validated = $request->validate([
+            'classe_ids' => ['required', 'array', 'min:1'],
+            'classe_ids.*' => ['integer', 'exists:classes,id'],
+        ]);
+
+        $updatedUser = $this->userService->assignClassesToEnseignant($user, $validated['classe_ids']);
+
+        return response()->json([
+            'message' => 'Classes attribuées avec succès.',
             'data' => $updatedUser,
         ]);
     }
