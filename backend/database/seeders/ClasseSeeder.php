@@ -10,16 +10,22 @@ class ClasseSeeder extends Seeder
     public function run(): void
     {
         $classes = [
-            ['nom_classe' => '6A', 'niveau' => '6ème', 'annee_scolaire' => '2025-2026'],
-            ['nom_classe' => '6B', 'niveau' => '6ème', 'annee_scolaire' => '2025-2026'],
-            ['nom_classe' => '5A', 'niveau' => '5ème', 'annee_scolaire' => '2025-2026'],
-            ['nom_classe' => '5B', 'niveau' => '5ème', 'annee_scolaire' => '2025-2026'],
-            ['nom_classe' => '4A', 'niveau' => '4ème', 'annee_scolaire' => '2025-2026'],
-            ['nom_classe' => '3A', 'niveau' => '3ème', 'annee_scolaire' => '2025-2026'],
-            ['nom_classe' => '2nde A', 'niveau' => 'Seconde', 'annee_scolaire' => '2025-2026'],
-            ['nom_classe' => '2nde B', 'niveau' => 'Seconde', 'annee_scolaire' => '2025-2026'],
-            ['nom_classe' => '1ère S', 'niveau' => 'Première', 'annee_scolaire' => '2025-2026'],
-            ['nom_classe' => 'Tle S', 'niveau' => 'Terminale', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => '2nde L A', 'niveau' => 'Seconde', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => '2nde L B', 'niveau' => 'Seconde', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => '1ère S1', 'niveau' => 'Première', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => '1ère S2 A', 'niveau' => 'Première', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => '1ère S2 B', 'niveau' => 'Première', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => '1ère L1 A', 'niveau' => 'Première', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => '1ère L1 B', 'niveau' => 'Première', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => '1ère L2 A', 'niveau' => 'Première', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => '1ère L2 B', 'niveau' => 'Première', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => 'Tle S1', 'niveau' => 'Terminale', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => 'Tle S2 A', 'niveau' => 'Terminale', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => 'Tle S2 B', 'niveau' => 'Terminale', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => 'Tle L1 A', 'niveau' => 'Terminale', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => 'Tle L1 B', 'niveau' => 'Terminale', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => 'Tle L2 A', 'niveau' => 'Terminale', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => 'Tle L2 B', 'niveau' => 'Terminale', 'annee_scolaire' => '2025-2026'],
         ];
 
         foreach ($classes as $classe) {

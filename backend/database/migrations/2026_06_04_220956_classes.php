@@ -17,6 +17,8 @@ return new class extends Migration
             $table->string('niveau');
             $table->string('annee_scolaire');
             $table->timestamps();
+
+            $table->unique(['nom_classe', 'annee_scolaire']);
         });
     }
 

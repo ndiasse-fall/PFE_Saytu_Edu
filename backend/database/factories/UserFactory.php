@@ -3,10 +3,12 @@
 namespace Database\Factories;
 
 use App\Enums\RoleEnum;
+use App\Models\Matieres;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<User>
@@ -19,6 +21,76 @@ class UserFactory extends Factory
     protected static ?string $password;
 
     /**
+     * Emails already generated during this factory run.
+     *
+     * @var string[]
+     */
+    protected static array $generatedEmails = [];
+
+    /**
+     * Full name combinations already used during this factory run.
+     *
+     * @var string[]
+     */
+    protected static array $generatedNames = [];
+
+    /**
+     * Common Senegalese first names.
+     *
+     * @var string[]
+     */
+    protected static array $senegaleseFirstNames = [
+        'Abdou',
+        'Aissatou',
+        'Mariama',
+        'Fatou',
+        'Ousmane',
+        'Cheikh',
+        'Ndeye',
+        'Adama',
+        'Bassirou',
+        'Khady',
+        'Mame',
+        'Astou',
+        'Samba',
+        'Coumba',
+        'Amadou',
+        'Binta',
+        'Elhadj',
+        'Rokhaya',
+        'Ibrahima',
+        'Sokhna',
+    ];
+
+    /**
+     * Common Senegalese last names.
+     *
+     * @var string[]
+     */
+    protected static array $senegaleseLastNames = [
+        'Diop',
+        'Ndiaye',
+        'Sarr',
+        'Ba',
+        'Sow',
+        'Fall',
+        'Diallo',
+        'Kane',
+        'Cisse',
+        'Faye',
+        'Seck',
+        'Thiam',
+        'Gueye',
+        'Diagne',
+        'Niang',
+        'Kebe',
+        'Ndoye',
+        'Sy',
+        'Lo',
+        'Toure',
+    ];
+
+    /**
      * Define the model's default state.
      *
      * @return array<string, mixed>
@@ -27,10 +99,11 @@ class UserFactory extends Factory
     {
         $roleEnum = fake()->randomElement(RoleEnum::cases());
         $role = $roleEnum->value;
+        ['prenom' => $prenom, 'nom' => $nom] = $this->generateUniqueName();
+
         $data = [
-            'nom' => fake()->lastName(),
-            'prenom' => fake()->firstName(),
-            'email' => fake()->unique()->safeEmail(),
+            'nom' => $nom,
+            'prenom' => $prenom,
             'password' => static::$password ??= Hash::make('password'),
             'telephone' => fake()->numerify('##########'),
             'adresse' => fake()->address(),
@@ -44,6 +117,75 @@ class UserFactory extends Factory
         }
 
         return $data;
+    }
+
+    public function configure(): static
+    {
+        return $this->afterMaking(function (User $user): void {
+            if (empty($user->email)) {
+                $user->email = $this->generateEmail($user->prenom, $user->nom);
+            }
+        });
+    }
+
+    private function generateEmail(string $prenom, string $nom): string
+    {
+        $base = Str::of("{$prenom}.{$nom}")
+            ->lower()
+            ->ascii()
+            ->replaceMatches('/[^a-z0-9\.]/', '')
+            ->replace('..', '.')
+            ->trim('.');
+
+        $domain = 'saytu.test';
+        $email = "{$base}@{$domain}";
+        $counter = 1;
+
+        while ($this->emailExists($email)) {
+            $email = "{$base}{$counter}@{$domain}";
+            $counter++;
+        }
+
+        static::$generatedEmails[] = $email;
+
+        return $email;
+    }
+
+    private function emailExists(string $email): bool
+    {
+        if (in_array($email, static::$generatedEmails, true)) {
+            return true;
+        }
+
+        return User::withTrashed()->where('email', $email)->exists();
+    }
+
+    private function generateUniqueName(): array
+    {
+        $attempts = 0;
+
+        do {
+            $prenom = fake()->randomElement(self::$senegaleseFirstNames);
+            $nom = fake()->randomElement(self::$senegaleseLastNames);
+            $key = "{$prenom}.{$nom}";
+            $attempts++;
+
+            if ($attempts > 1000) {
+                throw new \RuntimeException('Impossible de générer un nom d’utilisateur unique.');
+            }
+        } while ($this->nameExists($prenom, $nom) || in_array($key, static::$generatedNames, true));
+
+        static::$generatedNames[] = $key;
+
+        return ['prenom' => $prenom, 'nom' => $nom];
+    }
+
+    private function nameExists(string $prenom, string $nom): bool
+    {
+        return User::withTrashed()
+            ->where('prenom', $prenom)
+            ->where('nom', $nom)
+            ->exists();
     }
 
     public function superAdmin(): static
@@ -67,7 +209,7 @@ class UserFactory extends Factory
         return $this->state(fn(array $attributes) => [
             'role' => RoleEnum::ENSEIGNANT->value,
             'statut' => RoleEnum::ENSEIGNANT->value,
-            'specialite' => fake()->word(),
+            'specialite' => Matieres::query()->inRandomOrder()->first()?->nom_matiere ?? Matieres::factory()->create()->nom_matiere,
             'date_embauche' => fake()->date(),
         ]);
     }

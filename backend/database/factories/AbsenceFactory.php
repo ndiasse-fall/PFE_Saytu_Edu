@@ -16,7 +16,7 @@ class AbsenceFactory extends Factory
             'date_absence' => fake()->dateTimeBetween('-1 month', 'now'),
             'motif' => fake()->sentence(),
             'est_justifiee' => fake()->boolean(),
-            'id_eleve' => User::factory()->eleve(),
+            'id_eleve' => User::factory()->eleve()->create()->id,
         ];
     }
 }

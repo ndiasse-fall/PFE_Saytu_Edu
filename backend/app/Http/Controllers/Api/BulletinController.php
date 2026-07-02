@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 use App\Services\BulletinService;
 use App\Models\User;
@@ -37,8 +39,12 @@ class BulletinController extends Controller
             if (!isset($notesParMatiere[$mid])) {
                 $notesParMatiere[$mid] = ['devoir' => null, 'examen' => null];
             }
-            if ($note->type_evaluation === 'Devoir') $notesParMatiere[$mid]['devoir'] = $note->valeur;
-            if ($note->type_evaluation === 'Examen') $notesParMatiere[$mid]['examen'] = $note->valeur;
+            if (str_contains($note->type_evaluation, 'Devoir') || str_contains($note->type_evaluation, 'Composition')) {
+                $notesParMatiere[$mid]['devoir'] = $note->valeur;
+            }
+            if (str_contains($note->type_evaluation, 'Examen')) {
+                $notesParMatiere[$mid]['examen'] = $note->valeur;
+            }
         }
 
         // Construire le tableau avec toutes les matières

@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('matieres', function (Blueprint $table) {
             $table->id();
-            $table->string('nom_matiere');
+            $table->string('nom_matiere')->unique();
             $table->integer('coefficient')->default(1);
             $table->text('description')->nullable();
             $table->timestamps();

@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Http\Controllers\Api;
+
 use App\Http\Controllers\Controller;
 use App\Models\EmploiDuTemps;
 use Illuminate\Http\Request;
@@ -28,8 +30,12 @@ class EleveController extends Controller
             if (!isset($notesParMatiere[$id])) {
                 $notesParMatiere[$id] = ['devoir' => null, 'examen' => null];
             }
-            if ($note->type_evaluation === 'Devoir') $notesParMatiere[$id]['devoir'] = $note->valeur;
-            if ($note->type_evaluation === 'Examen') $notesParMatiere[$id]['examen'] = $note->valeur;
+            if (str_contains($note->type_evaluation, 'Devoir') || str_contains($note->type_evaluation, 'Composition')) {
+                $notesParMatiere[$id]['devoir'] = $note->valeur;
+            }
+            if (str_contains($note->type_evaluation, 'Examen')) {
+                $notesParMatiere[$id]['examen'] = $note->valeur;
+            }
         }
 
         // Construire le tableau avec toutes les matières
@@ -74,6 +80,7 @@ class EleveController extends Controller
             'moyenne_generale' => $moyenne,
             'total_coef'       => $totalCoef,
             'matieres'         => $matieres,
+            'notes'            => $matieres,
             'periode'          => $notes->first()?->periode ?? '-',
         ]);
     }
@@ -81,7 +88,7 @@ class EleveController extends Controller
     public function monEmploiDuTemps(Request $request)
     {
         $eleve = $request->user();
-$classeIds = $eleve->classes()->pluck('classes.id');
+        $classeIds = $eleve->classes()->pluck('classes.id');
         $emplois = EmploiDuTemps::with(['classe', 'enseignant', 'matiere'])
             ->whereIn('id_classe', $classeIds)
             ->where('est_publie', true)

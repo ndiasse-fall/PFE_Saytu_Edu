@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Models\Matieres;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class MatiereController extends Controller
 {
@@ -26,7 +27,13 @@ class MatiereController extends Controller
      */
     public function store(Request $request)
     {
-        return Matieres::create($request->all());
+        $validated = $request->validate([
+            'nom_matiere' => ['required', 'string', 'max:255', 'unique:matieres,nom_matiere'],
+            'coefficient' => ['nullable', 'integer', 'min:1'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        return Matieres::create($validated);
     }
 
     /**
@@ -51,7 +58,13 @@ class MatiereController extends Controller
     {
         $matiere = Matieres::findOrFail($id);
 
-        $matiere->update($request->all());
+        $validated = $request->validate([
+            'nom_matiere' => ['sometimes', 'required', 'string', 'max:255', Rule::unique('matieres', 'nom_matiere')->ignore($matiere->id)],
+            'coefficient' => ['nullable', 'integer', 'min:1'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        $matiere->update($validated);
 
         return $matiere;
     }
