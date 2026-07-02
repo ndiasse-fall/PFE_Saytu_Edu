@@ -165,13 +165,13 @@ Route::delete('/affectations/{id}', [AffectationController::class, 'destroy']);
             Route::get('notes', [NoteController::class, 'index']);
 
             Route::get(
-                'notes/{id}',
-                [NoteController::class, 'show']
+                'notes/resultats/eleve/{id}',
+                [NoteController::class, 'resultatsParEleve']
             );
 
             Route::get(
-                'notes/resultats/eleve/{id}',
-                [NoteController::class, 'resultatsParEleve']
+                'notes/{id}',
+                [NoteController::class, 'show']
             );
 
             Route::get(
