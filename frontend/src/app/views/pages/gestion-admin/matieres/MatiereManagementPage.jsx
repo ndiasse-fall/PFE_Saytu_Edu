@@ -24,11 +24,11 @@ export function MatiereManagementPage() {
   }, [search, matiereFilter, sortBy]);
 
   const [formData, setFormData] = useState({
-  nom_matiere: "",
-  coefficient: 1,
-  description: "",
-  departement: "",
-});
+    nom_matiere: "",
+    coefficient: 1,
+    description: "",
+    departement: "",
+  });
 
   const fetchMatieres = async () => {
     setLoading(true);
@@ -58,12 +58,12 @@ export function MatiereManagementPage() {
 
   const openAddForm = () => {
     setSelectedMatiere(null);
-   setFormData({
-  nom_matiere: "",
-  coefficient: 1,
-  description: "",
-  departement: "",
-});
+    setFormData({
+      nom_matiere: "",
+      coefficient: 1,
+      description: "",
+      departement: "",
+    });
     setSuccess(null);
     setError(null);
     setIsFormOpen(true);
@@ -72,11 +72,11 @@ export function MatiereManagementPage() {
   const openEditForm = (matiere) => {
     setSelectedMatiere(matiere);
     setFormData({
-  nom_matiere: matiere.nom_matiere,
-  coefficient: matiere.coefficient,
-  description: matiere.description || "",
-  departement: matiere.departement || "",
-});
+      nom_matiere: matiere.nom_matiere,
+      coefficient: matiere.coefficient,
+      description: matiere.description || "",
+      departement: matiere.departement || "",
+    });
     setSuccess(null);
     setError(null);
     setIsFormOpen(true);
@@ -115,36 +115,37 @@ export function MatiereManagementPage() {
       }
     }
   };
-const matiereFilters = [
-  "Toutes",
-  ...new Set(matieres.map((m) => m.nom_matiere)),
-];
 
-const filteredMatieres = matieres
-  .filter((matiere) => {
-    const recherche =
-      matiere.nom_matiere
-        .toLowerCase()
-        .includes(search.toLowerCase()) ||
-      (matiere.description || "")
-        .toLowerCase()
-        .includes(search.toLowerCase());
+  const matiereFilters = [
+    "Toutes",
+    ...new Set(matieres.map((m) => m.nom_matiere)),
+  ];
 
-    const filtreMatiere =
-  matiereFilter === "Toutes" ||
-  matiere.nom_matiere === matiereFilter;
+  const filteredMatieres = matieres
+    .filter((matiere) => {
+      const recherche =
+        matiere.nom_matiere
+          .toLowerCase()
+          .includes(search.toLowerCase()) ||
+        (matiere.description || "")
+          .toLowerCase()
+          .includes(search.toLowerCase());
 
-return recherche && filtreMatiere;
-  })
-  .sort((a, b) => {
-    if (sortBy === "nom")
-      return a.nom_matiere.localeCompare(b.nom_matiere);
+      const filtreMatiere =
+        matiereFilter === "Toutes" ||
+        matiere.nom_matiere === matiereFilter;
 
-    if (sortBy === "coefficient")
-      return b.coefficient - a.coefficient;
+      return recherche && filtreMatiere;
+    })
+    .sort((a, b) => {
+      if (sortBy === "nom")
+        return a.nom_matiere.localeCompare(b.nom_matiere);
 
-    return 0;
-  });
+      if (sortBy === "coefficient")
+        return b.coefficient - a.coefficient;
+
+      return 0;
+    });
 
   const paginatedMatieres = filteredMatieres.slice(
     page * rowsPerPage,
@@ -164,86 +165,86 @@ return recherche && filtreMatiere;
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
-<div
-  className="panel"
-  style={{
-    marginTop: 20,
-    marginBottom: 20,
-    padding: 25,
-    borderRadius: 18,
-  }}
->
-  <input
-    type="text"
-    placeholder="🔍 Rechercher par nom ou description..."
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-    style={{
-      width: "100%",
-      padding: 15,
-      borderRadius: 14,
-      border: "1px solid #ddd",
-      marginBottom: 20,
-      fontSize: 16,
-    }}
-  />
 
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      flexWrap: "wrap",
-      gap: 20,
-    }}
-  >
-    <div
-      style={{
-        display: "flex",
-        gap: 10,
-        flexWrap: "wrap",
-      }}
-    >
-      {matiereFilters.map((nom) => (
-       <button
-  key={nom}
-  onClick={() => setMatiereFilter(nom)}
-  style={{
-    padding: "10px 18px",
-    borderRadius: 30,
-    border: "1px solid #ddd",
-    cursor: "pointer",
-    background: matiereFilter === nom ? "#1d4ed8" : "#fff",
-    color: matiereFilter === nom ? "#fff" : "#333",
-    fontWeight: 600,
-  }}
->
-  {nom}
-</button>
-      ))}
-    </div>
-
-    <div>
-      <label style={{ marginRight: 10 }}>
-        Trier :
-      </label>
-
-      <select
-        value={sortBy}
-        onChange={(e) => setSortBy(e.target.value)}
+      <div
+        className="panel"
         style={{
-          padding: 10,
-          borderRadius: 10,
+          marginTop: 20,
+          marginBottom: 20,
+          padding: 25,
+          borderRadius: 18,
         }}
       >
-        <option value="nom">Nom (A-Z)</option>
-        <option value="coefficient">
-          Coefficient
-        </option>
-      </select>
-    </div>
-  </div>
-</div>
+        <input
+          type="text"
+          placeholder="🔍 Rechercher par nom ou description..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          style={{
+            width: "100%",
+            padding: 15,
+            borderRadius: 14,
+            border: "1px solid #ddd",
+            marginBottom: 20,
+            fontSize: 16,
+          }}
+        />
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            flexWrap: "wrap",
+            gap: 20,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            {matiereFilters.map((nom) => (
+              <button
+                key={nom}
+                onClick={() => setMatiereFilter(nom)}
+                style={{
+                  padding: "10px 18px",
+                  borderRadius: 30,
+                  border: "1px solid #ddd",
+                  cursor: "pointer",
+                  background: matiereFilter === nom ? "#1d4ed8" : "#fff",
+                  color: matiereFilter === nom ? "#fff" : "#333",
+                  fontWeight: 600,
+                }}
+              >
+                {nom}
+              </button>
+            ))}
+          </div>
+
+          <div>
+            <label style={{ marginRight: 10 }}>
+              Trier :
+            </label>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{
+                padding: 10,
+                borderRadius: 10,
+              }}
+            >
+              <option value="nom">Nom (A-Z)</option>
+              <option value="coefficient">Coefficient</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
       <div className="panel mt-4">
         {loading && matieres.length === 0 ? (
           <div className="screen-state">Chargement...</div>
@@ -261,7 +262,8 @@ return recherche && filtreMatiere;
                 </tr>
               </thead>
               <tbody>
-                {filteredMatieres.map((matiere) => (
+                {/* 🚀 CORRECTION ICI : Utilisation de paginatedMatieres à la place de filteredMatieres */}
+                {paginatedMatieres.map((matiere) => (
                   <tr key={matiere.id}>
                     <td><strong>{matiere.nom_matiere}</strong></td>
                     <td>{matiere.coefficient}</td>
@@ -278,25 +280,40 @@ return recherche && filtreMatiere;
                 ))}
               </tbody>
             </table>
+            
+            {/* Ajout du composant de pagination visuel en bas du tableau */}
+            <TablePagination
+              component="div"
+              count={filteredMatieres.length}
+              page={page}
+              onPageChange={(e, newPage) => setPage(newPage)}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(e) => {
+                setRowsPerPage(parseInt(e.target.value, 10));
+                setPage(0);
+              }}
+              rowsPerPageOptions={[5, 10, 15, 25]}
+              labelRowsPerPage="Lignes par page:"
+            />
           </div>
         )}
       </div>
 
       <DrawerPanel
-  open={isFormOpen}
-  onClose={() => setIsFormOpen(false)}
-  title={selectedMatiere ? "Modifier la matière" : "Ajouter une matière"}
-  width={520}
-  headerAction={
-    <button
-      type="button"
-      className="ghost-button"
-      onClick={() => setIsFormOpen(false)}
-    >
-      Fermer
-    </button>
-  }
->
+        open={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        title={selectedMatiere ? "Modifier la matière" : "Ajouter une matière"}
+        width={520}
+        headerAction={
+          <button
+            type="button"
+            className="ghost-button"
+            onClick={() => setIsFormOpen(false)}
+          >
+            Fermer
+          </button>
+        }
+      >
         <form onSubmit={handleSubmit} className="auth-form">
           <TextField
             label="Nom de la matière"
