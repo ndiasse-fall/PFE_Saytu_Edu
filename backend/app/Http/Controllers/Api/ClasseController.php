@@ -11,8 +11,6 @@ class ClasseController extends Controller
 {
     /**
      * Liste toutes les classes.
-     * 
-     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function index()
     {
@@ -21,9 +19,6 @@ class ClasseController extends Controller
 
     /**
      * Crée une nouvelle classe.
-     * 
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
      */
     public function store(Request $request)
     {
@@ -37,10 +32,7 @@ class ClasseController extends Controller
     }
 
     /**
-     * Affiche les détails d'une classe spécifique.
-     * 
-     * @param string $id
-     * @return Classe
+     * Affiche une classe.
      */
     public function show(string $id)
     {
@@ -48,11 +40,7 @@ class ClasseController extends Controller
     }
 
     /**
-     * Met à jour les informations d'une classe.
-     * 
-     * @param Request $request
-     * @param string $id
-     * @return \Illuminate\Http\JsonResponse
+     * Met à jour une classe.
      */
     public function update(Request $request, string $id)
     {
@@ -65,9 +53,6 @@ class ClasseController extends Controller
 
     /**
      * Supprime une classe.
-     * 
-     * @param string $id
-     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy(string $id)
     {
@@ -80,14 +65,11 @@ class ClasseController extends Controller
 
     /**
      * Inscrire un élève dans une classe.
-     * 
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
      */
     public function inscrireEleve(Request $request, $id)
     {
         try {
+
             $request->validate([
                 'id_eleve' => 'required|exists:users,id'
             ]);
@@ -101,8 +83,13 @@ class ClasseController extends Controller
             return response()->json([
                 'message' => 'Élève inscrit avec succès'
             ]);
+
         } catch (\Exception $e) {
-            Log::error("Erreur inscription élève: " . $e->getMessage());
+
+            Log::error(
+                "Erreur inscription élève : " . $e->getMessage()
+            );
+
             return response()->json([
                 'message' => 'Erreur lors de l\'inscription',
                 'error' => $e->getMessage()
@@ -112,10 +99,6 @@ class ClasseController extends Controller
 
     /**
      * Affecter un enseignant à une classe.
-     * 
-     * @param Request $request
-     * @param int $id
-     * @return \Illuminate\Http\JsonResponse
      */
     public function affecterEnseignant(Request $request, $id)
     {
@@ -128,5 +111,58 @@ class ClasseController extends Controller
         return response()->json([
             'message' => 'Enseignant affecté avec succès'
         ]);
+    }
+
+    /**
+     * Retourne uniquement les classes de l'enseignant connecté.
+     */
+    public function mesClasses(Request $request)
+    {
+        $enseignant = $request->user();
+
+        $classes = $enseignant
+            ->enseignantClasses()
+            ->select(
+                'classes.id',
+                'classes.nom_classe',
+                'classes.niveau',
+                'classes.annee_scolaire'
+            )
+            ->get();
+
+        return response()->json($classes);
+    }
+
+    /**
+     * Retourne les élèves d'une classe de l'enseignant.
+     */
+    public function elevesParClasse(Request $request, $id)
+    {
+        $enseignant = $request->user();
+
+        $classe = $enseignant
+            ->enseignantClasses()
+            ->where('classes.id', $id)
+            ->first();
+
+        if (!$classe) {
+            return response()->json([
+                'message' => 'Classe non autorisée'
+            ], 403);
+        }
+
+        $eleves = $classe
+            ->eleves()
+            ->select(
+                'users.id',
+                'users.nom',
+                'users.prenom',
+                'users.email'
+            )
+            ->orderBy('prenom')
+            ->orderBy('nom')
+            ->get();
+
+        return response()->json($eleves);
     }
 }
