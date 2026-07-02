@@ -1,44 +1,20 @@
-<<<<<<< HEAD
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: 'http://localhost:8000/api', // À remplacer par l'URL de production plus tard
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Intercepteur pour injecter automatiquement le token JWT
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
-=======
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:8000/api", // adapte selon ton backend
-  headers: {
-    "Content-Type": "application/json",
-  },
+    baseURL: "http://localhost:8000/api",
+    headers: {
+        "Content-Type": "application/json",
+    },
 });
 
-// optionnel: interceptors (très utilisé en PFE)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+    const token = localStorage.getItem("token");
+
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+    }
+
+    return config;
 });
->>>>>>> origin
 
 export default api;
