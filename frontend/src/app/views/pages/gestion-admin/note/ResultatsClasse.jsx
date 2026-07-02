@@ -192,15 +192,20 @@ export default function ResultatsClasse() {
           </div>
 
           <div className="dashboard-status-list">
-            <div className="dashboard-status-item">
-              <div className="dashboard-status-heading">
+            <div className="dashboard-status-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <span className="dashboard-status-icon success"><i className="bi bi-trophy" /></span>
-                <div>
-                  <span>Classe sélectionnée</span>
-                  <strong>{classeLabel || 'Aucune classe'}</strong>
-                </div>
-                <b>{topStudent ? `${Number(topStudent?.moyenne ?? topStudent?.moyenne_generale ?? 0).toFixed(2)} / 20` : '—'}</b>
+                <strong>Classe sélectionnée</strong>
               </div>
+              <span>{classeLabel || 'Aucune'}</span>
+            </div>
+
+            <div className="dashboard-status-item" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className="dashboard-status-icon success"><i className="bi bi-star" /></span>
+                <strong>Meilleure note</strong>
+              </div>
+              <b>{topStudent ? `${Number(topStudent?.moyenne ?? topStudent?.moyenne_generale ?? 0).toFixed(2)} / 20` : '—'}</b>
             </div>
           </div>
         </section>

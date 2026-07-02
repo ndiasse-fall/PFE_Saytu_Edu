@@ -241,35 +241,51 @@ const filteredClasses = classes
         ) : classes.length === 0 ? (
           <div className="screen-state">Aucune classe trouvée.</div>
         ) : (
-          <div className="table-wrapper">
-            <table className="users-table">
-              <thead>
-                <tr>
-                  <th>Nom de la classe</th>
-                  <th>Niveau</th>
-                  <th>Année Scolaire</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredClasses.map((classe) => (
-                  <tr key={classe.id}>
-                    <td><strong>{classe.nom_classe}</strong></td>
-                    <td>{classe.niveau}</td>
-                    <td>{classe.annee_scolaire}</td>
-                    <td>
-                      <ActionMenu
-                        items={[
-                          { label: 'Modifier', onClick: () => openEditForm(classe) },
-                          { label: 'Supprimer', onClick: () => handleDelete(classe.id), danger: true },
-                        ]}
-                      />
-                    </td>
+          <>
+            <div className="table-wrapper">
+              <table className="users-table">
+                <thead>
+                  <tr>
+                    <th>Nom de la classe</th>
+                    <th>Niveau</th>
+                    <th>Année Scolaire</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {paginatedClasses.map((classe) => (
+                    <tr key={classe.id}>
+                      <td><strong>{classe.nom_classe}</strong></td>
+                      <td>{classe.niveau}</td>
+                      <td>{classe.annee_scolaire}</td>
+                      <td>
+                        <ActionMenu
+                          items={[
+                            { label: 'Modifier', onClick: () => openEditForm(classe) },
+                            { label: 'Supprimer', onClick: () => handleDelete(classe.id), danger: true },
+                          ]}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <TablePagination
+              rowsPerPageOptions={[5, 10, 15, 25]}
+              component="div"
+              count={filteredClasses.length}
+              rowsPerPage={rowsPerPage}
+              page={page}
+              onPageChange={(event, newPage) => setPage(newPage)}
+              onRowsPerPageChange={(event) => {
+                setRowsPerPage(parseInt(event.target.value, 10));
+                setPage(0);
+              }}
+              labelRowsPerPage="Lignes par page:"
+              labelDisplayedRows={({ from, to, count }) => `${from}–${to} sur ${count}`}
+            />
+          </>
         )}
       </div>
 

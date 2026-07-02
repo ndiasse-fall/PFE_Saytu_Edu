@@ -12,6 +12,58 @@ export default function BulletinDetail() {
     chargerBulletin();
   }, []);
 
+  useEffect(() => {
+    // Ajouter les styles d'impression
+    const style = document.createElement("style");
+    style.innerHTML = `
+      @media print {
+        * {
+          margin: 0 !important;
+          padding: 0 !important;
+          box-sizing: border-box !important;
+        }
+        body {
+          margin: 0 !important;
+          padding: 0 !important;
+          background: white !important;
+        }
+        /* Masquer tous les éléments sauf le bulletin */
+        body > * {
+          display: none !important;
+        }
+        #bulletin-print {
+          display: block !important;
+          margin: 0 !important;
+          padding: 20px !important;
+          max-width: 100% !important;
+          background: white !important;
+        }
+        /* Forcer l'affichage du bulletin et ses enfants */
+        #bulletin-print,
+        #bulletin-print * {
+          display: revert !important;
+        }
+        /* Masquer les boutons */
+        button {
+          display: none !important;
+        }
+        /* Sidebar/header masqués */
+        nav, header, .navbar, .sidebar {
+          display: none !important;
+        }
+        /* Impression optimale */
+        table {
+          page-break-inside: avoid !important;
+        }
+        tr {
+          page-break-inside: avoid !important;
+        }
+      }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
+
   const chargerBulletin = async () => {
     try {
       const data = await apiClient(`/bulletins/${id}`, { method: "GET" });
@@ -50,7 +102,7 @@ export default function BulletinDetail() {
           style={{ backgroundColor: "#1a3c8f", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
           ← Retour à la liste
         </button>
-        <button onClick={() => window.print()}
+        <button id="print-button" onClick={() => window.print()}
           style={{ backgroundColor: "#28a745", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
           🖨️ Imprimer / PDF
         </button>
@@ -85,15 +137,12 @@ export default function BulletinDetail() {
 
         {/* Infos élève */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "12px", border: "1px solid #ccc", padding: "10px", borderRadius: "4px" }}>
-          <div style={{ width: "80px", height: "90px", backgroundColor: "#e0e0e0", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: "4px", fontSize: "10px", color: "#666" }}>
-            Photo
-          </div>
           <div style={{ flex: 1 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
               <div><strong>Nom :</strong> {eleve?.nom ?? "-"}</div>
-              <div><strong>Classe :</strong> {classe?.niveau ?? "-"}</div>
+              <div><strong>Classe :</strong> {classe?.nom_classe ?? classe?.niveau ?? "-"}</div>
               <div><strong>Prénoms :</strong> {eleve?.prenom ?? "-"}</div>
-              <div><strong>Établissement :</strong> {classe?.nom ?? "-"}</div>
+              <div><strong>Établissement :</strong> SAYTU EDU</div>
               <div><strong>Date de naissance :</strong> {formatDate(eleve?.date_naissance)}</div>
               <div><strong>Matricule :</strong> {eleve?.matricule ?? "-"}</div>
             </div>

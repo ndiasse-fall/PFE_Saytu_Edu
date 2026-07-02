@@ -4,10 +4,7 @@ import { apiClient } from "../../../../core/api/apiClient";
 import { getResultatsParClasse } from "../../../../services/notes/noteService";
 
 function formatNumber(value) {
-    if (value === null || value === undefined || value === "") {
-        return "--";
-    }
-
+    if (value === null || value === undefined || value === "") return "--";
     return new Intl.NumberFormat("fr-FR").format(Number(value));
 }
 
@@ -36,32 +33,19 @@ export default function ClasseResultsPage() {
                     apiClient("/classes"),
                     apiClient("/matieres"),
                 ]);
-
-                const loadedClasses = classesResponse?.data ?? classesResponse ?? [];
-                const loadedMatieres = matieresResponse?.data ?? matieresResponse ?? [];
-
-                setClasses(Array.isArray(loadedClasses) ? loadedClasses : []);
-                setMatieres(Array.isArray(loadedMatieres) ? loadedMatieres : []);
-
-                if (!filters.classe && Array.isArray(loadedClasses) && loadedClasses[0]?.id) {
-                    setFilters((current) => ({ ...current, classe: String(loadedClasses[0].id) }));
-                }
+                setClasses(classesResponse?.data ?? classesResponse ?? []);
+                setMatieres(matieresResponse?.data ?? matieresResponse ?? []);
             } catch (err) {
-                console.error("Erreur chargement references notes :", err);
-                setError("Impossible de charger les classes et matieres.");
+                setError("Impossible de charger les données.");
             }
         };
-
         loadReferences();
     }, []);
 
     useEffect(() => {
         if (!filters.classe) return;
-
         const loadResults = async () => {
             setLoading(true);
-            setError("");
-
             try {
                 const response = await getResultatsParClasse(filters.classe, {
                     matiere: filters.matiere,
@@ -69,170 +53,100 @@ export default function ClasseResultsPage() {
                 });
                 setPayload(response?.data ?? response ?? null);
             } catch (err) {
-                console.error("Erreur resultats classe :", err);
                 setPayload(null);
-                setError("Les resultats de la classe n'ont pas pu etre charges.");
             } finally {
                 setLoading(false);
             }
         };
-
         loadResults();
     }, [filters.classe, filters.matiere, filters.periode]);
 
     const resultats = payload?.resultats ?? [];
-    const selectedClasse = payload?.classe || classes.find((classe) => String(classe.id) === String(filters.classe));
-
-    const topStudent = useMemo(() => {
-        return resultats.length ? resultats[0] : null;
-    }, [resultats]);
+    const topStudent = useMemo(() => (resultats.length ? resultats[0] : null), [resultats]);
 
     return (
         <section className="dashboard-page dashboard-school-page">
             <header className="page-header-inline">
                 <div>
-                    <h2>Resultats par classe</h2>
-                    <p>Suivi des moyennes et des notes par eleve, matiere et periode.</p>
+                    <h2>Résultats par classe</h2>
                 </div>
-                <div className="dashboard-header-actions">
-                    <Link className="dashboard-primary-action" to="/notes">
-                        <i className="bi bi-arrow-left" aria-hidden="true" />
-                        Retour aux notes
-                    </Link>
-                </div>
+                <Link className="dashboard-primary-action" to="/notes">Retour</Link>
             </header>
 
-            {error ? <div className="alert alert-error">{error}</div> : null}
-
-            <div className="dashboard-insights-grid">
+            {/* Grille symétrique pour Filtres et Synthèse */}
+            <div className="dashboard-insights-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                
+                {/* Panneau Filtres complet */}
                 <section className="panel dashboard-insight-panel">
                     <div className="dashboard-panel-title">
-                        <i className="bi bi-funnel" aria-hidden="true" />
-                        <div>
-                            <h2>Filtres</h2>
-                            <p>Filtrer les resultats par classe, matiere et semestre.</p>
-                        </div>
+                        <h2>Filtres</h2>
                     </div>
+                    
+                   
 
                     <label className="field">
-                        <span className="field-label">Classe</span>
-                        <select
-                            className="field-input"
-                            value={filters.classe}
-                            onChange={(event) => setFilters({ ...filters, classe: event.target.value })}
-                        >
-                            <option value="">Choisir une classe</option>
-                            {classes.map((classe) => (
-                                <option key={classe.id} value={classe.id}>
-                                    {classe.nom_classe || `Classe ${classe.id}`}
-                                </option>
-                            ))}
+                        <span>Matière</span>
+                        <select className="field-input" value={filters.matiere} onChange={(e) => setFilters({...filters, matiere: e.target.value})}>
+                            <option value="">Toutes les matières</option>
+                            {matieres.map(m => <option key={m.id} value={m.id}>{m.nom_matiere || m.nom}</option>)}
                         </select>
                     </label>
 
                     <label className="field">
-                        <span className="field-label">Matiere</span>
-                        <select
-                            className="field-input"
-                            value={filters.matiere}
-                            onChange={(event) => setFilters({ ...filters, matiere: event.target.value })}
-                        >
-                            <option value="">Toutes les matieres</option>
-                            {matieres.map((matiere) => (
-                                <option key={matiere.id} value={matiere.id}>
-                                    {matiere.nom_matiere || matiere.nom || `Matiere ${matiere.id}`}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-
-                    <label className="field">
-                        <span className="field-label">Periode</span>
-                        <select
-                            className="field-input"
-                            value={filters.periode}
-                            onChange={(event) => setFilters({ ...filters, periode: event.target.value })}
-                        >
-                            <option value="">Toutes les periodes</option>
+                        <span>Période</span>
+                        <select className="field-input" value={filters.periode} onChange={(e) => setFilters({...filters, periode: e.target.value})}>
+                            <option value="">Toutes les périodes</option>
                             <option value="Semestre 1">Semestre 1</option>
                             <option value="Semestre 2">Semestre 2</option>
                         </select>
                     </label>
                 </section>
 
+                {/* Panneau Synthèse */}
                 <section className="panel dashboard-insight-panel">
                     <div className="dashboard-panel-title">
-                        <i className="bi bi-graph-up-arrow" aria-hidden="true" />
-                        <div>
-                            <h2>Synthese</h2>
-                            <p>{selectedClasse?.nom_classe || "Aucune classe selectionnee"}</p>
-                        </div>
+                        <h2>Synthèse</h2>
                     </div>
-
                     <div className="dashboard-status-list">
                         <div className="dashboard-status-item">
-                            <div className="dashboard-status-heading">
-                                <span>Moyenne classe</span>
-                                <b>{payload?.moyenne_classe ? `${payload.moyenne_classe} / 20` : "--"}</b>
-                            </div>
+                            <span>Moyenne classe: </span>
+                            <b>{payload?.moyenne_classe ? `${payload.moyenne_classe} / 20` : "--"}</b>
                         </div>
                         <div className="dashboard-status-item">
-                            <div className="dashboard-status-heading">
-                                <span>Total notes</span>
-                                <b>{formatNumber(payload?.total_notes)}</b>
-                            </div>
+                            <span>Total notes: </span>
+                            <b>{formatNumber(payload?.total_notes)}</b>
                         </div>
                         <div className="dashboard-status-item">
-                            <div className="dashboard-status-heading">
-                                <span>Meilleur eleve</span>
-                                <b>{topStudent ? getFullName(topStudent.eleve) : "--"}</b>
-                            </div>
+                            <span>Meilleur élève: </span>
+                            <b>{topStudent ? getFullName(topStudent.eleve) : "--"}</b>
                         </div>
                     </div>
                 </section>
             </div>
 
-            <section className="panel dashboard-table-card">
-                <div className="dashboard-section-head">
-                    <div>
-                        <h2>Classement des eleves</h2>
-                        <p>Moyennes calculees a partir des notes visibles.</p>
-                    </div>
-                </div>
-
+            {/* Tableau des résultats */}
+            <section className="panel dashboard-table-card" style={{ marginTop: '20px' }}>
+                <h2>Classement des élèves</h2>
                 {loading ? (
-                    <div className="screen-state">Chargement des resultats...</div>
-                ) : !filters.classe ? (
-                    <div className="screen-state">Selectionnez une classe pour consulter les resultats.</div>
-                ) : resultats.length === 0 ? (
-                    <div className="screen-state">Aucune note enregistree pour cette classe.</div>
-                ) : (
-                    <div className="table-wrapper dashboard-teachers-table-wrapper">
-                        <table className="dashboard-teachers-table">
-                            <thead>
-                                <tr>
-                                    <th>Eleve</th>
-                                    <th>Moyenne</th>
-                                    <th>Notes</th>
-                                    <th>Action</th>
+                    <div>Chargement des résultats...</div>
+                ) : resultats.length > 0 ? (
+                    <table className="dashboard-teachers-table">
+                        <thead>
+                            <tr><th>Élève</th><th>Moyenne</th><th>Notes</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            {resultats.map((r) => (
+                                <tr key={r.eleve?.id}>
+                                    <td>{getFullName(r.eleve)}</td>
+                                    <td>{Number(r.moyenne || 0).toFixed(2)} / 20</td>
+                                    <td>{formatNumber(r.total_notes)}</td>
+                                    <td><Link to={`/notes/${r.eleve?.id}`}>Voir</Link></td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {resultats.map((resultat) => (
-                                    <tr key={resultat.eleve?.id}>
-                                        <td>{getFullName(resultat.eleve)}</td>
-                                        <td>{Number(resultat.moyenne || 0).toFixed(2)} / 20</td>
-                                        <td>{formatNumber(resultat.total_notes)}</td>
-                                        <td>
-                                            <Link to={`/notes/${resultat.eleve?.id}`} state={{ eleve: resultat.eleve, classeId: filters.classe }}>
-                                                Voir les notes
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <div>Aucune note trouvée pour ces critères.</div>
                 )}
             </section>
         </section>
