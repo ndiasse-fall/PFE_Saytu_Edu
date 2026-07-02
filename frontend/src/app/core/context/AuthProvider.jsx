@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { getCurrentUser, login, logout } from '../../services/auth/authService'
+import {
+  changePassword,
+  getCurrentUser,
+  login,
+  logout,
+  updateCurrentUserProfile,
+} from '../../services/auth/authService'
 import {
   clearStoredAuth,
   getStoredToken,
@@ -23,8 +29,9 @@ export function AuthProvider({ children }) {
 
       try {
         const currentUser = await getCurrentUser()
-        setUser(currentUser)
-        storeUser(currentUser)
+        const normalizedUser = currentUser?.user ?? currentUser
+        setUser(normalizedUser)
+        storeUser(normalizedUser)
       } catch {
         clearStoredAuth()
         setToken(null)
@@ -49,6 +56,19 @@ export function AuthProvider({ children }) {
         setToken(data.token)
         setUser(data.user)
         return data
+      },
+      async updatePassword(payload) {
+        const data = await changePassword(payload)
+        const nextUser = data.user ?? user
+        storeUser(nextUser)
+        setUser(nextUser)
+        return data
+      },
+      async updateProfile(payload) {
+        const nextUser = await updateCurrentUserProfile(payload)
+        storeUser(nextUser)
+        setUser(nextUser)
+        return nextUser
       },
       async signOut() {
         try {

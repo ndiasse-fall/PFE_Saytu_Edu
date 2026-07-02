@@ -14,6 +14,7 @@ export const menuItems = [
                 path: "/admin/eleves",
                 icon: "bi-mortarboard-fill",
             },
+          
             {
                 label: "Utilisateurs",
                 path: "/admin/gestion-admin/users",
@@ -26,8 +27,30 @@ export const menuItems = [
             },
             {
                 label: "Classes",
+<<<<<<< HEAD
                 path: "/admin/classes",
                 icon: "bi-building",
+=======
+                icon: "bi-building",
+                isDropdown: true,
+                children: [
+                    {
+                        label: "Liste des classes",
+                        path: "/admin/gestion-admin/classes",
+                        icon: "bi-building",
+                    },
+                    {
+                        label: "Matières",
+                        path: "/admin/gestion-admin/matieres",
+                        icon: "bi-book",
+                    },
+                    {
+                        label: "Affectations",
+                        path: "/admin/gestion-admin/affectations",
+                        icon: "bi-diagram-3",
+                    },
+                ],
+>>>>>>> origin
             },
             {
                 label: "Emploi du temps",
@@ -44,6 +67,12 @@ export const menuItems = [
                 path: "/notes/resultats/classe",
                 icon: "bi-bar-chart",
             },
+            {
+                label: "Gestion des notes",
+                path: "/notes",
+                icon: "bi-journal-text",
+            },
+           
             {
                 label: "Bulletin",
                 path: "/admin/bulletins",
@@ -67,18 +96,31 @@ export const menuItems = [
     },
      /* ================= ENSEIGNANT ================= */
     {
+<<<<<<< HEAD
         section: "Espace utilisateur",
         roles: ["ENSEIGNANT", "ELEVE"],
+=======
+        section: "Enseignant",
+        roles: ["ENSEIGNANT"],
+>>>>>>> origin
         items: [
             {
                 label: "Gestion des notes",
                 path: "/notes",
                 icon: "bi-journal-text",
             },
+<<<<<<< HEAD
              {
                 label: "Résultats classe",
                 path: "/notes/resultats/classe",
                 icon: "bi-bar-chart",
+=======
+            /* 🎯 L'ONGLET RECHERCHÉ EST PLACÉ ICI JUSQUE EN DESSOUS */
+            {
+                label: "Emploi du temps",
+                path: "/enseignant/emploi-du-temps",
+                icon: "bi-calendar-week",
+>>>>>>> origin
             },
         ],
     },

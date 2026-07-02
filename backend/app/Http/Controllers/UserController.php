@@ -57,10 +57,13 @@ class UserController extends Controller
     public function store(StoreUserRequest $request): JsonResponse
     {
         $user = $this->userService->createUser($request->validated());
+        $temporaryPassword = $user->getAttribute('temporary_password');
+        $user->offsetUnset('temporary_password');
 
         return response()->json([
             'message' => 'Utilisateur créé avec succès.',
             'data' => $user,
+            'temporary_password' => $temporaryPassword,
         ], 201);
     }
 

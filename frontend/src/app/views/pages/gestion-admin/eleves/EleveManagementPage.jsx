@@ -145,8 +145,11 @@ export function EleveManagementPage() {
         await updateEleve(editingEleveId, payload)
         setSuccess('Élève modifié avec succès.')
       } else {
-        await createEleve({ ...payload, password: form.password })
-        setSuccess('Élève créé avec succès.')
+        const response = await createEleve(payload)
+        const temporaryPassword = response.temporary_password
+        setSuccess(temporaryPassword
+          ? `Élève créé avec succès. Mot de passe temporaire : ${temporaryPassword}`
+          : 'Élève créé avec succès. Le mot de passe temporaire a été envoyé par email.')
       }
 
       resetForm()

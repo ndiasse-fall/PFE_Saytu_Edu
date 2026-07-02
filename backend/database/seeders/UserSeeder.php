@@ -11,21 +11,66 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // Création du Super Admin
-        User::factory()->superAdmin()->create([
+        $this->upsertUserByEmail([
             'email' => 'superadmin@saytu.edu',
             'nom' => 'Sow',
             'prenom' => 'Abdou',
             'password' => Hash::make('password'),
+            'telephone' => '770000000',
+            'adresse' => 'Dakar',
+            'role' => RoleEnum::SUPER_ADMIN->value,
+            'statut' => RoleEnum::SUPER_ADMIN->value,
+            'actif' => true,
         ]);
 
-        // Création de quelques Admins
-        User::factory()->admin()->count(2)->create();
+        $this->createMissingUsers(RoleEnum::ADMIN, 2);
+        $this->createMissingUsers(RoleEnum::ENSEIGNANT, 10);
+        $this->createMissingUsers(RoleEnum::ELEVE, 50);
+    }
 
-        // Création des Enseignants
-        User::factory()->enseignant()->count(10)->create();
+    /**
+     * @param array<string, mixed> $attributes
+     */
+    private function upsertUserByEmail(array $attributes): User
+    {
+        $user = User::withTrashed()
+            ->where('email', $attributes['email'])
+            ->first();
 
-        // Création des Élèves
-        User::factory()->eleve()->count(50)->create();
+        if (! $user) {
+            return User::create($attributes);
+        }
+
+        $user->forceFill($attributes);
+
+        if ($user->trashed()) {
+            $user->restore();
+        }
+
+        $user->save();
+
+        return $user;
+    }
+
+    private function createMissingUsers(RoleEnum $role, int $targetCount): void
+    {
+        $existingCount = User::query()
+            ->where('role', $role->value)
+            ->count();
+
+        $missing = max(0, $targetCount - $existingCount);
+
+        if ($missing === 0) {
+            return;
+        }
+
+        $factory = User::factory();
+
+        match ($role) {
+            RoleEnum::ADMIN => $factory->admin()->count($missing)->create(),
+            RoleEnum::ENSEIGNANT => $factory->enseignant()->count($missing)->create(),
+            RoleEnum::ELEVE => $factory->eleve()->count($missing)->create(),
+            default => null,
+        };
     }
 }
