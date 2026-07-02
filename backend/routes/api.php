@@ -69,6 +69,11 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function () {
             [UserController::class, 'toggleActive']
         );
 
+        Route::put(
+            'users/{user}/classes',
+            [UserController::class, 'assignClasses']
+        );
+
         Route::apiResource('classes', ClasseController::class)
             ->except(['index', 'show']);
 

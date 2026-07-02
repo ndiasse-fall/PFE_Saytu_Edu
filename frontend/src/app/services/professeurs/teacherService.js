@@ -46,3 +46,10 @@ export async function toggleTeacherActive(id) {
     method: 'PATCH',
   })
 }
+
+export async function assignClassesToTeacher(id, classeIds) {
+  return apiClient(`${BASE_URL}/${id}/classes`, {
+    method: 'PUT',
+    data: { classe_ids: classeIds },
+  })
+}

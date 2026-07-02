@@ -197,6 +197,21 @@ class UserService
         return $user->fresh();
     }
 
+    public function assignClassesToEnseignant(User $user, array $classeIds): User
+    {
+        $role = $user->role instanceof RoleEnum ? $user->role->value : $user->resolvedRole();
+
+        if ($role !== RoleEnum::ENSEIGNANT->value) {
+            throw ValidationException::withMessages([
+                'user' => "Cet utilisateur n'est pas un enseignant.",
+            ]);
+        }
+
+        $user->enseignantClasses()->sync($classeIds);
+
+        return $user->fresh('enseignantClasses');
+    }
+
     public function getDashboardMetrics(): array
     {
         return [
