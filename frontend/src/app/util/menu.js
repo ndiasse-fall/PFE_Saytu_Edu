@@ -13,11 +13,8 @@ export const menuItems = [
                 path: "/admin/eleves",
                 icon: "bi-mortarboard-fill",
             },
-            {
-                label: "Utilisateurs",
-                path: "/admin/users",
-                icon: "bi-people-fill",
-            },
+            
+        
             {
                 label: "Professeurs",
                 path: "/admin/professeurs",
