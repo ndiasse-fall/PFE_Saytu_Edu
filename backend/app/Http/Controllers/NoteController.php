@@ -25,6 +25,10 @@ class NoteController extends Controller
             $query->whereHas('classe.enseignants', function ($q) use ($user) {
                 $q->where('users.id', $user->id);
             });
+
+            $query->whereHas('matiere.enseignants', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
+            });
         }
 
         if ($request->filled('id_eleve')) {

@@ -1,11 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getBulletins } from "../../../../services/bulletins/bulletinService";
+import { apiClient } from "../../../../core/api/apiClient";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
 export default function BulletinList() {
   const [bulletins, setBulletins] = useState([]);
+  const [classes, setClasses] = useState([]);
+  const [periodes, setPeriodes] = useState([]);
+  const [niveaux, setNiveaux] = useState([]);
+  
+  const [filtreNiveau, setFiltreNiveau] = useState("tous");
   const [filtreClasse, setFiltreClasse] = useState("toutes");
   const [filtrePeriode, setFiltrePeriode] = useState("toutes");
   const [page, setPage] = useState(1);
@@ -18,28 +24,104 @@ export default function BulletinList() {
 
   const loadData = async () => {
     try {
-      const data = await getBulletins();
-      setBulletins(data.data ?? data);
+      // Charger les classes et extraire les niveaux
+      const classesRes = await apiClient("/classes");
+      const classesData = Array.isArray(classesRes) ? classesRes : classesRes.data || [];
+      setClasses(classesData);
+      
+      // Extraire les niveaux uniques
+      const niveauxUniques = [...new Set(classesData.map(c => c.niveau).filter(Boolean))].sort();
+      setNiveaux(niveauxUniques);
+
+      // Charger les bulletins
+      const bulletinsRes = await getBulletins();
+      const bulletinsData = bulletinsRes.data ?? bulletinsRes ?? [];
+      setBulletins(bulletinsData);
+
+      // Extraire les périodes uniques depuis les notes (via API)
+      try {
+        const notesRes = await apiClient("/notes");
+        const notesData = Array.isArray(notesRes) ? notesRes : notesRes.data || [];
+        const periodesUniques = [...new Set(notesData.map(n => n.periode).filter(Boolean))].sort();
+        setPeriodes(periodesUniques);
+      } catch (err) {
+        console.warn("Impossible de charger les périodes depuis /notes", err);
+        // Fallback: extraire depuis bulletins
+        const periodesUniques = [...new Set(bulletinsData.map(b => b.periode).filter(p => p && p !== 'Toutes périodes'))].sort();
+        setPeriodes(periodesUniques);
+      }
     } catch (error) {
-      console.error("Erreur chargement bulletins:", error);
+      console.error("Erreur chargement données:", error);
     }
   };
 
-  // Listes uniques pour filtres
-  const classes = ["toutes", ...new Set(bulletins.map(b => b.classe ?? "Sans classe"))];
-  const periodes = ["toutes", ...new Set(bulletins.map(b => b.periode))];
+  // Classes filtrées par niveau
+  const classesFiltrées = filtreNiveau === "tous" 
+    ? classes 
+    : classes.filter(c => c.niveau === filtreNiveau);
 
-  // Filtrage
-  const filtres = bulletins.filter(b => {
-    const okClasse = filtreClasse === "toutes" || b.classe === filtreClasse;
-    const okPeriode = filtrePeriode === "toutes" || b.periode === filtrePeriode;
-    return okClasse && okPeriode;
+  useEffect(() => {
+    if (filtreNiveau !== "tous") {
+      const classeExiste = classesFiltrées.some((c) => c.nom_classe === filtreClasse);
+      if (!classeExiste) {
+        setFiltreClasse("toutes");
+      }
+    }
+  }, [filtreNiveau, classesFiltrées, filtreClasse]);
+
+  const normalize = (value) => {
+    if (!value) return "";
+    return String(value)
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+  };
+
+  const getClasseInfo = (bulletin) => {
+    const rawClasse = bulletin?.classe ?? bulletin?.classe_name ?? bulletin?.nom_classe ?? bulletin?.classe_nom ?? "";
+    const rawClasseObj = bulletin?.classe ?? {};
+
+    const nom =
+      rawClasseObj.nom_classe ||
+      rawClasseObj.nom ||
+      rawClasseObj.libelle ||
+      rawClasse ||
+      "";
+
+    const niveau =
+      rawClasseObj.niveau ||
+      bulletin?.niveau ||
+      bulletin?.classe_niveau ||
+      "";
+
+    if (nom) {
+      const classeTrouvee = classes.find((c) => {
+        return [c.nom_classe, c.nom, c.libelle].some((value) => normalize(value) === normalize(nom));
+      });
+
+      return {
+        nom: nom,
+        niveau: niveau || classeTrouvee?.niveau || "",
+      };
+    }
+
+    return { nom: "", niveau: "" };
+  };
+
+  // Bulletins filtrés
+  const bulletinsFiltrés = bulletins.filter((b) => {
+    const classeInfo = getClasseInfo(b);
+    const okNiveau = filtreNiveau === "tous" || normalize(classeInfo.niveau) === normalize(filtreNiveau);
+    const okClasse = filtreClasse === "toutes" || normalize(classeInfo.nom) === normalize(filtreClasse);
+    const okPeriode = filtrePeriode === "toutes" || normalize(b.periode) === normalize(filtrePeriode);
+    return okNiveau && okClasse && okPeriode;
   });
 
   // Pagination
-  const total = filtres.length;
+  const total = bulletinsFiltrés.length;
   const pages = Math.ceil(total / parPage);
-  const pagines = filtres.slice((page - 1) * parPage, page * parPage);
+  const pagines = bulletinsFiltrés.slice((page - 1) * parPage, page * parPage);
 
   // Stats
   const moyenneEcole = bulletins.length
@@ -105,20 +187,37 @@ export default function BulletinList() {
       {/* Filtres */}
       <div style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "16px", marginBottom: "20px", backgroundColor: "#fff" }}>
         <div style={{ fontWeight: "bold", marginBottom: "12px" }}>🔍 Filtres de recherche</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
           <div>
-            <label style={{ fontSize: "11px", color: "#666" }}>PÉRIODE</label>
-            <select value={filtrePeriode} onChange={e => { setFiltrePeriode(e.target.value); setPage(1); }}
+            <label style={{ fontSize: "11px", color: "#666" }}>NIVEAU</label>
+            <select value={filtreNiveau} onChange={e => { setFiltreNiveau(e.target.value); setFiltreClasse("toutes"); setPage(1); }}
               style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px", marginTop: "4px" }}>
-              {periodes.map(p => <option key={p} value={p}>{p === "toutes" ? "Toutes les périodes" : p}</option>)}
+              <option value="tous">Tous les niveaux</option>
+              {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
           <div>
             <label style={{ fontSize: "11px", color: "#666" }}>CLASSE</label>
             <select value={filtreClasse} onChange={e => { setFiltreClasse(e.target.value); setPage(1); }}
               style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px", marginTop: "4px" }}>
-              {classes.map(c => <option key={c} value={c}>{c === "toutes" ? "Toutes les classes" : c}</option>)}
+              <option value="toutes">Toutes les classes</option>
+              {classesFiltrées.map(c => <option key={c.id} value={c.nom_classe}>{c.nom_classe}</option>)}
             </select>
+          </div>
+          <div>
+            <label style={{ fontSize: "11px", color: "#666" }}>PÉRIODE</label>
+            <select value={filtrePeriode} onChange={e => { setFiltrePeriode(e.target.value); setPage(1); }}
+              style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px", marginTop: "4px" }}>
+              <option value="toutes">Toutes les périodes</option>
+              {periodes.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+          </div>
+          <div style={{ display: "flex", alignItems: "flex-end" }}>
+            <button
+              onClick={() => { setFiltreNiveau("tous"); setFiltreClasse("toutes"); setFiltrePeriode("toutes"); setPage(1); }}
+              style={{ width: "100%", backgroundColor: "#6c757d", color: "white", border: "none", padding: "6px", borderRadius: "4px", cursor: "pointer" }}>
+              Réinitialiser
+            </button>
           </div>
         </div>
       </div>
@@ -133,7 +232,6 @@ export default function BulletinList() {
           <thead>
             <tr style={{ backgroundColor: "#f5f5f5", fontSize: "12px", color: "#666" }}>
               <th style={th}>ÉLÈVE</th>
-              <th style={th}>MATRICULE</th>
               <th style={th}>CLASSE</th>
               <th style={th}>MOYENNE</th>
               <th style={th}>RANG</th>
@@ -152,34 +250,33 @@ export default function BulletinList() {
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: "12px", fontWeight: "bold", flexShrink: 0
                     }}>
-                      {getInitiales(item.eleve?.nom)}
+                      {getInitiales(item.eleve?.nom || item.nom)}
                     </div>
-                    <span style={{ fontWeight: "500" }}>{item.eleve?.nom}</span>
+                    <span style={{ fontWeight: "500" }}>{item.eleve?.nom || item.nom}</span>
                   </div>
                 </td>
-                <td style={{ ...td, color: "#666", fontSize: "12px" }}>-</td>
-                <td style={td}>{item.classe ?? "-"}</td>
+                <td style={td}>{item.classe?.nom_classe || item.classe || "-"}</td>
                 <td style={td}>
                   <span style={{ fontWeight: "bold", color: getMoyenneColor(item.moyenne) }}>
-                    {item.moyenne}
+                    {item.moyenne || "-"}
                   </span>
                 </td>
                 <td style={{ ...td, color: "#666" }}>{(page - 1) * parPage + index + 1}</td>
-                <td style={td}>{item.periode}</td>
+                <td style={td}>{item.periode || "-"}</td>
                 <td style={td}>
                   <button
-                    onClick={() => navigate(`/admin/bulletins/${item.eleve.id}`)}
+                    onClick={() => navigate(`/admin/bulletins/${item.eleve?.id || item.id}`)}
                     style={{ backgroundColor: "transparent", border: "none", cursor: "pointer", color: "#1a3c8f", fontSize: "18px", padding: "2px 6px" }}
                     title="Voir le bulletin"
                   >
                     👁
                   </button>
                   <button
-                     onClick={() => telechargerBulletin(item.eleve.id, item.eleve.nom)}
-                     style={{ backgroundColor: "transparent", border: "none", cursor: "pointer", color: "#28a745", fontSize: "18px", padding: "2px 6px" }}
-                     title="Télécharger le bulletin"
+                    onClick={() => telechargerBulletin(item.eleve?.id || item.id, item.eleve?.nom || item.nom)}
+                    style={{ backgroundColor: "transparent", border: "none", cursor: "pointer", color: "#28a745", fontSize: "18px", padding: "2px 6px" }}
+                    title="Télécharger le bulletin"
                   >
-                     ⬇
+                    ⬇
                   </button>
                 </td>
               </tr>
