@@ -38,18 +38,9 @@ export default function BulletinList() {
       const bulletinsData = bulletinsRes.data ?? bulletinsRes ?? [];
       setBulletins(bulletinsData);
 
-      // Extraire les périodes uniques depuis les notes (via API)
-      try {
-        const notesRes = await apiClient("/notes");
-        const notesData = Array.isArray(notesRes) ? notesRes : notesRes.data || [];
-        const periodesUniques = [...new Set(notesData.map(n => n.periode).filter(Boolean))].sort();
-        setPeriodes(periodesUniques);
-      } catch (err) {
-        console.warn("Impossible de charger les périodes depuis /notes", err);
-        // Fallback: extraire depuis bulletins
-        const periodesUniques = [...new Set(bulletinsData.map(b => b.periode).filter(p => p && p !== 'Toutes périodes'))].sort();
-        setPeriodes(periodesUniques);
-      }
+      // Extraire les périodes uniques depuis les bulletins uniquement
+      const periodesUniques = [...new Set(bulletinsData.map(b => b.periode).filter(p => p && p !== 'Toutes périodes'))].sort();
+      setPeriodes(periodesUniques);
     } catch (error) {
       console.error("Erreur chargement données:", error);
     }
@@ -73,8 +64,6 @@ export default function BulletinList() {
     if (!value) return "";
     return String(value)
       .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
       .trim();
   };
 
@@ -112,9 +101,14 @@ export default function BulletinList() {
   // Bulletins filtrés
   const bulletinsFiltrés = bulletins.filter((b) => {
     const classeInfo = getClasseInfo(b);
-    const okNiveau = filtreNiveau === "tous" || normalize(classeInfo.niveau) === normalize(filtreNiveau);
-    const okClasse = filtreClasse === "toutes" || normalize(classeInfo.nom) === normalize(filtreClasse);
-    const okPeriode = filtrePeriode === "toutes" || normalize(b.periode) === normalize(filtrePeriode);
+    const niveauBulletin = classeInfo.niveau || "";
+    const classeBulletin = classeInfo.nom || "";
+    const periodeBulletin = b.periode || "";
+    
+    const okNiveau = filtreNiveau === "tous" || niveauBulletin === filtreNiveau;
+    const okClasse = filtreClasse === "toutes" || classeBulletin === filtreClasse;
+    const okPeriode = filtrePeriode === "toutes" || periodeBulletin === filtrePeriode;
+    
     return okNiveau && okClasse && okPeriode;
   });
 
