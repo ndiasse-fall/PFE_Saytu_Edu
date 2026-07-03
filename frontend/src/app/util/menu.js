@@ -13,7 +13,6 @@ export const menuItems = [
                 path: "/admin/eleves",
                 icon: "bi-mortarboard-fill",
             },
-          
             {
                 label: "Professeurs",
                 path: "/admin/professeurs",
@@ -45,6 +44,11 @@ export const menuItems = [
                 label: "Emploi du temps",
                 path: "/admin/emploi-du-temps",
                 icon: "bi-calendar-week",
+            },
+            {
+                label: "Absences",
+                path: "/absences",
+                icon: "bi-calendar-x",
             },
             {
                 label: "Gestion des notes",
@@ -79,6 +83,11 @@ export const menuItems = [
                 icon: "bi-journal-text",
             },
             {
+                label: "Absences",
+                path: "/absences",
+                icon: "bi-calendar-x",
+            },
+            {
                 label: "Emploi du temps",
                 path: "/enseignant/emploi-du-temps",
                 icon: "bi-calendar-week",
@@ -93,6 +102,11 @@ export const menuItems = [
                 label: "Emploi du temps",
                 path: "/eleve/emploi-du-temps",
                 icon: "bi-calendar-week",
+            },
+            {
+                label: "Mes absences",
+                path: "/eleve/absences",
+                icon: "bi-calendar-x",
             },
             {
                 label: "Bulletin",

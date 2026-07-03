@@ -11,6 +11,11 @@ class Absence extends Model
 
     protected $fillable = ['date_absence', 'motif', 'est_justifiee', 'id_eleve'];
 
+    protected $casts = [
+        'date_absence' => 'date:Y-m-d',
+        'est_justifiee' => 'boolean',
+    ];
+
     public function eleve()
     {
         return $this->belongsTo(User::class, 'id_eleve');

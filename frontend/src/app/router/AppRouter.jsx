@@ -1,9 +1,9 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { useAuth } from "../core/context/useAuth";
 import { AuthGuard } from "../core/guards/AuthGuard";
 import { GuestGuard } from "../core/guards/GuestGuard";
 import { RoleGuard } from "../core/guards/RoleGuard";
-import { useAuth } from "../core/context/useAuth";
 import { getDashboardPath } from "../util/roleNavigation";
 import { BaseLayout } from "../views/layout/base/BaseLayout";
 
@@ -20,6 +20,7 @@ const ClasseManagementPage = lazy(() => import("../views/pages/gestion-admin/Cla
 const MatiereManagementPage = lazy(() => import("../views/pages/gestion-admin/matieres/MatiereManagementPage").then((module) => ({ default: module.MatiereManagementPage })));
 const AffectationManagementPage = lazy(() => import("../views/pages/gestion-admin/affectations/AffectationManagementPage").then((module) => ({ default: module.AffectationManagementPage })));
 const EmploiDuTempsPage = lazy(() => import("../views/pages/gestion-admin/emplois-du-temps/EmploiDuTempsPage").then((module) => ({ default: module.EmploiDuTempsPage })));
+const AbsenceManagementPage = lazy(() => import("../views/pages/gestion-admin/absences/AbsenceManagementPage").then((module) => ({ default: module.AbsenceManagementPage })));
 const SettingsPage = lazy(() => import("../views/pages/settings/SettingsPage").then((module) => ({ default: module.SettingsPage })));
 const NotFoundPage = lazy(() => import("../views/pages/system/NotFoundPage").then((module) => ({ default: module.NotFoundPage })));
 const ModulePlaceholderPage = lazy(() => import("../views/pages/system/ModulePlaceholderPage").then((module) => ({ default: module.ModulePlaceholderPage })));
@@ -90,6 +91,7 @@ export function AppRouter() {
                                 <Route path="/notes" element={<NoteList />} />
                                 <Route path="/notes/resultats/classe/:classeId" element={<ClasseResultsPage />} />
                                 <Route path="/notes/:eleveId" element={<EleveNotesDetailPage />} />
+                                <Route path="/absences" element={<AbsenceManagementPage />} />
                             </Route>
 
                             <Route element={<RoleGuard roles={["ELEVE"]} />}>
