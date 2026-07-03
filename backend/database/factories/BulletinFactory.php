@@ -15,10 +15,10 @@ class BulletinFactory extends Factory
     public function definition(): array
     {
         return [
-            'periode' => Note::factory()->create()->periode,
+            'periode' => fake()->randomElement(['Semestre 1', 'Semestre 2']),
             'moyenne_generale' => fake()->randomFloat(2, 5, 18),
             'rang' => fake()->numberBetween(1, 40),
-            'id_eleve' => User::factory()->eleve()->create()->id,
+            'id_eleve' => User::factory()->eleve(),
             'id_classe' => Classe::query()->inRandomOrder()->value('id'),
         ];
     }
