@@ -22,7 +22,7 @@ export function CrudTable({
   onRowsPerPageChange,
 }) {
   return (
-    <section className="panel">
+    <section className="panel" aria-busy={loading ? 'true' : 'false'}>
       <CrudFilters
         fields={filterFields}
         filters={filters}
@@ -32,9 +32,9 @@ export function CrudTable({
       />
 
       {loading ? (
-        <div className="screen-state">Chargement...</div>
+        <div className="screen-state" role="status">Chargement...</div>
       ) : items.length === 0 ? (
-        <div className="screen-state">{emptyMessage}</div>
+        <div className="screen-state" role="status">{emptyMessage}</div>
       ) : (
         <div className="table-wrapper">
           <table>

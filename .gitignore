@@ -9,3 +9,11 @@
 # IDE files
 .idea/
 **/.idea/
+.vscode/
+**/.vscode/
+.cursor/
+**/.cursor/
+.continue/
+**/.continue/
+.aider*
+docs/

@@ -1,5 +1,4 @@
 export const menuItems = [
-    /* ================= ADMIN ================= */
     {
         section: "Administration",
         roles: ["SUPER_ADMIN", "ADMIN"],
@@ -14,10 +13,9 @@ export const menuItems = [
                 path: "/admin/eleves",
                 icon: "bi-mortarboard-fill",
             },
-          
             {
                 label: "Utilisateurs",
-                path: "/admin/gestion-admin/users",
+                path: "/admin/users",
                 icon: "bi-people-fill",
             },
             {
@@ -27,10 +25,13 @@ export const menuItems = [
             },
             {
                 label: "Classes",
+<<<<<<< HEAD
  HEAD
                 path: "/admin/classes",
                 icon: "bi-building",
 =======
+=======
+>>>>>>> 6c751166716933cb0bfe9dab3da72fe65c9e4557
                 icon: "bi-building",
                 isDropdown: true,
                 children: [
@@ -50,29 +51,17 @@ export const menuItems = [
                         icon: "bi-diagram-3",
                     },
                 ],
->>>>>>> origin
             },
             {
                 label: "Emploi du temps",
                 path: "/admin/emploi-du-temps",
                 icon: "bi-calendar-week",
             },
-             {
-                label: "Gestion des notes",
-                path: "/notes",
-                icon: "bi-journal-text",
-            },
-             {
-                label: "Résultats classe",
-                path: "/notes/resultats/classe",
-                icon: "bi-bar-chart",
-            },
             {
                 label: "Gestion des notes",
                 path: "/notes",
                 icon: "bi-journal-text",
             },
-           
             {
                 label: "Bulletin",
                 path: "/admin/bulletins",
@@ -80,9 +69,6 @@ export const menuItems = [
             },
         ],
     },
-
-  
-    /* ================= USER ================= */
     {
         section: "Espace utilisateur",
         roles: ["ENSEIGNANT", "ELEVE"],
@@ -94,37 +80,22 @@ export const menuItems = [
             },
         ],
     },
-     /* ================= ENSEIGNANT ================= */
     {
-<<<<<<< HEAD
-        section: "Espace utilisateur",
-        roles: ["ENSEIGNANT", "ELEVE"],
-=======
         section: "Enseignant",
         roles: ["ENSEIGNANT"],
->>>>>>> origin
         items: [
             {
                 label: "Gestion des notes",
                 path: "/notes",
                 icon: "bi-journal-text",
             },
-<<<<<<< HEAD
-             {
-                label: "Résultats classe",
-                path: "/notes/resultats/classe",
-                icon: "bi-bar-chart",
-=======
-            /* 🎯 L'ONGLET RECHERCHÉ EST PLACÉ ICI JUSQUE EN DESSOUS */
             {
                 label: "Emploi du temps",
                 path: "/enseignant/emploi-du-temps",
                 icon: "bi-calendar-week",
->>>>>>> origin
             },
         ],
     },
-    /* ================= ELEVE ================= */
     {
         section: "Élève",
         roles: ["ELEVE"],

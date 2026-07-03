@@ -20,6 +20,7 @@ class UpdateNoteRequest extends FormRequest
             'valeur' => ['sometimes', 'required', 'numeric', 'min:0', 'max:20'],
             'type_evaluation' => ['sometimes', 'required', 'string', 'max:100'],
             'periode' => ['sometimes', 'required', 'string', 'max:100'],
+            'id_matiere' => ['sometimes', 'required', 'integer', 'exists:matieres,id'],
         ];
     }
 

@@ -90,48 +90,45 @@ export function Sidebar({ isOpen, onClose, onToggle }) {
                         <div key={section.section} className="sidebar-section">
                             <p className="sidebar-title">{section.section}</p>
                             {section.items.map((item) => {
-                                // --- LOGIQUE DROPDOWN ---
                                 if (item.isDropdown) {
-                                    const isOpen = openDropdowns[item.label] || false;
+                                    const isDropdownOpen = openDropdowns[item.label] || false;
+                                    const dropdownId = `sidebar-dropdown-${item.label
+                                        .toLowerCase()
+                                        .replace(/\s+/g, "-")}`;
+
                                     return (
-                                        <div key={item.label} className="w-100">
-                                            {/* Bouton Principal déclencheur */}
+                                        <div key={item.label} className="sidebar-dropdown">
                                             <button
                                                 type="button"
-                                                className={`sidebar-link mb-1 w-100`}
+                                                className="sidebar-link sidebar-dropdown-trigger"
                                                 onClick={() => toggleDropdown(item.label)}
-                                                style={{ background: 'none', border: 'none', textAlign: 'left', display: 'flex', alignItems: 'center', gap: '4px', width: '100%' }}
+                                                aria-expanded={isDropdownOpen}
+                                                aria-controls={dropdownId}
                                             >
                                                 <i className={`sidebar-link-icon bi ${item.icon}`} aria-hidden="true" />
-                                               <span className="sidebar-link-label">
-                                                         {item.label}
+                                                <span className="sidebar-link-label">
+                                                    {item.label}
                                                 </span>
-                                                 
+
                                                 <i
-                                                    className={`bi ${isOpen ? "bi-chevron-down" : "bi-chevron-right"}`}
-                                                    style={{
-                                                        fontSize: "12px",
-                                                        marginLeft: "6px"
-                                                    }}
+                                                    className={`sidebar-dropdown-chevron bi ${isDropdownOpen ? "bi-chevron-down" : "bi-chevron-right"}`}
                                                     aria-hidden="true"
                                                 />
                                             </button>
 
-                                            {/* Rendu des enfants si le menu est ouvert */}
-                                            {isOpen && (
-                                                <div className="ps-4 d-flex flex-column">
+                                            {isDropdownOpen && (
+                                                <div id={dropdownId} className="sidebar-submenu">
                                                     {item.children.map((child) => (
                                                         <NavLink
                                                             key={child.path}
                                                             to={child.path}
                                                             className={({ isActive }) =>
-                                                                `sidebar-link${isActive ? " active" : ""} mb-1 py-1`
+                                                                `sidebar-link sidebar-submenu-link${isActive ? " active" : ""}`
                                                             }
                                                             onClick={handleNavigationClick}
-                                                            style={{ fontSize: '14px', paddingLeft: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}
                                                         >
                                                             {child.icon && (
-                                                                <i className={`bi ${child.icon}`} aria-hidden="true" style={{ fontSize: '14px' }} />
+                                                                <i className={`sidebar-submenu-icon bi ${child.icon}`} aria-hidden="true" />
                                                             )}
                                                             <span className="sidebar-link-label">{child.label}</span>
                                                         </NavLink>
@@ -142,7 +139,6 @@ export function Sidebar({ isOpen, onClose, onToggle }) {
                                     );
                                 }
 
-                                // Lien normal (sans dropdown)
                                 return (
                                     <NavLink
                                         key={item.path}

@@ -1,3 +1,5 @@
+import { PasswordField } from '../../../../../shared/components/forms/PasswordField'
+
 const roles = ['ADMIN', 'ENSEIGNANT', 'ELEVE']
 
 export function UserForm({
@@ -36,18 +38,16 @@ export function UserForm({
             Un mot de passe temporaire sera généré automatiquement pour ce rôle.
           </div>
         ) : (
-          <label>
-            <span>{passwordLabel}</span>
-            <input
-              name="password"
-              type="password"
-              value={form.password}
-              onChange={onInputChange}
-              autoComplete={isEditing ? 'new-password' : 'current-password'}
-              required={!isEditing}
-            />
-            {fieldErrors.password ? <small>{fieldErrors.password[0]}</small> : null}
-          </label>
+          <PasswordField
+            label={passwordLabel}
+            name="password"
+            value={form.password}
+            onChange={onInputChange}
+            placeholder={isEditing ? 'Laisser vide pour conserver le mot de passe' : 'Minimum 8 caractères'}
+            autoComplete={isEditing ? 'new-password' : 'current-password'}
+            required={!isEditing}
+            error={fieldErrors.password?.[0]}
+          />
         )}
         <label>
           <span>Téléphone</span>
