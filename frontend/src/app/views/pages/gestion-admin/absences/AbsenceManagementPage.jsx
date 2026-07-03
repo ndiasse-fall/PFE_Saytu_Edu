@@ -8,6 +8,7 @@ import {
   updateAbsence,
 } from '../../../../services/absences/absenceService'
 import { useAuth } from '../../../../core/context/useAuth'
+import { DrawerPanel } from '../../../../shared/components/ui/DrawerPanel'
 
 const today = new Date().toISOString().slice(0, 10)
 
@@ -392,10 +393,10 @@ export function AbsenceManagementPage() {
                     {canManage ? (
                       <td>
                         <div className="form-actions">
-                          <button type="button" className="ghost-button" onClick={() => startEdit(absence)}>
+                          <button type="button" className="ghost-button compact-button" onClick={() => startEdit(absence)}>
                             Modifier
                           </button>
-                          <button type="button" className="link-button danger" onClick={() => void handleDelete(absence.id)}>
+                          <button type="button" className="link-button danger compact-button" onClick={() => void handleDelete(absence.id)}>
                             Supprimer
                           </button>
                         </div>
@@ -409,51 +410,47 @@ export function AbsenceManagementPage() {
         )}
       </section>
 
-      {editingAbsence ? (
-        <>
-          <button type="button" className="users-drawer-backdrop" aria-label="Fermer le panneau" onClick={() => setEditingAbsence(null)} />
-          <aside className="users-drawer users-drawer-form" aria-label="Modifier une absence">
-            <section className="panel users-drawer-panel">
-              <div className="panel-header">
-                <div>
-                  <h2>Modifier l'absence</h2>
-                  <p className="muted">{getFullName(editingAbsence.eleve)} - {editingAbsence.date_absence}</p>
-                </div>
-                <button type="button" className="ghost-button" onClick={() => setEditingAbsence(null)}>
-                  Fermer
-                </button>
-              </div>
-
-              <form className="form-grid" onSubmit={handleUpdate}>
-                <label className="full-width">
-                  <span>Motif</span>
-                  <textarea
-                    rows="4"
-                    value={editForm.motif}
-                    onChange={(event) => setEditForm((current) => ({ ...current, motif: event.target.value }))}
-                  />
-                </label>
-                <label className="checkbox full-width">
-                  <input
-                    type="checkbox"
-                    checked={editForm.est_justifiee}
-                    onChange={(event) => setEditForm((current) => ({ ...current, est_justifiee: event.target.checked }))}
-                  />
-                  <span>Absence justifiée</span>
-                </label>
-                <div className="form-actions full-width">
-                  <button type="button" className="ghost-button" onClick={() => setEditingAbsence(null)}>
-                    Annuler
-                  </button>
-                  <button type="submit" disabled={submitting}>
-                    Enregistrer
-                  </button>
-                </div>
-              </form>
-            </section>
-          </aside>
-        </>
-      ) : null}
+      <DrawerPanel
+        open={Boolean(editingAbsence)}
+        onClose={() => setEditingAbsence(null)}
+        title="Modifier l'absence"
+        subtitle={editingAbsence ? `${getFullName(editingAbsence.eleve)} - ${editingAbsence.date_absence}` : ''}
+        headerAction={
+          <button type="button" className="ghost-button compact-button" onClick={() => setEditingAbsence(null)}>
+            Fermer
+          </button>
+        }
+      >
+        {editingAbsence ? (
+          <form className="form-grid absence-edit-form" onSubmit={handleUpdate}>
+            <label className="full-width">
+              <span>Motif</span>
+              <textarea
+                rows="4"
+                value={editForm.motif}
+                onChange={(event) => setEditForm((current) => ({ ...current, motif: event.target.value }))}
+                placeholder="Motif de l'absence"
+              />
+            </label>
+            <label className="checkbox full-width absence-justified-field">
+              <input
+                type="checkbox"
+                checked={editForm.est_justifiee}
+                onChange={(event) => setEditForm((current) => ({ ...current, est_justifiee: event.target.checked }))}
+              />
+              <span>Absence justifiée</span>
+            </label>
+            <div className="form-actions full-width">
+              <button type="button" className="ghost-button compact-button" onClick={() => setEditingAbsence(null)}>
+                Annuler
+              </button>
+              <button type="submit" className="compact-button" disabled={submitting}>
+                Enregistrer
+              </button>
+            </div>
+          </form>
+        ) : null}
+      </DrawerPanel>
     </section>
   )
 }
