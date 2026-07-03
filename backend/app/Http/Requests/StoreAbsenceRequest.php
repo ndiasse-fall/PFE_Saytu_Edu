@@ -7,46 +7,38 @@ use Illuminate\Validation\Rule;
 
 class StoreAbsenceRequest extends FormRequest
 {
-    /**
-     * Autoriser la requête
-     */
     public function authorize(): bool
     {
-        return true; // IMPORTANT sinon 403
+        return true;
     }
 
-    /**
-     * Règles de validation
-     */
     public function rules(): array
     {
         return [
-            'date_absence' => 'required|date',
-            'absents' => 'required|array|min:1',
+            'id_classe' => ['nullable', 'integer', 'exists:classes,id'],
+            'date_absence' => ['required', 'date'],
+            'absents' => ['required', 'array', 'min:1'],
             'absents.*' => [
+                'required',
                 'integer',
                 Rule::exists('users', 'id')->where('role', 'ELEVE'),
             ],
-            'motif' => 'nullable|string|max:255',
-            'est_justifiee' => 'nullable|boolean',
+            'motif' => ['nullable', 'string', 'max:255'],
+            'est_justifiee' => ['nullable', 'boolean'],
         ];
     }
 
-    /**
-     * Messages personnalisés
-     */
     public function messages(): array
     {
         return [
+            'id_classe.exists' => 'La classe sélectionnée est invalide',
             'date_absence.required' => 'La date d\'absence est obligatoire',
             'date_absence.date' => 'Le format de la date est invalide',
-
             'absents.required' => 'Vous devez sélectionner au moins un élève absent',
             'absents.array' => 'Le format des absents est invalide',
             'absents.min' => 'Vous devez sélectionner au moins un élève absent',
             'absents.*.integer' => 'L’identifiant de l’élève doit être un entier',
             'absents.*.exists' => 'Un ou plusieurs élèves sélectionnés n’existent pas',
-
             'motif.string' => 'Le motif doit être une chaîne de caractères',
             'motif.max' => 'Le motif ne doit pas dépasser 255 caractères',
         ];

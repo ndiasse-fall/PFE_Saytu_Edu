@@ -102,7 +102,69 @@ class AbsenceApiTest extends TestCase
             ->assertJsonPath('data.0.id_eleve', $eleve->id);
     }
 
-    public function test_enseignant_cannot_manage_absences(): void
+    public function test_enseignant_can_create_absences_for_his_class(): void
+    {
+        $enseignant = User::factory()->enseignant()->create(['actif' => true]);
+        $classe = Classe::factory()->create();
+        $eleve = User::factory()->eleve()->create(['actif' => true]);
+
+        $classe->enseignants()->attach($enseignant->id);
+        $classe->eleves()->attach($eleve->id);
+
+        Sanctum::actingAs($enseignant);
+
+        $this->postJson('/api/absences/enregistrer', [
+            'id_classe' => $classe->id,
+            'date_absence' => '2026-07-02',
+            'motif' => 'Maladie',
+            'absents' => [$eleve->id],
+        ])
+            ->assertCreated()
+            ->assertJsonPath('total', 1);
+
+        $this->assertDatabaseHas('absences', [
+            'id_eleve' => $eleve->id,
+            'date_absence' => '2026-07-02',
+            'motif' => 'Maladie',
+            'est_justifiee' => false,
+        ]);
+    }
+
+    public function test_enseignant_cannot_create_absence_for_unassigned_class(): void
+    {
+        $enseignant = User::factory()->enseignant()->create(['actif' => true]);
+        $classe = Classe::factory()->create();
+        $eleve = User::factory()->eleve()->create(['actif' => true]);
+
+        $classe->eleves()->attach($eleve->id);
+
+        Sanctum::actingAs($enseignant);
+
+        $this->postJson('/api/absences/enregistrer', [
+            'id_classe' => $classe->id,
+            'date_absence' => '2026-07-02',
+            'absents' => [$eleve->id],
+        ])->assertForbidden();
+    }
+
+    public function test_cannot_create_absence_for_student_outside_class(): void
+    {
+        $admin = User::factory()->admin()->create(['actif' => true]);
+        $classe = Classe::factory()->create();
+        $eleve = User::factory()->eleve()->create(['actif' => true]);
+
+        Sanctum::actingAs($admin);
+
+        $this->postJson('/api/absences/enregistrer', [
+            'id_classe' => $classe->id,
+            'date_absence' => '2026-07-02',
+            'absents' => [$eleve->id],
+        ])
+            ->assertUnprocessable()
+            ->assertJsonPath('invalid_eleve_ids.0', $eleve->id);
+    }
+
+    public function test_enseignant_cannot_manage_absence_outside_his_classes(): void
     {
         $enseignant = User::factory()->enseignant()->create([
             'role' => RoleEnum::ENSEIGNANT,
@@ -112,8 +174,41 @@ class AbsenceApiTest extends TestCase
 
         $absence = Absence::factory()->create();
 
-        $this->postJson('/api/absences', [])->assertForbidden();
-        $this->putJson("/api/absences/{$absence->id}", [])->assertForbidden();
-        $this->deleteJson("/api/absences/{$absence->id}")->assertForbidden();
+        $this->postJson('/api/absences', [
+            'date_absence' => '2026-07-02',
+            'absents' => [$absence->id_eleve],
+        ])->assertUnprocessable();
+        $this->putJson("/api/absences/{$absence->id}", [])->assertNotFound();
+        $this->deleteJson("/api/absences/{$absence->id}")->assertNotFound();
+    }
+
+    public function test_enseignant_can_justify_absence_in_his_class(): void
+    {
+        $enseignant = User::factory()->enseignant()->create(['actif' => true]);
+        $classe = Classe::factory()->create();
+        $eleve = User::factory()->eleve()->create(['actif' => true]);
+
+        $classe->enseignants()->attach($enseignant->id);
+        $classe->eleves()->attach($eleve->id);
+
+        $absence = Absence::factory()->create([
+            'id_eleve' => $eleve->id,
+            'est_justifiee' => false,
+        ]);
+
+        Sanctum::actingAs($enseignant);
+
+        $this->putJson("/api/absences/{$absence->id}", [
+            'motif' => 'Certificat médical',
+            'est_justifiee' => true,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.est_justifiee', true);
+
+        $this->assertDatabaseHas('absences', [
+            'id' => $absence->id,
+            'motif' => 'Certificat médical',
+            'est_justifiee' => true,
+        ]);
     }
 }
