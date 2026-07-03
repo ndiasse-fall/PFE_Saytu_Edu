@@ -20,8 +20,12 @@ class StoreNoteRequest extends FormRequest
         return [
             'id_classe' => ['required', 'integer', 'exists:classes,id'],
             'id_matiere' => ['required', 'integer', 'exists:matieres,id'],
-            'type_evaluation' => ['required', 'string', 'max:100'],
-            'periode' => ['required', 'string', 'max:100'],
+            'type_evaluation' => ['required', 'string', 'max:100', Rule::in([
+                'Devoir 1',
+                'Devoir 2',
+                'Composition',
+            ])],
+            'periode' => ['required', 'string', 'max:100', Rule::in(['Semestre 1', 'Semestre 2'])],
             'notes' => ['required', 'array', 'min:1'],
             'notes.*.id_eleve' => [
                 'required',

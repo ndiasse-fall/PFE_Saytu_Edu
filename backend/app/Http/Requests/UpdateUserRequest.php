@@ -3,8 +3,10 @@
 namespace App\Http\Requests;
 
 use App\Enums\RoleEnum;
+use App\Models\Matieres;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rules\Enum;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\Validation\Rule;
@@ -35,7 +37,32 @@ class UpdateUserRequest extends FormRequest
             'role' => ['sometimes', 'required', new Enum(RoleEnum::class)],
             'actif' => ['nullable', 'boolean'],
             'matricule_enseignant' => ['nullable', 'string', Rule::unique('users', 'matricule_enseignant')->ignore($userId)],
-            'specialite' => ['nullable', 'string', 'max:255'],
+            'specialite' => [
+                Rule::requiredIf(fn() => $this->input('role') === RoleEnum::ENSEIGNANT->value),
+                'nullable',
+                'string',
+                'max:255',
+                function ($attribute, $value, $fail): void {
+                    if (blank($value)) {
+                        return;
+                    }
+
+                    $normalizedValue = Str::lower(Str::ascii($value));
+
+                    $exists = Matieres::query()
+                        ->get()
+                        ->contains(function ($matiere) use ($normalizedValue): bool {
+                            $normalizedMatiere = Str::lower(Str::ascii($matiere->nom_matiere));
+
+                            return Str::contains($normalizedMatiere, $normalizedValue)
+                                || Str::contains($normalizedValue, $normalizedMatiere);
+                        });
+
+                    if (! $exists) {
+                        $fail('La spécialité doit correspondre à une matière existante.');
+                    }
+                },
+            ],
             'date_embauche' => ['nullable', 'date'],
             'matricule_eleve' => ['nullable', 'string', Rule::unique('users', 'matricule_eleve')->ignore($userId)],
             'date_naissance' => ['nullable', 'date'],

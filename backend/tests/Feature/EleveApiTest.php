@@ -26,11 +26,12 @@ class EleveApiTest extends TestCase
 
         $classe = Classe::factory()->create();
         $matiere = Matieres::factory()->create(['coefficient' => 2]);
-        
+
         Note::factory()->create([
             'id_eleve' => $eleve->id,
             'id_classe' => $classe->id,
             'id_matiere' => $matiere->id,
+            'type_evaluation' => 'Devoir 1',
             'valeur' => 16,
         ]);
 

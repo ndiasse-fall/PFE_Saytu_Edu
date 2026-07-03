@@ -25,7 +25,7 @@ class UserSeeder extends Seeder
 
         $this->createMissingUsers(RoleEnum::ADMIN, 2);
         $this->createMissingUsers(RoleEnum::ENSEIGNANT, 10);
-        $this->createMissingUsers(RoleEnum::ELEVE, 50);
+        $this->createMissingUsers(RoleEnum::ELEVE, 100);
     }
 
     /**
@@ -64,13 +64,48 @@ class UserSeeder extends Seeder
             return;
         }
 
-        $factory = User::factory();
+        // Create exactly the missing number of users while avoiding duplicates.
+        // Some environments may run seeders multiple times; ensure idempotence by
+        // checking for existing emails before creating new records.
+        $created = 0;
+        $attempts = 0;
+        $maxAttempts = max(1000, $missing * 10);
 
-        match ($role) {
-            RoleEnum::ADMIN => $factory->admin()->count($missing)->create(),
-            RoleEnum::ENSEIGNANT => $factory->enseignant()->count($missing)->create(),
-            RoleEnum::ELEVE => $factory->eleve()->count($missing)->create(),
-            default => null,
-        };
+        while ($created < $missing && $attempts < $maxAttempts) {
+            $attempts++;
+
+            $user = match ($role) {
+                RoleEnum::ADMIN => User::factory()->admin()->make(),
+                RoleEnum::ENSEIGNANT => User::factory()->enseignant()->make(),
+                RoleEnum::ELEVE => User::factory()->eleve()->make(),
+                default => User::factory()->make(),
+            };
+
+            // If an identical email already exists, skip and continue.
+            if (User::withTrashed()->where('email', $user->email)->exists()) {
+                continue;
+            }
+
+            // Persist the user using only attributes declared in `$fillable`
+            // to ensure relations or appended attributes (eg. `classes`) are not
+            // accidentally inserted as columns.
+            $fillable = (new User())->getFillable();
+            $attrs = array_intersect_key($user->getAttributes(), array_flip($fillable));
+            User::create($attrs);
+            $created++;
+        }
+
+        if ($created < $missing) {
+            // As a fallback, use factory bulk create for remaining (should be rare).
+            $remaining = $missing - $created;
+            if ($remaining > 0) {
+                match ($role) {
+                    RoleEnum::ADMIN => User::factory()->admin()->count($remaining)->create(),
+                    RoleEnum::ENSEIGNANT => User::factory()->enseignant()->count($remaining)->create(),
+                    RoleEnum::ELEVE => User::factory()->eleve()->count($remaining)->create(),
+                    default => null,
+                };
+            }
+        }
     }
 }

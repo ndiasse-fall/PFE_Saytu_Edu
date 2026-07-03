@@ -15,14 +15,33 @@ class EmploiDuTempsFactory extends Factory
     public function definition(): array
     {
         $jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+        $creneaux = [
+            ['08:00', '10:00'],
+            ['10:00', '12:00'],
+            ['12:00', '14:00'],
+            ['14:00', '16:00'],
+            ['15:00', '17:00'],
+        ];
+        [$heureDebut, $heureFin] = fake()->randomElement($creneaux);
+
         return [
             'jour' => fake()->randomElement($jours),
-            'heure_debut' => fake()->time('H:i', '12:00'),
-            'heure_fin' => fake()->time('H:i', '18:00'),
-            'salle' => fake()->bothify('Salle ###'),
-            'id_classe' => Classe::factory(),
-            'id_enseignant' => User::factory()->enseignant(),
-            'id_matiere' => Matieres::factory(),
+            'heure_debut' => $heureDebut,
+            'heure_fin' => $heureFin,
+            'salle' => 'Salle ' . fake()->numberBetween(1, 20),
+            'est_publie' => true,
+            'id_classe' => Classe::query()->inRandomOrder()->value('id')
+                ?? Classe::query()->firstOrCreate(
+                    ['nom_classe' => '2nde L A', 'annee_scolaire' => '2025-2026'],
+                    ['niveau' => 'Seconde']
+                )->id,
+            'id_enseignant' => User::query()->where('role', 'ENSEIGNANT')->inRandomOrder()->value('id')
+                ?? User::factory()->enseignant()->create()->id,
+            'id_matiere' => Matieres::query()->inRandomOrder()->value('id')
+                ?? Matieres::query()->firstOrCreate(
+                    ['nom_matiere' => 'Mathématiques'],
+                    ['coefficient' => 6, 'description' => 'Algèbre, géométrie et raisonnement mathématique.']
+                )->id,
         ];
     }
 }

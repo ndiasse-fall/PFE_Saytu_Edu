@@ -53,3 +53,11 @@ export async function assignClassesToTeacher(id, classeIds) {
     data: { classe_ids: classeIds },
   })
 }
+
+// ==========================================
+//  AJOUT : Récupération de la table matières
+// ==========================================
+export async function listMatieres() {
+  // Appelle directement l'endpoint GET 'matieres' de votre API Laravel
+  return apiClient('/matieres')
+}

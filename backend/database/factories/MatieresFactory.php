@@ -9,12 +9,44 @@ class MatieresFactory extends Factory
 {
     protected $model = Matieres::class;
 
+    protected static array $subjects = [
+        ['nom_matiere' => 'Mathématiques', 'coefficient' => 6, 'description' => 'Algèbre, géométrie et raisonnement mathématique.'],
+        ['nom_matiere' => 'Français', 'coefficient' => 5, 'description' => 'Expression écrite, orale et analyse littéraire.'],
+        ['nom_matiere' => 'Histoire-Géo', 'coefficient' => 3, 'description' => 'Histoire, géographie et éducation civique.'],
+        ['nom_matiere' => 'SVT', 'coefficient' => 4, 'description' => 'Sciences de la vie et de la terre.'],
+        ['nom_matiere' => 'Physique-Chimie', 'coefficient' => 4, 'description' => 'Physique et chimie appliquées.'],
+        ['nom_matiere' => 'Anglais', 'coefficient' => 3, 'description' => 'Communication et compréhension en anglais.'],
+        ['nom_matiere' => 'Philosophie', 'coefficient' => 2, 'description' => 'Analyse conceptuelle et réflexion critique.'],
+        ['nom_matiere' => 'EPS', 'coefficient' => 2, 'description' => 'Éducation physique et sportive.'],
+        ['nom_matiere' => 'Informatique', 'coefficient' => 2, 'description' => 'Initiation aux outils numériques et algorithmes.'],
+    ];
+
+    protected static array $generatedNames = [];
+
     public function definition(): array
     {
-        $matieres = ['Mathématiques', 'Français', 'Histoire-Géo', 'SVT', 'Physique-Chimie', 'Anglais', 'EPS', 'Philosophie'];
+        $existingNames = array_merge(
+            Matieres::query()->pluck('nom_matiere')->all(),
+            self::$generatedNames
+        );
+        
+        $availableSubjects = array_values(array_filter(
+            self::$subjects, 
+            fn(array $subject): bool => ! in_array($subject['nom_matiere'], $existingNames, true)
+        ));
+
+        if (! empty($availableSubjects)) {
+            $subject = $availableSubjects[array_rand($availableSubjects)];
+            self::$generatedNames[] = $subject['nom_matiere'];
+            return $subject;
+        }
+
+        $name = 'Matière ' . fake()->unique()->word();
+        self::$generatedNames[] = $name;
+
         return [
-            'nom_matiere' => fake()->unique()->randomElement($matieres),
-            'coefficient' => fake()->numberBetween(1, 5),
+            'nom_matiere' => $name,
+            'coefficient' => fake()->numberBetween(1, 6),
             'description' => fake()->sentence(),
         ];
     }

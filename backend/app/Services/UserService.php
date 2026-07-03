@@ -275,4 +275,57 @@ class UserService
             'role' => 'Le compte Super Admin est réservé au seeder système.',
         ]);
     }
+
+    private function roleUsesTemporaryPassword(RoleEnum|string|null $role): bool
+    {
+        if (blank($role)) {
+            return false;
+        }
+
+        $value = $role instanceof RoleEnum ? $role : RoleEnum::from($role);
+
+        return in_array($value, [RoleEnum::ENSEIGNANT, RoleEnum::ELEVE], true);
+    }
+
+    private function generateTemporaryPassword(): string
+    {
+        return Str::random(12);
+    }
+
+    private function createUserWithMatriculeRetry(array $data, bool $explicitMatricule): User
+    {
+        $attempt = 0;
+        $maxAttempts = 5;
+
+        do {
+            try {
+                return User::create($data);
+            } catch (QueryException $exception) {
+                $attempt++;
+
+                if ($explicitMatricule || $attempt >= $maxAttempts) {
+                    throw $exception;
+                }
+
+                $message = $exception->getMessage();
+                $isMatriculeDuplicate = str_contains($message, 'matricule_eleve') || str_contains($message, 'matricule_enseignant');
+
+                if (! $isMatriculeDuplicate) {
+                    throw $exception;
+                }
+
+                if (($data['role'] ?? null) === RoleEnum::ELEVE->value || $data['role'] === RoleEnum::ELEVE) {
+                    $data['matricule_eleve'] = User::generateMatriculeEleve();
+                } elseif (($data['role'] ?? null) === RoleEnum::ENSEIGNANT->value || $data['role'] === RoleEnum::ENSEIGNANT) {
+                    $data['matricule_enseignant'] = User::generateMatriculeEnseignant();
+                } else {
+                    throw $exception;
+                }
+            }
+        } while ($attempt < $maxAttempts);
+
+        throw ValidationException::withMessages([
+            'matricule' => 'Impossible de générer un matricule unique, veuillez réessayer.',
+        ]);
+    }
 }
