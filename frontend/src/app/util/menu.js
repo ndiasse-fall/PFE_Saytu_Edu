@@ -3,7 +3,7 @@ export const menuItems = [
     {
         section: "Administration",
         roles: ["SUPER_ADMIN", "ADMIN"],
-        items: [
+        items: [<<<<<<<
             {
                 label: "Dashboard",
                 path: "/admin/dashboard",
@@ -27,7 +27,7 @@ export const menuItems = [
             },
             {
                 label: "Classes",
-<<<<<<< HEAD
+ HEAD
                 path: "/admin/classes",
                 icon: "bi-building",
 =======

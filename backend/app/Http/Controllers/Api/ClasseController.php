@@ -64,19 +64,14 @@ class ClasseController extends Controller
     public function inscrireEleve(Request $request, $id)
     {
         try {
-<<<<<<< HEAD
 
             $request->validate([
                 'id_eleve' => 'required|exists:users,id'
             ]);
 
-=======
-            $request->validate(['id_eleve' => 'required|exists:users,id']);
->>>>>>> origin
             $classe = Classe::findOrFail($id);
             $classe->eleves()->syncWithoutDetaching([$request->id_eleve]);
 
-<<<<<<< HEAD
             $classe->eleves()->syncWithoutDetaching([
                 $request->id_eleve
             ]);
@@ -95,12 +90,6 @@ class ClasseController extends Controller
                 'message' => 'Erreur lors de l\'inscription',
                 'error' => $e->getMessage()
             ], 500);
-=======
-            return response()->json(['message' => 'Élève inscrit avec succès']);
-        } catch (\Exception $e) {
-            Log::error("Erreur inscription élève : " . $e->getMessage());
-            return response()->json(['message' => 'Erreur lors de l\'inscription', 'error' => $e->getMessage()], 500);
->>>>>>> origin
         }
     }
 
@@ -115,7 +104,6 @@ class ClasseController extends Controller
     }
 
     /**
-<<<<<<< HEAD
      * Retourne uniquement les classes de l'enseignant connecté.
      */
     public function mesClasses(Request $request)
@@ -130,30 +118,12 @@ class ClasseController extends Controller
                 'classes.niveau',
                 'classes.annee_scolaire'
             )
-=======
-     * Retourne les classes de l'enseignant ou toutes les classes pour l'admin.
-     */
-    public function mesClasses(Request $request)
-    {
-        $user = $request->user();
-        $role = $user?->resolvedRole();
-
-        // Si Admin ou Super Admin, on retourne toutes les classes
-        if (in_array($role, ['ADMIN', 'SUPER_ADMIN'], true)) {
-            return response()->json(Classe::all());
-        }
-
-        // Sinon, seulement les classes affectées
-        $classes = $user->enseignantClasses()
-            ->select('classes.id', 'classes.nom_classe', 'classes.niveau', 'classes.annee_scolaire')
->>>>>>> origin
             ->get();
 
         return response()->json($classes);
     }
 
     /**
-<<<<<<< HEAD
      * Retourne les élèves d'une classe de l'enseignant.
      */
     public function elevesParClasse(Request $request, $id)
@@ -179,29 +149,6 @@ class ClasseController extends Controller
                 'users.prenom',
                 'users.email'
             )
-=======
-     * Retourne les élèves d'une classe (filtré pour l'enseignant, total pour l'admin).
-     */
-    public function elevesParClasse(Request $request, $id)
-    {
-        $user = $request->user();
-        $role = $user?->resolvedRole();
-
-        // Si Admin/SuperAdmin, on charge la classe directement
-        if (in_array($role, ['ADMIN', 'SUPER_ADMIN'], true)) {
-            $classe = Classe::findOrFail($id);
-        } else {
-            // Sinon on vérifie l'autorisation pour l'enseignant
-            $classe = $user->enseignantClasses()->where('classes.id', $id)->first();
-            
-            if (!$classe) {
-                return response()->json(['message' => 'Classe non autorisée'], 403);
-            }
-        }
-
-        $eleves = $classe->eleves()
-            ->select('users.id', 'users.nom', 'users.prenom', 'users.email')
->>>>>>> origin
             ->orderBy('prenom')
             ->orderBy('nom')
             ->get();

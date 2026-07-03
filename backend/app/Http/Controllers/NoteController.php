@@ -16,74 +16,60 @@ class NoteController extends Controller
      * =====================================================
      */
     public function index(Request $request)
-{
-    $user = $request->user();
-<<<<<<< HEAD
-=======
-    $role = $user?->resolvedRole();
->>>>>>> origin
+    {
+        $user = $request->user();
 
-    $query = Note::with(['eleve', 'matiere', 'classe']);
+        $query = Note::with(['eleve', 'matiere', 'classe']);
 
-    /* ================= ELEVE ================= */
-<<<<<<< HEAD
-    if ($user->role === 'ELEVE') {
-=======
-    if ($role === 'ELEVE') {
->>>>>>> origin
-        $query->where('id_eleve', $user->id);
+        /* ================= ELEVE ================= */
+        if ($user->role === 'ELEVE') {
+            $query->where('id_eleve', $user->id);
+        }
+
+        /* ================= ENSEIGNANT ================= */
+        if ($user->role === 'ENSEIGNANT') {
+            $query->whereHas('classe.enseignants', function ($q) use ($user) {
+                $q->where('users.id', $user->id);
+            });
+        }
+
+        /* ================= FILTRES ================= */
+        if ($request->filled('classe')) {
+            $query->where('id_classe', $request->classe);
+        }
+
+        if ($request->filled('matiere')) {
+            $query->where('id_matiere', $request->matiere);
+        }
+
+        if ($request->filled('periode')) {
+            $query->where('periode', $request->periode);
+        }
+
+        /* ================= SEARCH ================= */
+        if ($request->filled('search')) {
+            $search = $request->search;
+
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('eleve', function ($q2) use ($search) {
+                    $q2->where('nom', 'like', "%{$search}%")
+                       ->orWhere('prenom', 'like', "%{$search}%");
+                })
+                ->orWhereHas('matiere', function ($q2) use ($search) {
+                    $q2->where('nom_matiere', 'like', "%{$search}%");
+                })
+                ->orWhereHas('classe', function ($q2) use ($search) {
+                    $q2->where('nom_classe', 'like', "%{$search}%");
+                })
+                ->orWhere('type_evaluation', 'like', "%{$search}%");
+            });
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => $query->get()
+        ]);
     }
-
-    /* ================= ENSEIGNANT ================= */
-<<<<<<< HEAD
-    if ($user->role === 'ENSEIGNANT') {
-=======
-    if ($role === 'ENSEIGNANT') {
->>>>>>> origin
-        $query->whereHas('classe.enseignants', function ($q) use ($user) {
-            $q->where('users.id', $user->id);
-        });
-    }
-
-    /* ================= FILTRES ================= */
-
-    if ($request->filled('classe')) {
-        $query->where('id_classe', $request->classe);
-    }
-
-    if ($request->filled('matiere')) {
-        $query->where('id_matiere', $request->matiere);
-    }
-
-    if ($request->filled('periode')) {
-        $query->where('periode', $request->periode);
-    }
-
-    /* ================= SEARCH ================= */
-
-    if ($request->filled('search')) {
-        $search = $request->search;
-
-        $query->where(function ($q) use ($search) {
-            $q->whereHas('eleve', function ($q2) use ($search) {
-                $q2->where('nom', 'like', "%{$search}%")
-                   ->orWhere('prenom', 'like', "%{$search}%");
-            })
-            ->orWhereHas('matiere', function ($q2) use ($search) {
-                $q2->where('nom_matiere', 'like', "%{$search}%");
-            })
-            ->orWhereHas('classe', function ($q2) use ($search) {
-                $q2->where('nom_classe', 'like', "%{$search}%");
-            })
-            ->orWhere('type_evaluation', 'like', "%{$search}%");
-        });
-    }
-
-    return response()->json([
-        'success' => true,
-        'data' => $query->get()
-    ]);
-}
 
     /**
      * =====================================================
@@ -94,35 +80,25 @@ class NoteController extends Controller
     {
         $validated = $request->validated();
         $user = $request->user();
-<<<<<<< HEAD
-=======
-        $role = $user?->resolvedRole();
->>>>>>> origin
 
         $classe = Classe::with(['enseignants', 'eleves'])
             ->find($validated['id_classe']);
 
-<<<<<<< HEAD
-        // VÃ©rifier enseignant affectÃ© Ã  la classe
+        // Vérifier enseignant affecté à la classe
         if (! $classe || ! $classe->enseignants->contains($user->id)) {
-=======
-        $canManageClass = in_array($role, ['ADMIN', 'SUPER_ADMIN'], true) || ($classe && $classe->enseignants->contains($user->id));
-
-        if (! $classe || ! $canManageClass) {
->>>>>>> origin
             return response()->json([
-                'message' => "AccÃ¨s refusÃ©: vous n'Ãªtes pas affectÃ© Ã  cette classe."
+                'message' => "Accès refusé: vous n'êtes pas affecté à cette classe."
             ], 403);
         }
 
-        // VÃ©rifier Ã©lÃ¨ves appartenant Ã  la classe
+        // Vérifier élèves appartenant à la classe
         $invalidEleves = collect($validated['notes'])
             ->pluck('id_eleve')
             ->diff($classe->eleves->pluck('id'));
 
         if ($invalidEleves->isNotEmpty()) {
             return response()->json([
-                'message' => "Certains Ã©lÃ¨ves ne sont pas inscrits dans cette classe.",
+                'message' => "Certains élèves ne sont pas inscrits dans cette classe.",
                 'invalid_eleve_ids' => $invalidEleves->values()
             ], 422);
         }
@@ -130,24 +106,6 @@ class NoteController extends Controller
         $created = [];
 
         foreach ($validated['notes'] as $noteData) {
-<<<<<<< HEAD
-=======
-            $existingNote = Note::where([
-                'id_eleve' => $noteData['id_eleve'],
-                'id_classe' => $validated['id_classe'],
-                'id_matiere' => $validated['id_matiere'],
-                'type_evaluation' => $validated['type_evaluation'],
-                'periode' => $validated['periode'],
-            ])->first();
-
-            if ($existingNote) {
-                $existingNote->valeur = $noteData['valeur'];
-                $existingNote->save();
-                $created[] = $existingNote;
-                continue;
-            }
-
->>>>>>> origin
             $created[] = Note::create([
                 'id_eleve' => $noteData['id_eleve'],
                 'id_classe' => $validated['id_classe'],
@@ -166,7 +124,7 @@ class NoteController extends Controller
 
     /**
      * =====================================================
-     * DÃ‰TAIL NOTE
+     * DÉTAIL NOTE
      * =====================================================
      */
     public function show(Request $request, $id)
@@ -204,17 +162,9 @@ class NoteController extends Controller
         }
 
         $user = $request->user();
-<<<<<<< HEAD
 
-        // VÃ©rification enseignant propriÃ©taire de la classe
+        // Vérification enseignant propriétaire de la classe
         if (! $note->classe || ! $note->classe->enseignants->contains($user->id)) {
-=======
-        $role = $user?->resolvedRole();
-
-        $canManageNote = in_array($role, ['ADMIN', 'SUPER_ADMIN'], true) || ($note->classe && $note->classe->enseignants->contains($user->id));
-
-        if (! $note->classe || ! $canManageNote) {
->>>>>>> origin
             return response()->json(['message' => 'Not Found'], 404);
         }
 
@@ -244,16 +194,8 @@ class NoteController extends Controller
         }
 
         $user = $request->user();
-<<<<<<< HEAD
 
         if (! $note->classe || ! $note->classe->enseignants->contains($user->id)) {
-=======
-        $role = $user?->resolvedRole();
-
-        $canManageNote = in_array($role, ['ADMIN', 'SUPER_ADMIN'], true) || ($note->classe && $note->classe->enseignants->contains($user->id));
-
-        if (! $note->classe || ! $canManageNote) {
->>>>>>> origin
             return response()->json(['message' => 'Not Found'], 404);
         }
 
@@ -264,7 +206,6 @@ class NoteController extends Controller
         ]);
     }
 
-<<<<<<< HEAD
     /**
      * =====================================================
      * RESULTATS CLASSE
@@ -300,9 +241,4 @@ class NoteController extends Controller
             'data' => $notes
         ]);
     }
-=======
-   
-
- 
->>>>>>> origin
 }
