@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { getBulletins } from "../../../../services/bulletins/bulletinService";
 import { apiClient } from "../../../../core/api/apiClient";
@@ -24,21 +24,17 @@ export default function BulletinList() {
 
   const loadData = async () => {
     try {
-      // Charger les classes et extraire les niveaux
       const classesRes = await apiClient("/classes");
       const classesData = Array.isArray(classesRes) ? classesRes : classesRes.data || [];
       setClasses(classesData);
       
-      // Extraire les niveaux uniques
       const niveauxUniques = [...new Set(classesData.map(c => c.niveau).filter(Boolean))].sort();
       setNiveaux(niveauxUniques);
 
-      // Charger les bulletins
       const bulletinsRes = await getBulletins();
       const bulletinsData = bulletinsRes.data ?? bulletinsRes ?? [];
       setBulletins(bulletinsData);
 
-      // Extraire les périodes uniques depuis les bulletins uniquement
       const periodesUniques = [...new Set(bulletinsData.map(b => b.periode).filter(p => p && p !== 'Toutes périodes'))].sort();
       setPeriodes(periodesUniques);
     } catch (error) {
@@ -46,78 +42,35 @@ export default function BulletinList() {
     }
   };
 
-  // Classes filtrées par niveau
-  const classesFiltrées = filtreNiveau === "tous" 
-    ? classes 
-    : classes.filter(c => c.niveau === filtreNiveau);
+  const normalize = (value) => (value ? String(value).toLowerCase().trim() : "");
 
-  useEffect(() => {
-    if (filtreNiveau !== "tous") {
-      const classeExiste = classesFiltrées.some((c) => c.nom_classe === filtreClasse);
-      if (!classeExiste) {
-        setFiltreClasse("toutes");
-      }
-    }
-  }, [filtreNiveau, classesFiltrées, filtreClasse]);
+  // Filtrer dynamiquement les classes selon le niveau
+  const classesFiltrées = useMemo(() => {
+    return filtreNiveau === "tous" ? classes : classes.filter(c => c.niveau === filtreNiveau);
+  }, [filtreNiveau, classes]);
 
-  const normalize = (value) => {
-    if (!value) return "";
-    return String(value)
-      .toLowerCase()
-      .trim();
-  };
+  // Logique de filtrage des bulletins
+  const bulletinsFiltrés = useMemo(() => {
+    return bulletins.filter((b) => {
+      const classeNom = b.classe?.nom_classe || b.nom_classe || b.classe || "";
+      const classeNiveau = b.classe?.niveau || b.niveau || "";
+      const periode = b.periode || "";
 
-  const getClasseInfo = (bulletin) => {
-    const rawClasse = bulletin?.classe ?? bulletin?.classe_name ?? bulletin?.nom_classe ?? bulletin?.classe_nom ?? "";
-    const rawClasseObj = bulletin?.classe ?? {};
+      const matchNiveau = filtreNiveau === "tous" || normalize(classeNiveau) === normalize(filtreNiveau);
+      const matchClasse = filtreClasse === "toutes" || normalize(classeNom) === normalize(filtreClasse);
+      const matchPeriode = filtrePeriode === "toutes" || normalize(periode) === normalize(filtrePeriode);
+      
+      return matchNiveau && matchClasse && matchPeriode;
+    });
+  }, [bulletins, filtreNiveau, filtreClasse, filtrePeriode]);
 
-    const nom =
-      rawClasseObj.nom_classe ||
-      rawClasseObj.nom ||
-      rawClasseObj.libelle ||
-      rawClasse ||
-      "";
+  const pagines = useMemo(() => {
+    return bulletinsFiltrés.slice((page - 1) * parPage, page * parPage);
+  }, [bulletinsFiltrés, page]);
 
-    const niveau =
-      rawClasseObj.niveau ||
-      bulletin?.niveau ||
-      bulletin?.classe_niveau ||
-      "";
-
-    if (nom) {
-      const classeTrouvee = classes.find((c) => {
-        return [c.nom_classe, c.nom, c.libelle].some((value) => normalize(value) === normalize(nom));
-      });
-
-      return {
-        nom: nom,
-        niveau: niveau || classeTrouvee?.niveau || "",
-      };
-    }
-
-    return { nom: "", niveau: "" };
-  };
-
-  // Bulletins filtrés
-  const bulletinsFiltrés = bulletins.filter((b) => {
-    const classeInfo = getClasseInfo(b);
-    const niveauBulletin = classeInfo.niveau || "";
-    const classeBulletin = classeInfo.nom || "";
-    const periodeBulletin = b.periode || "";
-    
-    const okNiveau = filtreNiveau === "tous" || niveauBulletin === filtreNiveau;
-    const okClasse = filtreClasse === "toutes" || classeBulletin === filtreClasse;
-    const okPeriode = filtrePeriode === "toutes" || periodeBulletin === filtrePeriode;
-    
-    return okNiveau && okClasse && okPeriode;
-  });
-
-  // Pagination
   const total = bulletinsFiltrés.length;
   const pages = Math.ceil(total / parPage);
-  const pagines = bulletinsFiltrés.slice((page - 1) * parPage, page * parPage);
 
-  // Stats
   const moyenneEcole = bulletins.length
     ? (bulletins.reduce((s, b) => s + parseFloat(b.moyenne || 0), 0) / bulletins.length).toFixed(2)
     : "0.00";
@@ -129,47 +82,43 @@ export default function BulletinList() {
   };
 
   const getMoyenneColor = (moy) => {
-    if (moy >= 14) return "#28a745";
-    if (moy >= 10) return "#1a3c8f";
+    const m = parseFloat(moy);
+    if (m >= 14) return "#28a745";
+    if (m >= 10) return "#1a3c8f";
     return "#dc3545";
   };
-  const telechargerBulletin = async (eleveId, eleveNom) => {
-  navigate(`/admin/bulletins/${eleveId}`);
-  setTimeout(async () => {
-    const element = document.getElementById("bulletin-print");
-    if (!element) return;
-    const canvas = await html2canvas(element, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-    const pdf = new jsPDF("p", "mm", "a4");
-    const width = pdf.internal.pageSize.getWidth();
-    const height = (canvas.height * width) / canvas.width;
-    pdf.addImage(imgData, "PNG", 0, 0, width, height);
-    pdf.save(`bulletin_${eleveNom}.pdf`);
-  }, 2000);
-};
 
+  const telechargerBulletin = async (eleveId, eleveNom) => {
+    navigate(`/admin/bulletins/${eleveId}`);
+    setTimeout(async () => {
+      const element = document.getElementById("bulletin-print");
+      if (!element) return;
+      const canvas = await html2canvas(element, { scale: 2 });
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const width = pdf.internal.pageSize.getWidth();
+      const height = (canvas.height * width) / canvas.width;
+      pdf.addImage(imgData, "PNG", 0, 0, width, height);
+      pdf.save(`bulletin_${eleveNom}.pdf`);
+    }, 2000);
+  };
 
   return (
     <div style={{ padding: "24px", fontFamily: "Arial, sans-serif" }}>
-
-      {/* En-tête */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
         <div>
           <h2 style={{ margin: 0, fontSize: "22px" }}>Gestion des Bulletins</h2>
-          <p style={{ color: "#666", margin: "4px 0 0" }}>Gérez, consultez et téléchargez les résultats académiques des élèves.</p>
+          <p style={{ color: "#666", margin: "4px 0 0" }}>Gérez, consultez et téléchargez les résultats académiques.</p>
         </div>
-        <button style={{ backgroundColor: "#1a3c8f", color: "white", border: "none", padding: "10px 18px", borderRadius: "6px", cursor: "pointer", fontWeight: "bold" }}>
-          📄 Générer les bulletins
-        </button>
       </div>
 
       {/* Stats */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "20px" }}>
         {[
           { label: "BULLETINS GÉNÉRÉS", value: bulletins.length, color: "#1a3c8f", icon: "📄" },
-          { label: "EN ATTENTE DE VALIDATION", value: sansNotes, color: "#ff9800", icon: "⏳" },
-          { label: "MOYENNE GÉNÉRALE ÉCOLE", value: `${moyenneEcole}/20`, color: "#28a745", icon: "📈" },
-          { label: "ÉLÈVES SANS NOTES", value: sansNotes, color: "#dc3545", icon: "⚠️" },
+          { label: "EN ATTENTE", value: sansNotes, color: "#ff9800", icon: "⏳" },
+          { label: "MOYENNE ÉCOLE", value: `${moyenneEcole}/20`, color: "#28a745", icon: "📈" },
+          { label: "SANS NOTES", value: sansNotes, color: "#dc3545", icon: "⚠️" },
         ].map((stat, i) => (
           <div key={i} style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "16px", backgroundColor: "#fff" }}>
             <div style={{ fontSize: "11px", color: "#666", marginBottom: "8px" }}>{stat.icon} {stat.label}</div>
@@ -180,127 +129,54 @@ export default function BulletinList() {
 
       {/* Filtres */}
       <div style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "16px", marginBottom: "20px", backgroundColor: "#fff" }}>
-        <div style={{ fontWeight: "bold", marginBottom: "12px" }}>🔍 Filtres de recherche</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
           <div>
             <label style={{ fontSize: "11px", color: "#666" }}>NIVEAU</label>
-            <select value={filtreNiveau} onChange={e => { setFiltreNiveau(e.target.value); setFiltreClasse("toutes"); setPage(1); }}
-              style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px", marginTop: "4px" }}>
+            <select value={filtreNiveau} onChange={e => { setFiltreNiveau(e.target.value); setFiltreClasse("toutes"); setPage(1); }} style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}>
               <option value="tous">Tous les niveaux</option>
               {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
           <div>
             <label style={{ fontSize: "11px", color: "#666" }}>CLASSE</label>
-            <select value={filtreClasse} onChange={e => { setFiltreClasse(e.target.value); setPage(1); }}
-              style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px", marginTop: "4px" }}>
+            <select value={filtreClasse} onChange={e => { setFiltreClasse(e.target.value); setPage(1); }} style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}>
               <option value="toutes">Toutes les classes</option>
               {classesFiltrées.map(c => <option key={c.id} value={c.nom_classe}>{c.nom_classe}</option>)}
             </select>
           </div>
           <div>
             <label style={{ fontSize: "11px", color: "#666" }}>PÉRIODE</label>
-            <select value={filtrePeriode} onChange={e => { setFiltrePeriode(e.target.value); setPage(1); }}
-              style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px", marginTop: "4px" }}>
+            <select value={filtrePeriode} onChange={e => { setFiltrePeriode(e.target.value); setPage(1); }} style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}>
               <option value="toutes">Toutes les périodes</option>
               {periodes.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           </div>
-          <div style={{ display: "flex", alignItems: "flex-end" }}>
-            <button
-              onClick={() => { setFiltreNiveau("tous"); setFiltreClasse("toutes"); setFiltrePeriode("toutes"); setPage(1); }}
-              style={{ width: "100%", backgroundColor: "#6c757d", color: "white", border: "none", padding: "6px", borderRadius: "4px", cursor: "pointer" }}>
-              Réinitialiser
-            </button>
-          </div>
+          <button onClick={() => { setFiltreNiveau("tous"); setFiltreClasse("toutes"); setFiltrePeriode("toutes"); setPage(1); }} style={{ marginTop: "16px", backgroundColor: "#3964d1", color: "white", border: "none", padding: "6px", borderRadius: "4px" }}>
+            Réinitialiser
+          </button>
         </div>
       </div>
 
       {/* Tableau */}
-      <div style={{ border: "1px solid #e0e0e0", borderRadius: "8px", backgroundColor: "#fff", overflow: "hidden" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", padding: "14px 16px", borderBottom: "1px solid #e0e0e0" }}>
-          <strong>Liste des élèves</strong>
-          <span style={{ color: "#666", fontSize: "13px" }}>Affichage de {total} élèves</span>
-        </div>
+      <div style={{ border: "1px solid #e0e0e0", borderRadius: "8px", backgroundColor: "#fff" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr style={{ backgroundColor: "#f5f5f5", fontSize: "12px", color: "#666" }}>
-              <th style={th}>ÉLÈVE</th>
-              <th style={th}>CLASSE</th>
-              <th style={th}>MOYENNE</th>
-              <th style={th}>RANG</th>
-              <th style={th}>PÉRIODE</th>
-              <th style={th}>ACTIONS</th>
-            </tr>
-          </thead>
+          <thead><tr style={{ backgroundColor: "#f5f5f5" }}><th>ÉLÈVE</th><th>CLASSE</th><th>MOYENNE</th><th>PÉRIODE</th><th>ACTIONS</th></tr></thead>
           <tbody>
-            {pagines.map((item, index) => (
+            {pagines.map((item) => (
               <tr key={item.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                <td style={td}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <div style={{
-                      width: "36px", height: "36px", borderRadius: "50%",
-                      backgroundColor: "#1a3c8f", color: "white",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: "12px", fontWeight: "bold", flexShrink: 0
-                    }}>
-                      {getInitiales(item.eleve?.nom || item.nom)}
-                    </div>
-                    <span style={{ fontWeight: "500" }}>{item.eleve?.nom || item.nom}</span>
-                  </div>
-                </td>
-                <td style={td}>{item.classe?.nom_classe || item.classe || "-"}</td>
-                <td style={td}>
-                  <span style={{ fontWeight: "bold", color: getMoyenneColor(item.moyenne) }}>
-                    {item.moyenne || "-"}
-                  </span>
-                </td>
-                <td style={{ ...td, color: "#666" }}>{(page - 1) * parPage + index + 1}</td>
-                <td style={td}>{item.periode || "-"}</td>
-                <td style={td}>
-                  <button
-                    onClick={() => navigate(`/admin/bulletins/${item.eleve?.id || item.id}`)}
-                    style={{ backgroundColor: "transparent", border: "none", cursor: "pointer", color: "#1a3c8f", fontSize: "18px", padding: "2px 6px" }}
-                    title="Voir le bulletin"
-                  >
-                    👁
-                  </button>
-                  <button
-                    onClick={() => telechargerBulletin(item.eleve?.id || item.id, item.eleve?.nom || item.nom)}
-                    style={{ backgroundColor: "transparent", border: "none", cursor: "pointer", color: "#28a745", fontSize: "18px", padding: "2px 6px" }}
-                    title="Télécharger le bulletin"
-                  >
-                    ⬇
-                  </button>
+                <td style={{ padding: "12px" }}>{item.eleve?.nom || item.nom}</td>
+                <td style={{ padding: "12px" }}>{item.classe?.nom_classe || item.classe || "-"}</td>
+                <td style={{ padding: "12px", color: getMoyenneColor(item.moyenne), fontWeight: "bold" }}>{item.moyenne || "-"}</td>
+                <td style={{ padding: "12px" }}>{item.periode || "-"}</td>
+                <td style={{ padding: "12px" }}>
+                  <button onClick={() => navigate(`/admin/bulletins/${item.eleve?.id || item.id}`)} title="Voir">👁</button>
+                  <button onClick={() => telechargerBulletin(item.eleve?.id || item.id, item.eleve?.nom || item.nom)} title="Télécharger">⬇</button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-
-        {/* Pagination */}
-        {pages > 1 && (
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "8px", padding: "14px" }}>
-            <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page === 1}
-              style={{ padding: "4px 10px", border: "1px solid #ccc", borderRadius: "4px", cursor: "pointer", backgroundColor: page === 1 ? "#f5f5f5" : "#fff" }}>
-              ← Précédent
-            </button>
-            {Array.from({ length: pages }, (_, i) => i + 1).map(p => (
-              <button key={p} onClick={() => setPage(p)}
-                style={{ padding: "4px 10px", border: "1px solid #ccc", borderRadius: "4px", cursor: "pointer", backgroundColor: page === p ? "#1a3c8f" : "#fff", color: page === p ? "white" : "#000" }}>
-                {p}
-              </button>
-            ))}
-            <button onClick={() => setPage(p => Math.min(pages, p + 1))} disabled={page === pages}
-              style={{ padding: "4px 10px", border: "1px solid #ccc", borderRadius: "4px", cursor: "pointer", backgroundColor: page === pages ? "#f5f5f5" : "#fff" }}>
-              Suivant →
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
 }
-
-const th = { padding: "10px 14px", textAlign: "left", fontWeight: "600" };
-const td = { padding: "12px 14px" };
