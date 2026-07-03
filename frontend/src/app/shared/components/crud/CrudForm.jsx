@@ -1,3 +1,5 @@
+import { PasswordField } from '../forms/PasswordField'
+
 function FieldError({ errors }) {
   return errors?.length ? <small>{errors[0]}</small> : null
 }
@@ -85,6 +87,25 @@ export function CrudForm({
               />
               <FieldError errors={fieldErrors[field.name]} />
             </label>
+          )
+        }
+
+        if (field.type === 'password') {
+          return (
+            <PasswordField
+              key={field.name}
+              className={className}
+              label={label}
+              name={field.name}
+              value={value}
+              onChange={onChange}
+              required={required}
+              maxLength={field.maxLength}
+              placeholder={field.placeholder}
+              autoComplete={field.autoComplete}
+              disabled={field.disabled}
+              error={fieldErrors[field.name]?.[0]}
+            />
           )
         }
 

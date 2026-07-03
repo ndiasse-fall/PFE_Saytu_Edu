@@ -190,7 +190,7 @@ export function AffectationManagementPage() {
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "20px", marginTop: "20px" }}>
+      <div className="responsive-panel-grid">
         
         {/* Table 1: Enseignant à Matière */}
         <div className="panel">
