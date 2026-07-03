@@ -133,7 +133,7 @@ export default function MonBulletin() {
         {/* Synthèse */}
         <div style={{ border: "1px solid #3964d1", borderRadius: "4px", overflow: "hidden" }}>
           <div style={{ backgroundColor: "#3964d1", color: "white", padding: "6px 10px", fontWeight: "bold" }}>
-            📊 SYNTHÈSE DES RÉSULTATS
+            SYNTHÈSE DES RÉSULTATS
           </div>
           <div style={{ padding: "10px" }}>
             <div style={{ textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#3964d1", margin: "8px 0" }}>
@@ -157,7 +157,7 @@ export default function MonBulletin() {
         {/* Avis */}
         <div style={{ border: "1px solid #3964d1", borderRadius: "4px", overflow: "hidden" }}>
           <div style={{ backgroundColor: "#3964d1", color: "white", padding: "6px 10px", fontWeight: "bold" }}>
-            📋 AVIS À CONSULTER
+            AVIS À CONSULTER
           </div>
           <div style={{ padding: "10px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", fontSize: "11px" }}>
     {/* Logique : On affiche ☑ si la condition est remplie, sinon ☐ */}

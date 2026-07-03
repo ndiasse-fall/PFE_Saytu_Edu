@@ -9,4 +9,3 @@
 # IDE files
 .idea/
 **/.idea/
-backend/app/Models/Classe.php

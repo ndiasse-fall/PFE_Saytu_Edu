@@ -74,7 +74,7 @@ export default function BulletinDetail() {
         </button>
         <button id="print-button" onClick={() => window.print()}
           style={{ backgroundColor: "#3964d1", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
-          🖨️ Imprimer / PDF
+          Imprimer / PDF
         </button>
       </div>
 
@@ -169,7 +169,7 @@ export default function BulletinDetail() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
           <div style={{ border: `1px solid ${bleuSidebar}`, borderRadius: "4px", overflow: "hidden" }}>
             <div style={{ backgroundColor: bleuSidebar, color: "white", padding: "6px 10px", fontWeight: "bold" }}>
-              📊 SYNTHÈSE DES RÉSULTATS
+              SYNTHÈSE DES RÉSULTATS
             </div>
             <div style={{ padding: "10px" }}>
               <div style={{ textAlign: "center", fontSize: "20px", fontWeight: "bold", color: bleuSidebar, margin: "8px 0" }}>
@@ -183,7 +183,7 @@ export default function BulletinDetail() {
          {/* Avis à consulter */}
 <div style={{ border: `1px solid ${bleuSidebar}`, borderRadius: "4px", overflow: "hidden" }}>
   <div style={{ backgroundColor: bleuSidebar, color: "white", padding: "6px 10px", fontWeight: "bold" }}>
-    📋 AVIS À CONSULTER
+    AVIS À CONSULTER
   </div>
   <div style={{ padding: "10px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", fontSize: "11px" }}>
     {/* Logique : On affiche ☑ si la condition est remplie, sinon ☐ */}
