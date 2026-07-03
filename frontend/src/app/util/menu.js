@@ -1,5 +1,4 @@
 export const menuItems = [
-    /* ================= ADMIN ================= */
     {
         section: "Administration",
         roles: ["SUPER_ADMIN", "ADMIN"],
@@ -52,7 +51,6 @@ export const menuItems = [
                 path: "/notes",
                 icon: "bi-journal-text",
             },
-           
             {
                 label: "Bulletin",
                 path: "/admin/bulletins",
@@ -60,9 +58,6 @@ export const menuItems = [
             },
         ],
     },
-
-  
-    /* ================= USER ================= */
     {
         section: "Espace utilisateur",
         roles: ["ENSEIGNANT", "ELEVE"],
@@ -74,7 +69,6 @@ export const menuItems = [
             },
         ],
     },
-     /* ================= ENSEIGNANT ================= */
     {
         section: "Enseignant",
         roles: ["ENSEIGNANT"],
@@ -84,7 +78,6 @@ export const menuItems = [
                 path: "/notes",
                 icon: "bi-journal-text",
             },
-            /* 🎯 L'ONGLET RECHERCHÉ EST PLACÉ ICI JUSQUE EN DESSOUS */
             {
                 label: "Emploi du temps",
                 path: "/enseignant/emploi-du-temps",
@@ -92,7 +85,6 @@ export const menuItems = [
             },
         ],
     },
-    /* ================= ELEVE ================= */
     {
         section: "Élève",
         roles: ["ELEVE"],

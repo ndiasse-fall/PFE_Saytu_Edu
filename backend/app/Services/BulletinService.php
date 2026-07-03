@@ -43,6 +43,12 @@ class BulletinService
             $moyenne = $totalCoef > 0 ? round($totalPoints / $totalCoef, 2) : 0;
             $classe = $eleve->classes->first();
 
+            // Extraire la vraie période depuis les notes de l'élève
+            $elevesPeriode = $periode;
+            if (!$elevesPeriode && $eleve->notes->isNotEmpty()) {
+                $elevesPeriode = $eleve->notes->first()->periode;
+            }
+
             return [
                 'id'      => $eleve->id,
                 'eleve'   => [
@@ -50,7 +56,7 @@ class BulletinService
                     'nom' => trim(($eleve->prenom ?? '') . ' ' . ($eleve->nom ?? '')),
                 ],
                 'classe'  => $classe ? $classe->nom_classe : 'Sans classe',
-                'periode' => $periode ?? 'Toutes périodes',
+                'periode' => $elevesPeriode ?? 'Non définie',
                 'moyenne' => $moyenne,
             ];
         });

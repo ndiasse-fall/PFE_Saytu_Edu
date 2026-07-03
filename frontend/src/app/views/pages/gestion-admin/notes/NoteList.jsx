@@ -10,6 +10,8 @@ import { getStoredUser } from "../../../../core/storage/authStorage";
 import { apiClient } from "../../../../core/api/apiClient";
 import { DrawerPanel } from "../../../../shared/components/ui/DrawerPanel";
 import { getNotes, createNote, updateNote, deleteNote } from "../../../../services/notes/noteService";
+import { buildClasseResultsPath } from "../../../../util/noteRoutes";
+import { shouldShowMatiereFilter } from "../../../../util/noteFilters";
 
 export default function NoteList() {
     const navigate = useNavigate();
@@ -31,6 +33,7 @@ export default function NoteList() {
     const [selectedItemForMenu, setSelectedItemForMenu] = useState(null);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(15);
+    const [currentUser, setCurrentUser] = useState(getStoredUser());
 
     /* ===================== LOAD DATA ===================== */
     useEffect(() => {
@@ -89,14 +92,16 @@ export default function NoteList() {
 
     const loadMatieres = async () => {
         try {
-            const res = await apiClient("/matieres");
+            const userRole = currentUser?.role;
+            const url = userRole === "ENSEIGNANT" ? "/mes-matieres" : "/matieres";
+            const res = await apiClient(url);
             setMatieres(Array.isArray(res?.data || res) ? (res?.data || res) : []);
         } catch (err) { setMatieres([]); }
     };
 
     const loadClasses = async () => {
         try {
-            const user = getStoredUser();
+            const user = currentUser;
             const url = (user?.role === "SUPER_ADMIN" || user?.role === "ADMIN") ? "/classes" : "/mes-classes";
             const res = await apiClient(url);
             setClasses(Array.isArray(res) ? res : []);
@@ -228,6 +233,64 @@ const niveaux = React.useMemo(() => {
                 ))}
         </select>
     </div>
+
+    {shouldShowMatiereFilter(currentUser?.role) ? (
+        <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
+            <label className="text-xs font-bold text-gray-500 uppercase mb-1">
+                MATIÈRE
+            </label>
+
+            <select
+                className="border rounded p-2 w-80"
+                value={filters.matiere}
+                onChange={(e) =>
+                    setFilters({
+                        ...filters,
+                        matiere: e.target.value,
+                    })
+                }
+            >
+                <option value="">Toutes les matières</option>
+                {matieres.map((matiere) => (
+                    <option key={matiere.id} value={matiere.id}>
+                        {matiere.nom_matiere || matiere.nom || `Matière ${matiere.id}`}
+                    </option>
+                ))}
+            </select>
+        </div>
+    ) : null}
+
+    <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
+        <label className="text-xs font-bold text-gray-500 uppercase mb-1">
+            PÉRIODE
+        </label>
+
+        <select
+            className="border rounded p-2 w-80"
+            value={filters.periode}
+            onChange={(e) =>
+                setFilters({
+                    ...filters,
+                    periode: e.target.value,
+                })
+            }
+        >
+            <option value="">Toutes les périodes</option>
+            <option value="Semestre 1">Semestre 1</option>
+            <option value="Semestre 2">Semestre 2</option>
+        </select>
+    </div>
+
+    <button
+        className="bg-slate-700 hover:bg-slate-800 text-white rounded px-6 h-10"
+        disabled={!filters.classe}
+        onClick={() => {
+            if (!filters.classe) return;
+            navigate(buildClasseResultsPath(filters.classe));
+        }}
+    >
+        Résultats classe
+    </button>
 
     <button
         style={{ marginLeft: "auto", alignSelf: "flex-end" }}
