@@ -31,7 +31,7 @@ class EleveApiTest extends TestCase
             'id_eleve' => $eleve->id,
             'id_classe' => $classe->id,
             'id_matiere' => $matiere->id,
-            'type_evaluation' => 'Devoir',
+            'type_evaluation' => 'Devoir 1',
             'valeur' => 16,
         ]);
 

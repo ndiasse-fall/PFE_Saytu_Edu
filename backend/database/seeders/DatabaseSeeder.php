@@ -19,6 +19,8 @@ class DatabaseSeeder extends Seeder
             MatiereSeeder::class,
             UserSeeder::class,
             ClasseSeeder::class,
+            UserMatiereSeeder::class,
+            ClasseMatiereSeeder::class,
         ]);
 
         $eleves = User::where('role', 'ELEVE')->get();

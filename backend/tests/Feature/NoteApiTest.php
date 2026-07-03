@@ -45,8 +45,8 @@ class NoteApiTest extends TestCase
         $this->postJson('/api/notes/saisir', [
             'id_classe' => $classe->id,
             'id_matiere' => $matiere->id,
-            'type_evaluation' => 'Devoir',
-            'periode' => 'Trimestre 1',
+            'type_evaluation' => 'Devoir 1',
+            'periode' => 'Semestre 1',
             'notes' => [
                 [
                     'id_eleve' => $eleve->id,
@@ -64,15 +64,15 @@ class NoteApiTest extends TestCase
             'id_eleve' => $eleve->id,
             'id_classe' => $classe->id,
             'id_matiere' => $matiere->id,
-            'type_evaluation' => 'Devoir',
-            'periode' => 'Trimestre 1',
+            'type_evaluation' => 'Devoir 1',
+            'periode' => 'Semestre 1',
         ]);
 
         $this->postJson('/api/notes/saisir', [
             'id_classe' => $classe->id,
             'id_matiere' => $matiere->id,
-            'type_evaluation' => 'Devoir',
-            'periode' => 'Trimestre 1',
+            'type_evaluation' => 'Devoir 1',
+            'periode' => 'Semestre 1',
             'notes' => [
                 [
                     'id_eleve' => $eleve->id,
@@ -107,7 +107,7 @@ class NoteApiTest extends TestCase
         $this->postJson('/api/notes', [
             'id_classe' => $classe->id,
             'id_matiere' => $matiere->id,
-            'type_evaluation' => 'Devoir',
+            'type_evaluation' => 'Devoir 2',
             'periode' => 'Semestre 1',
             'notes' => [
                 [
@@ -148,7 +148,7 @@ class NoteApiTest extends TestCase
         $this->postJson('/api/notes/saisir', [
             'id_classe' => $classe->id,
             'id_matiere' => $matiere->id,
-            'type_evaluation' => 'Examen',
+            'type_evaluation' => 'Composition',
             'periode' => 'Semestre 1',
             'notes' => [
                 [
@@ -176,8 +176,8 @@ class NoteApiTest extends TestCase
         $this->postJson('/api/notes/saisir', [
             'id_classe' => $classe->id,
             'id_matiere' => $matiere->id,
-            'type_evaluation' => 'Devoir',
-            'periode' => 'Trimestre 1',
+            'type_evaluation' => 'Devoir 1',
+            'periode' => 'Semestre 1',
             'notes' => [
                 [
                     'id_eleve' => $eleve->id,
@@ -217,8 +217,8 @@ class NoteApiTest extends TestCase
         $this->postJson('/api/notes/saisir', [
             'id_classe' => $classe->id,
             'id_matiere' => $matiere->id,
-            'type_evaluation' => 'Interrogation',
-            'periode' => 'Trimestre 2',
+            'type_evaluation' => 'Devoir 2',
+            'periode' => 'Semestre 2',
             'notes' => [
                 [
                     'id_eleve' => $eleve->id,
@@ -239,13 +239,19 @@ class NoteApiTest extends TestCase
         $classe = Classe::factory()->create();
         $classe->enseignants()->attach($enseignant->id);
 
+        $matiere = Matieres::factory()->create();
+        $matiere->enseignants()->attach($enseignant->id);
+
         $eleve = User::factory()->eleve()->create(['actif' => true]);
         $classe->eleves()->attach($eleve->id);
 
         $note = Note::factory()->create([
             'id_eleve' => $eleve->id,
             'id_classe' => $classe->id,
-            'valeur' => 18
+            'id_matiere' => $matiere->id,
+            'valeur' => 18,
+            'type_evaluation' => 'Composition',
+            'periode' => 'Semestre 1',
         ]);
 
         $response = $this->getJson("/api/notes?id_eleve={$eleve->id}");

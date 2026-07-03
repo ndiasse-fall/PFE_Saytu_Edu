@@ -17,11 +17,11 @@ class NoteFactory extends Factory
         return [
             'valeur' => fake()->randomFloat(1, 0, 20),
             'type_evaluation' => fake()->randomElement([
-                'Devoir',
-                'Examen',
-                'Interrogation',
+                'Devoir 1',
+                'Devoir 2',
+                'Composition',
             ]),
-            'periode' => fake()->randomElement(['Trimestre 1', 'Trimestre 2']),
+            'periode' => fake()->randomElement(['Semestre 1', 'Semestre 2']),
             'id_eleve' => User::factory()->eleve(),
             'id_matiere' => Matieres::query()->inRandomOrder()->value('id')
                 ?? Matieres::query()->firstOrCreate(
