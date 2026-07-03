@@ -13,51 +13,18 @@ export default function BulletinDetail() {
   }, []);
 
   useEffect(() => {
-    // Ajouter les styles d'impression
     const style = document.createElement("style");
     style.innerHTML = `
       @media print {
-        * {
-          margin: 0 !important;
-          padding: 0 !important;
-          box-sizing: border-box !important;
-        }
-        body {
-          margin: 0 !important;
-          padding: 0 !important;
-          background: white !important;
-        }
-        /* Masquer tous les éléments sauf le bulletin */
-        body > * {
-          display: none !important;
-        }
-        #bulletin-print {
-          display: block !important;
-          margin: 0 !important;
-          padding: 20px !important;
-          max-width: 100% !important;
-          background: white !important;
-        }
-        /* Forcer l'affichage du bulletin et ses enfants */
-        #bulletin-print,
-        #bulletin-print * {
-          display: revert !important;
-        }
-        /* Masquer les boutons */
-        button {
-          display: none !important;
-        }
-        /* Sidebar/header masqués */
-        nav, header, .navbar, .sidebar {
-          display: none !important;
-        }
-        /* Impression optimale */
-        table {
-          page-break-inside: avoid !important;
-        }
-        tr {
-          page-break-inside: avoid !important;
-        }
+        * { margin: 0 !important; padding: 0 !important; box-sizing: border-box !important; }
+        body { margin: 0 !important; padding: 0 !important; background: white !important; }
+        body > * { display: none !important; }
+        #bulletin-print { display: block !important; margin: 0 !important; padding: 20px !important; max-width: 100% !important; background: white !important; }
+        #bulletin-print, #bulletin-print * { display: revert !important; }
+        button { display: none !important; }
+        nav, header, .navbar, .sidebar { display: none !important; }
+        table { page-break-inside: avoid !important; }
+        tr { page-break-inside: avoid !important; }
       }
     `;
     document.head.appendChild(style);
@@ -92,6 +59,9 @@ export default function BulletinDetail() {
   if (!bulletin) return <p>Chargement...</p>;
 
   const { eleve, classe, moyenne_generale, total_coef, matieres, periode } = bulletin;
+  
+  // Utilisation de #1a3c8f pour le bleu
+  const bleuSidebar = "#3964d1";
 
   return (
     <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
@@ -99,11 +69,11 @@ export default function BulletinDetail() {
       {/* Boutons action */}
       <div style={{ display: "flex", gap: "10px", marginBottom: "16px" }}>
         <button onClick={() => navigate("/admin/bulletins")}
-          style={{ backgroundColor: "#1a3c8f", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
+          style={{ backgroundColor: bleuSidebar, color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
           ← Retour à la liste
         </button>
         <button id="print-button" onClick={() => window.print()}
-          style={{ backgroundColor: "#28a745", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
+          style={{ backgroundColor: "#3964d1", color: "white", border: "none", padding: "8px 16px", borderRadius: "6px", cursor: "pointer" }}>
           🖨️ Imprimer / PDF
         </button>
       </div>
@@ -119,8 +89,8 @@ export default function BulletinDetail() {
             <div>contact@saytuedu.sn</div>
           </div>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "32px", color: "#1a3c8f", fontWeight: "bold" }}>🎓</div>
-            <div style={{ fontWeight: "bold", color: "#1a3c8f" }}>Saytu Edu</div>
+            <div style={{ fontSize: "32px", color: bleuSidebar, fontWeight: "bold" }}>🎓</div>
+            <div style={{ fontWeight: "bold", color: bleuSidebar }}>Saytu Edu</div>
             <div style={{ fontSize: "10px" }}>ÉTABLISSEMENT SCOLAIRE</div>
           </div>
           <div style={{ textAlign: "right" }}>
@@ -131,14 +101,15 @@ export default function BulletinDetail() {
         </div>
 
         {/* Titre */}
-        <div style={{ textAlign: "center", backgroundColor: "#1a3c8f", color: "white", padding: "8px", marginBottom: "12px", fontSize: "16px", fontWeight: "bold", letterSpacing: "2px" }}>
+        <div style={{ textAlign: "center", backgroundColor: bleuSidebar, color: "white", padding: "8px", marginBottom: "12px", fontSize: "16px", fontWeight: "bold", letterSpacing: "2px" }}>
           BULLETIN DE NOTES
         </div>
 
-        {/* Infos élève */}
+     {/* Infos élève */}
         <div style={{ display: "flex", gap: "12px", marginBottom: "12px", border: "1px solid #ccc", padding: "10px", borderRadius: "4px" }}>
           <div style={{ flex: 1 }}>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px" }}>
+              
               <div><strong>Nom :</strong> {eleve?.nom ?? "-"}</div>
               <div><strong>Classe :</strong> {classe?.nom_classe ?? classe?.niveau ?? "-"}</div>
               <div><strong>Prénoms :</strong> {eleve?.prenom ?? "-"}</div>
@@ -152,7 +123,7 @@ export default function BulletinDetail() {
         {/* Tableau des notes */}
         <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "12px", fontSize: "12px" }}>
           <thead>
-            <tr style={{ backgroundColor: "#1a3c8f", color: "white" }}>
+            <tr style={{ backgroundColor: bleuSidebar, color: "white" }}>
               <th style={th}>DISCIPLINES</th>
               <th style={th}>Devoir</th>
               <th style={th}>Compo</th>
@@ -169,7 +140,7 @@ export default function BulletinDetail() {
                 <td style={{ ...td, fontWeight: "bold" }}>{m.nom_matiere}</td>
                 <td style={{ ...td, textAlign: "center" }}>{m.devoir ? parseFloat(m.devoir).toFixed(1) : "-"}</td>
                 <td style={{ ...td, textAlign: "center" }}>{m.examen ? parseFloat(m.examen).toFixed(1) : "-"}</td>
-                <td style={{ ...td, textAlign: "center", fontWeight: "bold", color: m.moyenne >= 10 ? "#1a3c8f" : "red" }}>
+                <td style={{ ...td, textAlign: "center", fontWeight: "bold", color: m.moyenne >= 10 ? bleuSidebar : "red" }}>
                   {m.moyenne ? parseFloat(m.moyenne).toFixed(2) : "-"}
                 </td>
                 <td style={{ ...td, textAlign: "center" }}>{m.coefficient}</td>
@@ -184,88 +155,60 @@ export default function BulletinDetail() {
           <tfoot>
             <tr style={{ backgroundColor: "#e8e8e8", fontWeight: "bold" }}>
               <td style={td}>TOTAL GÉNÉRAL</td>
-              <td style={td}></td>
-              <td style={td}></td>
-              <td style={td}></td>
+              <td style={td}></td><td style={td}></td><td style={td}></td>
               <td style={{ ...td, textAlign: "center" }}>{total_coef}</td>
               <td style={{ ...td, textAlign: "center" }}>
                 {matieres?.reduce((sum, m) => sum + (m.moyenne ? m.moyenne * m.coefficient : 0), 0).toFixed(2)}
               </td>
-              <td style={td}></td>
-              <td style={td}></td>
+              <td style={td}></td><td style={td}></td>
             </tr>
           </tfoot>
         </table>
 
         {/* Synthèse et Avis */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-          <div style={{ border: "1px solid #1a3c8f", borderRadius: "4px", overflow: "hidden" }}>
-            <div style={{ backgroundColor: "#1a3c8f", color: "white", padding: "6px 10px", fontWeight: "bold" }}>
+          <div style={{ border: `1px solid ${bleuSidebar}`, borderRadius: "4px", overflow: "hidden" }}>
+            <div style={{ backgroundColor: bleuSidebar, color: "white", padding: "6px 10px", fontWeight: "bold" }}>
               📊 SYNTHÈSE DES RÉSULTATS
             </div>
             <div style={{ padding: "10px" }}>
-              <div style={{ textAlign: "center", fontSize: "20px", fontWeight: "bold", color: "#1a3c8f", margin: "8px 0" }}>
+              <div style={{ textAlign: "center", fontSize: "20px", fontWeight: "bold", color: bleuSidebar, margin: "8px 0" }}>
                 {moyenne_generale} <span style={{ fontSize: "14px" }}>/20</span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", fontSize: "11px" }}>
-                <div>Rang dans la classe :</div><div><strong>-</strong></div>
-                <div>Disciplines ≥ 10 :</div>
-                <div><strong>{matieres?.filter(m => m.moyenne >= 10).length ?? 0}</strong></div>
-                <div>Moyenne la plus haute :</div>
-                <div><strong>{matieres?.length ? Math.max(...matieres.filter(m => m.moyenne).map(m => m.moyenne)).toFixed(2) : "-"}</strong></div>
-                <div>Moyenne la plus basse :</div>
-                <div><strong>{matieres?.length ? Math.min(...matieres.filter(m => m.moyenne).map(m => m.moyenne)).toFixed(2) : "-"}</strong></div>
               </div>
               <div style={{ textAlign: "center", marginTop: "8px", backgroundColor: moyenne_generale >= 10 ? "#d4edda" : "#f8d7da", padding: "4px", borderRadius: "4px", fontWeight: "bold", color: moyenne_generale >= 10 ? "#155724" : "#721c24" }}>
                 {getAppreciation(moyenne_generale).toUpperCase()}
               </div>
             </div>
           </div>
-
-          <div style={{ border: "1px solid #1a3c8f", borderRadius: "4px", overflow: "hidden" }}>
-            <div style={{ backgroundColor: "#1a3c8f", color: "white", padding: "6px 10px", fontWeight: "bold" }}>
-              📋 AVIS À CONSULTER
-            </div>
-            <div style={{ padding: "10px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", fontSize: "11px" }}>
-              <div>☐ Satisfaisant, doit continuer</div>
-              <div>☐ Félicitations</div>
-              <div>☐ Peut Mieux Faire</div>
-              <div>☐ Encouragement</div>
-              <div>☐ Insuffisant</div>
-              <div>☐ Tableau d'honneur</div>
-              <div>☐ Risque de Redoubler</div>
-              <div>☐ Avertissement</div>
-              <div>☐ Risque l'exclusion</div>
-              <div>☐ Blâme</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Signatures */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginTop: "16px", textAlign: "center", fontSize: "11px" }}>
-          <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "4px" }}>
-            <div style={{ fontWeight: "bold", marginBottom: "30px" }}>Le Conseil de Classe</div>
-            <div style={{ borderTop: "1px solid #ccc", paddingTop: "4px" }}>Date d'édition : {new Date().toLocaleDateString("fr-FR")}</div>
-          </div>
-          <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "4px" }}>
-            <div style={{ fontWeight: "bold", marginBottom: "30px" }}>Chef d'Établissement</div>
-            <div style={{ borderTop: "1px solid #ccc", paddingTop: "4px" }}>Signature & Cachet</div>
-          </div>
-          <div style={{ border: "1px solid #ccc", padding: "10px", borderRadius: "4px" }}>
-            <div style={{ fontWeight: "bold", marginBottom: "30px" }}>Le Proviseur</div>
-            <div style={{ borderTop: "1px solid #ccc", paddingTop: "4px" }}>Signature & Cachet</div>
-          </div>
+         {/* Avis à consulter */}
+<div style={{ border: `1px solid ${bleuSidebar}`, borderRadius: "4px", overflow: "hidden" }}>
+  <div style={{ backgroundColor: bleuSidebar, color: "white", padding: "6px 10px", fontWeight: "bold" }}>
+    📋 AVIS À CONSULTER
+  </div>
+  <div style={{ padding: "10px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", fontSize: "11px" }}>
+    {/* Logique : On affiche ☑ si la condition est remplie, sinon ☐ */}
+    <div>{moyenne_generale >= 14 ? "☑" : "☐"} Satisfaisant, doit continuer</div>
+    <div>{moyenne_generale >= 16 ? "☑" : "☐"} Félicitations</div>
+    <div>{moyenne_generale >= 10 && moyenne_generale < 12 ? "☑" : "☐"} Peut Mieux Faire</div>
+    <div>{moyenne_generale >= 12 && moyenne_generale < 14 ? "☑" : "☐"} Encouragement</div>
+    <div>{moyenne_generale < 10 && moyenne_generale >= 8 ? "☑" : "☐"} Insuffisant</div>
+    <div>{moyenne_generale >= 18 ? "☑" : "☐"} Tableau d'honneur</div>
+    <div>{moyenne_generale < 8 && moyenne_generale >= 6 ? "☑" : "☐"} Risque de Redoubler</div>
+    <div>{moyenne_generale < 6 && moyenne_generale >= 4 ? "☑" : "☐"} Avertissement</div>
+    <div>{moyenne_generale < 4 && moyenne_generale >= 2 ? "☑" : "☐"} Risque l'exclusion</div>
+    <div>{moyenne_generale < 2 ? "☑" : "☐"} Blâme</div>
+  </div>
+</div>
         </div>
 
         {/* Décision */}
-        <div style={{ marginTop: "12px", border: "1px solid #1a3c8f", padding: "8px", borderRadius: "4px", textAlign: "center", fontWeight: "bold", color: "#1a3c8f" }}>
+        <div style={{ marginTop: "12px", border: `1px solid ${bleuSidebar}`, padding: "8px", borderRadius: "4px", textAlign: "center", fontWeight: "bold", color: bleuSidebar }}>
           Décision du Conseil : {moyenne_generale >= 10 ? "PASSÉ EN CLASSE SUPÉRIEURE" : "REDOUBLEMENT"}
         </div>
-
       </div>
     </div>
   );
 }
 
-const th = { border: "1px solid #fff", padding: "6px", textAlign: "center", fontWeight: "bold" };
+const th = { border: "1px solid #fff", padding: "6px", textAlign: "center",  color: "white"};
 const td = { border: "1px solid #ddd", padding: "5px 6px" };
