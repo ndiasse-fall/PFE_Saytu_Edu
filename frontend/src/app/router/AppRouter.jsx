@@ -29,7 +29,7 @@ const BulletinList = lazy(() => import("../views/pages/gestion-admin/bulletins/B
 const BulletinDetails = lazy(() => import("../views/pages/gestion-admin/bulletins/BulletinDetail").then((module) => ({ default: module.BulletinDetails || module.default })));
 const MesNotes = lazy(() => import("../views/pages/gestion-admin/eleves/espace-eleve/MesNotes").then((module) => ({ default: module.MesNotes || module.default })));
 const MesAbsences = lazy(() => import("../views/pages/gestion-admin/eleves/espace-eleve/MesAbsences").then((module) => ({ default: module.MesAbsences || module.default })));
-const MonBulletin = lazy(() => import("../views/pages/gestion-admin/eleves/espace-eleve/MonBulletin").then((module) => ({ default: module.MonBulletin || module.default })));
+const MonBulletin = lazy(() => import("../views/pages/gestion-admin/bulletins/BulletinList").then((module) => ({ default: module.MonBulletin || module.default })));
 const MonEmploiTempsEleve = lazy(() => import("../views/pages/gestion-admin/eleves/espace-eleve/MonEmploiTemps").then((module) => ({ default: module.MonEmploiTemps || module.default })));
 const MonEmploiTempsProfesseur = lazy(() => import("../views/pages/gestion-admin/professeurs/espace-professeur/MonEmploiTemps").then((module) => ({ default: module.MonEmploiTemps || module.default })));
 const NoteList = lazy(() => import("../views/pages/gestion-admin/notes/NoteList").then((module) => ({ default: module.NoteList || module.default })));
