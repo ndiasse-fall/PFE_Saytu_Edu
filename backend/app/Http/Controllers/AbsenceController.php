@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreAbsenceRequest;
 use App\Models\Absence;
+use App\Models\Classe;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -12,29 +13,55 @@ class AbsenceController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
-        $query = Absence::with('eleve')
+        $role = $user?->resolvedRole();
+
+        $query = Absence::with(['eleve.eleveClasses'])
             ->latest('date_absence')
             ->latest('id');
 
-        if ($user->isEnseignant()) {
-            $classeIds = $user->classes()->pluck('classes.id');
+        if ($role === 'ELEVE') {
+            $query->where('id_eleve', $user->id);
+        } elseif ($role === 'ENSEIGNANT') {
+            $classeIds = $user->enseignantClasses()->pluck('classes.id');
             $query->whereHas('eleve.eleveClasses', function ($builder) use ($classeIds): void {
                 $builder->whereIn('classes.id', $classeIds);
             });
-        } elseif ($user->isEleve()) {
-            $query->where('id_eleve', $user->id);
         }
 
-        if ($request->filled('id_eleve')) {
-            $query->where('id_eleve', $request->integer('id_eleve'));
+        if ($request->filled('id_eleve') || $request->filled('eleve_id')) {
+            $query->where('id_eleve', $request->integer('id_eleve') ?: $request->integer('eleve_id'));
         }
 
-        if ($request->filled('date_absence')) {
-            $query->whereDate('date_absence', $request->date('date_absence'));
+        if ($request->filled('classe')) {
+            $query->whereHas('eleve.eleveClasses', function ($builder) use ($request): void {
+                $builder->where('classes.id', $request->integer('classe'));
+            });
         }
 
-        if ($request->has('est_justifiee')) {
+        if ($request->filled('date_absence') || $request->filled('date')) {
+            $query->whereDate('date_absence', $request->date('date_absence') ?? $request->date('date'));
+        }
+
+        if ($request->filled('date_debut')) {
+            $query->whereDate('date_absence', '>=', $request->date('date_debut'));
+        }
+
+        if ($request->filled('date_fin')) {
+            $query->whereDate('date_absence', '<=', $request->date('date_fin'));
+        }
+
+        if ($request->has('est_justifiee') && $request->input('est_justifiee') !== '') {
             $query->where('est_justifiee', $request->boolean('est_justifiee'));
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->string('search');
+            $query->whereHas('eleve', function ($builder) use ($search): void {
+                $builder
+                    ->where('nom', 'like', "%{$search}%")
+                    ->orWhere('prenom', 'like', "%{$search}%")
+                    ->orWhere('email', 'like', "%{$search}%");
+            });
         }
 
         $absences = $query->get();
@@ -42,6 +69,7 @@ class AbsenceController extends Controller
         return response()->json([
             'success' => true,
             'count' => $absences->count(),
+            'total' => $absences->count(),
             'data' => $absences,
         ]);
     }
@@ -49,23 +77,60 @@ class AbsenceController extends Controller
     public function store(StoreAbsenceRequest $request): JsonResponse
     {
         $validated = $request->validated();
+        $classe = $this->resolveManagedClass($request, $validated['id_classe'] ?? null);
 
-        $absences = collect($validated['absents'])
-            ->map(fn(int $eleveId): Absence => Absence::updateOrCreate(
-                [
-                    'date_absence' => $validated['date_absence'],
-                    'id_eleve' => $eleveId,
-                ],
-                [
-                    'motif' => $validated['motif'] ?? null,
-                    'est_justifiee' => $validated['est_justifiee'] ?? false,
-                ]
-            ))
-            ->values();
+        if (($validated['id_classe'] ?? null) && ! $classe) {
+            return response()->json([
+                'message' => "Accès refusé: vous n'êtes pas affecté à cette classe.",
+            ], 403);
+        }
+
+        if ($classe) {
+            $invalidEleves = collect($validated['absents'])->diff($classe->eleves->pluck('id'));
+
+            if ($invalidEleves->isNotEmpty()) {
+                return response()->json([
+                    'message' => 'Certains élèves ne sont pas inscrits dans cette classe.',
+                    'invalid_eleve_ids' => $invalidEleves->values(),
+                ], 422);
+            }
+        } elseif (! $this->isAdmin($request)) {
+            return response()->json([
+                'message' => 'La classe est obligatoire pour enregistrer des absences.',
+            ], 422);
+        }
+
+        $created = [];
+        $updated = [];
+
+        foreach ($validated['absents'] as $eleveId) {
+            $absence = Absence::firstOrNew([
+                'date_absence' => $validated['date_absence'],
+                'id_eleve' => $eleveId,
+            ]);
+
+            $absence->motif = $validated['motif'] ?? null;
+            $absence->est_justifiee = $validated['est_justifiee'] ?? ($absence->exists ? $absence->est_justifiee : false);
+            $absence->save();
+
+            if ($absence->wasRecentlyCreated) {
+                $created[] = $absence->fresh(['eleve.eleveClasses']);
+            } else {
+                $updated[] = $absence->fresh(['eleve.eleveClasses']);
+            }
+        }
+
+        $data = collect([...$created, ...$updated])->values();
 
         return response()->json([
             'success' => true,
-            'data' => $absences,
+            'message' => 'Absences enregistrées avec succès.',
+            'count' => $data->count(),
+            'total' => $data->count(),
+            'data' => $request->routeIs('*enregistrer') ? [
+                'created' => $created,
+                'updated' => $updated,
+            ] : $data,
         ], 201);
     }
 
@@ -83,33 +148,55 @@ class AbsenceController extends Controller
         ]);
     }
 
-    public function update(StoreAbsenceRequest $request, int $id): JsonResponse
+    public function byClasse(Request $request, int $id): JsonResponse
     {
-        $absence = Absence::find($id);
+        $request->merge(['classe' => $id]);
 
-        if (! $absence) {
+        return $this->index($request);
+    }
+
+    public function update(Request $request, int $id): JsonResponse
+    {
+        $absence = Absence::with(['eleve.eleveClasses.enseignants'])->find($id);
+
+        if (! $absence || ! $this->canManageAbsence($request, $absence)) {
             return response()->json(['message' => 'Not Found'], 404);
         }
 
-        $validated = $request->validated();
+        $validated = $request->validate([
+            'date_absence' => ['sometimes', 'required', 'date'],
+            'absents' => ['sometimes', 'array', 'min:1'],
+            'absents.*' => ['integer', 'exists:users,id'],
+            'motif' => ['nullable', 'string', 'max:255'],
+            'est_justifiee' => ['sometimes', 'required', 'boolean'],
+        ]);
+
         $absence->update([
-            'date_absence' => $validated['date_absence'],
-            'id_eleve' => $validated['absents'][0],
-            'motif' => $validated['motif'] ?? null,
-            'est_justifiee' => $validated['est_justifiee'] ?? false,
+            'date_absence' => $validated['date_absence'] ?? $absence->date_absence,
+            'id_eleve' => $validated['absents'][0] ?? $absence->id_eleve,
+            'motif' => array_key_exists('motif', $validated) ? $validated['motif'] : $absence->motif,
+            'est_justifiee' => array_key_exists('est_justifiee', $validated)
+                ? $validated['est_justifiee']
+                : $absence->est_justifiee,
         ]);
 
         return response()->json([
             'success' => true,
-            'data' => $absence->fresh('eleve'),
+            'message' => 'Absence mise à jour avec succès.',
+            'data' => $absence->fresh(['eleve.eleveClasses']),
         ]);
     }
 
-    public function destroy(int $id): JsonResponse
+    public function updateJustification(Request $request, int $id): JsonResponse
     {
-        $absence = Absence::find($id);
+        return $this->update($request, $id);
+    }
 
-        if (! $absence) {
+    public function destroy(Request $request, int $id): JsonResponse
+    {
+        $absence = Absence::with(['eleve.eleveClasses.enseignants'])->find($id);
+
+        if (! $absence || ! $this->canManageAbsence($request, $absence)) {
             return response()->json(['message' => 'Not Found'], 404);
         }
 
@@ -121,27 +208,72 @@ class AbsenceController extends Controller
         ]);
     }
 
+    private function resolveManagedClass(Request $request, int|string|null $classeId): ?Classe
+    {
+        if (! $classeId) {
+            return null;
+        }
+
+        $classe = Classe::with(['enseignants', 'eleves'])->find($classeId);
+
+        if (! $classe) {
+            return null;
+        }
+
+        if ($this->isAdmin($request)) {
+            return $classe;
+        }
+
+        $user = $request->user();
+
+        return $classe->enseignants->contains($user->id) ? $classe : null;
+    }
+
     private function canRead(Request $request, Absence $absence): bool
     {
         $user = $request->user();
+        $role = $user?->resolvedRole();
 
-        if ($user->isAdministrateur() || $user->isSuperAdministrateur()) {
+        if (in_array($role, ['ADMIN', 'SUPER_ADMIN'], true)) {
             return true;
         }
 
-        if ($user->isEleve()) {
+        if ($role === 'ELEVE') {
             return $absence->id_eleve === $user->id;
         }
 
-        if ($user->isEnseignant()) {
-            $classeIds = $user->classes()->pluck('classes.id');
-
-            return $absence->eleve->eleveClasses
-                ->pluck('id')
-                ->intersect($classeIds)
-                ->isNotEmpty();
+        if ($role === 'ENSEIGNANT') {
+            return $this->teacherHasStudent($user->id, $absence->id_eleve);
         }
 
         return false;
+    }
+
+    private function canManageAbsence(Request $request, Absence $absence): bool
+    {
+        $user = $request->user();
+        $role = $user?->resolvedRole();
+
+        if (in_array($role, ['ADMIN', 'SUPER_ADMIN'], true)) {
+            return true;
+        }
+
+        return $role === 'ENSEIGNANT' && $this->teacherHasStudent($user->id, $absence->id_eleve);
+    }
+
+    private function teacherHasStudent(int $teacherId, int $studentId): bool
+    {
+        return Classe::whereHas('eleves', function ($builder) use ($studentId): void {
+            $builder->where('users.id', $studentId);
+        })
+            ->whereHas('enseignants', function ($builder) use ($teacherId): void {
+                $builder->where('users.id', $teacherId);
+            })
+            ->exists();
+    }
+
+    private function isAdmin(Request $request): bool
+    {
+        return in_array($request->user()?->resolvedRole(), ['ADMIN', 'SUPER_ADMIN'], true);
     }
 }
