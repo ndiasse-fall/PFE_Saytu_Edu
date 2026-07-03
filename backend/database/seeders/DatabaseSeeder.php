@@ -28,24 +28,30 @@ class DatabaseSeeder extends Seeder
         $classes = Classe::all();
         $matieres = Matieres::all();
 
-        // Inscrire les élèves dans des classes
-        foreach ($eleves as $eleve) {
-            if ($eleve->classes()->exists()) {
-                continue;
+        // Inscrire les élèves équitablement dans les classes
+        if ($classes->isNotEmpty() && $eleves->isNotEmpty()) {
+            $classIds = $classes->pluck('id')->all();
+            $classCount = count($classIds);
+            foreach ($eleves as $index => $eleve) {
+                $assignedClassId = $classIds[$index % $classCount];
+                $eleve->classes()->sync([$assignedClassId]);
             }
-
-            $eleve->classes()->syncWithoutDetaching([$classes->random()->id]);
         }
 
-        // Affecter les enseignants aux classes
-        foreach ($enseignants as $enseignant) {
-            if ($enseignant->classes()->count() >= 2) {
-                continue;
+        // Affecter les enseignants à au moins une classe de chaque niveau de classe
+        if ($classes->isNotEmpty() && $enseignants->isNotEmpty()) {
+            $classesByNiveau = $classes->groupBy('niveau');
+            foreach ($enseignants as $enseignant) {
+                $classIdsToAssign = [];
+                foreach ($classesByNiveau as $niveau => $niveauClasses) {
+                    if ($niveauClasses->isNotEmpty()) {
+                        $classIdsToAssign[] = $niveauClasses->random()->id;
+                    }
+                }
+                if (!empty($classIdsToAssign)) {
+                    $enseignant->classes()->sync($classIdsToAssign);
+                }
             }
-
-            $enseignant->classes()->syncWithoutDetaching(
-                $classes->random(min(2, $classes->count()))->pluck('id')->all()
-            );
         }
 
         // Créer des notes, absences, bulletins

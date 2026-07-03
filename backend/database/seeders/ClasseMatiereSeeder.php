@@ -21,8 +21,9 @@ class ClasseMatiereSeeder extends Seeder
         }
 
         foreach ($classes as $classe) {
-            // Assigne 3 à 6 matières aléatoires à chaque classe
-            $randomMatieres = $matieres->random(min(rand(3, 6), $matieres->count()));
+            // Assigne au minimum 7 matières aléatoires à chaque classe
+            $minMatieres = min(7, $matieres->count());
+            $randomMatieres = $matieres->random(rand($minMatieres, $matieres->count()));
             $classe->matieres()->syncWithoutDetaching($randomMatieres->pluck('id')->all());
         }
     }

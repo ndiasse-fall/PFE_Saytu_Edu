@@ -157,7 +157,17 @@ class UserFactory extends Factory
             return true;
         }
 
-        return User::withTrashed()->where('email', $email)->exists();
+        // If the users table doesn't exist yet (during some migrate/fresh flows),
+        // avoid querying it — treat as non-existing to let the seeder proceed.
+        if (! Schema::hasTable('users')) {
+            return false;
+        }
+
+        try {
+            return User::withTrashed()->where('email', $email)->exists();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     private function generateUniqueName(): array
@@ -170,8 +180,25 @@ class UserFactory extends Factory
             $key = "{$prenom}.{$nom}";
             $attempts++;
 
+            // If we've tried many random combinations, fall back to a deterministic
+            // suffix strategy to guarantee uniqueness instead of throwing.
             if ($attempts > 1000) {
-                throw new \RuntimeException('Impossible de générer un nom d’utilisateur unique.');
+                $basePrenom = $prenom;
+                $baseNom = $nom;
+                $suffix = 1;
+
+                // Increment suffix until a unique combination is found.
+                while ($this->nameExists($basePrenom, $baseNom . $suffix) || in_array("{$basePrenom}.{$baseNom}{$suffix}", static::$generatedNames, true)) {
+                    $suffix++;
+                    if ($suffix > 10000) {
+                        throw new \RuntimeException('Impossible de générer un nom d’utilisateur unique.');
+                    }
+                }
+
+                $prenom = $basePrenom;
+                $nom = $baseNom . $suffix;
+                $key = "{$prenom}.{$nom}";
+                break;
             }
         } while ($this->nameExists($prenom, $nom) || in_array($key, static::$generatedNames, true));
 
@@ -182,10 +209,19 @@ class UserFactory extends Factory
 
     private function nameExists(string $prenom, string $nom): bool
     {
-        return User::withTrashed()
-            ->where('prenom', $prenom)
-            ->where('nom', $nom)
-            ->exists();
+        // Guard against running before migrations have created the users table.
+        if (! Schema::hasTable('users')) {
+            return false;
+        }
+
+        try {
+            return User::withTrashed()
+                ->where('prenom', $prenom)
+                ->where('nom', $nom)
+                ->exists();
+        } catch (\Throwable $e) {
+            return false;
+        }
     }
 
     public function superAdmin(): static

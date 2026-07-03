@@ -12,6 +12,8 @@ class ClasseSeeder extends Seeder
         $classes = [
             ['nom_classe' => '2nde L A', 'niveau' => 'Seconde', 'annee_scolaire' => '2025-2026'],
             ['nom_classe' => '2nde L B', 'niveau' => 'Seconde', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => '2nde S A', 'niveau' => 'Seconde', 'annee_scolaire' => '2025-2026'],
+            ['nom_classe' => '2nde S B', 'niveau' => 'Seconde', 'annee_scolaire' => '2025-2026'],
             ['nom_classe' => '1ère S1', 'niveau' => 'Première', 'annee_scolaire' => '2025-2026'],
             ['nom_classe' => '1ère S2 A', 'niveau' => 'Première', 'annee_scolaire' => '2025-2026'],
             ['nom_classe' => '1ère S2 B', 'niveau' => 'Première', 'annee_scolaire' => '2025-2026'],

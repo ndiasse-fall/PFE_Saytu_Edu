@@ -21,19 +21,31 @@ class MatieresFactory extends Factory
         ['nom_matiere' => 'Informatique', 'coefficient' => 2, 'description' => 'Initiation aux outils numériques et algorithmes.'],
     ];
 
-    protected static array $availableSubjects = [];
+    protected static array $generatedNames = [];
 
     public function definition(): array
     {
-        $existingNames = Matieres::query()->pluck('nom_matiere')->all();
-        $availableSubjects = array_values(array_filter(self::$subjects, fn(array $subject): bool => ! in_array($subject['nom_matiere'], $existingNames, true)));
+        $existingNames = array_merge(
+            Matieres::query()->pluck('nom_matiere')->all(),
+            self::$generatedNames
+        );
+        
+        $availableSubjects = array_values(array_filter(
+            self::$subjects, 
+            fn(array $subject): bool => ! in_array($subject['nom_matiere'], $existingNames, true)
+        ));
 
         if (! empty($availableSubjects)) {
-            return $availableSubjects[array_rand($availableSubjects)];
+            $subject = $availableSubjects[array_rand($availableSubjects)];
+            self::$generatedNames[] = $subject['nom_matiere'];
+            return $subject;
         }
 
+        $name = 'Matière ' . fake()->unique()->word();
+        self::$generatedNames[] = $name;
+
         return [
-            'nom_matiere' => 'Matière ' . fake()->unique()->word(),
+            'nom_matiere' => $name,
             'coefficient' => fake()->numberBetween(1, 6),
             'description' => fake()->sentence(),
         ];
