@@ -108,17 +108,17 @@ export default function NoteList() {
         } catch (err) { setClasses([]); }
     };
 
-   // Dans votre composant NoteList, remplacez loadNiveaux par ceci :
+  
 
 const niveaux = React.useMemo(() => {
     const uniqueNiveaux = [];
     const nomsVus = new Set();
     
     classes.forEach(c => {
-        // On vérifie si la colonne 'niveau' existe et n'a pas déjà été ajoutée
+       
         if (c.niveau && !nomsVus.has(c.niveau)) {
             nomsVus.add(c.niveau);
-            // On crée un objet avec le nom comme ID pour le select
+          
             uniqueNiveaux.push({ id: c.niveau, nom_niveau: c.niveau });
         }
     });
@@ -174,7 +174,7 @@ const niveaux = React.useMemo(() => {
         <div className="p-6">
             <h1 className="text-2xl font-bold mb-4">Gestion des Notes</h1>
 
-            {/* Utilisez 'flex-row' pour forcer l'alignement horizontal */}
+            {/* Utilisez 'flex-row'  */}
 <div style={{ display: "flex", flexDirection: "row", alignItems: "flex-end", gap: "16px", marginBottom: "24px", flexWrap: "nowrap" }}>
 
     <div style={{ display: "flex", flexDirection: "column", flexShrink: 0 }}>
