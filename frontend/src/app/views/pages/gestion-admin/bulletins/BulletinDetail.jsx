@@ -180,12 +180,25 @@ export default function BulletinDetail() {
               </div>
             </div>
           </div>
-          <div style={{ border: `1px solid ${bleuSidebar}`, borderRadius: "4px", overflow: "hidden" }}>
-            <div style={{ backgroundColor: bleuSidebar, color: "white", padding: "6px 10px", fontWeight: "bold" }}>
-              📋 AVIS À CONSULTER
-            </div>
-            <div style={{ padding: "10px", fontSize: "11px" }}>...</div>
-          </div>
+         {/* Avis à consulter */}
+<div style={{ border: `1px solid ${bleuSidebar}`, borderRadius: "4px", overflow: "hidden" }}>
+  <div style={{ backgroundColor: bleuSidebar, color: "white", padding: "6px 10px", fontWeight: "bold" }}>
+    📋 AVIS À CONSULTER
+  </div>
+  <div style={{ padding: "10px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px", fontSize: "11px" }}>
+    {/* Logique : On affiche ☑ si la condition est remplie, sinon ☐ */}
+    <div>{moyenne_generale >= 14 ? "☑" : "☐"} Satisfaisant, doit continuer</div>
+    <div>{moyenne_generale >= 16 ? "☑" : "☐"} Félicitations</div>
+    <div>{moyenne_generale >= 10 && moyenne_generale < 12 ? "☑" : "☐"} Peut Mieux Faire</div>
+    <div>{moyenne_generale >= 12 && moyenne_generale < 14 ? "☑" : "☐"} Encouragement</div>
+    <div>{moyenne_generale < 10 && moyenne_generale >= 8 ? "☑" : "☐"} Insuffisant</div>
+    <div>{moyenne_generale >= 18 ? "☑" : "☐"} Tableau d'honneur</div>
+    <div>{moyenne_generale < 8 && moyenne_generale >= 6 ? "☑" : "☐"} Risque de Redoubler</div>
+    <div>{moyenne_generale < 6 && moyenne_generale >= 4 ? "☑" : "☐"} Avertissement</div>
+    <div>{moyenne_generale < 4 && moyenne_generale >= 2 ? "☑" : "☐"} Risque l'exclusion</div>
+    <div>{moyenne_generale < 2 ? "☑" : "☐"} Blâme</div>
+  </div>
+</div>
         </div>
 
         {/* Décision */}
