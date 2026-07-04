@@ -1,24 +1,18 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/run-migrations', function () {
+Route::get('/run-setup', function () {
     try {
-        // Le paramètre --force est obligatoire en production
+        // Exécute les migrations
         Artisan::call('migrate', ['--force' => true]);
-        return 'Les migrations ont été exécutées avec succès 🎉 !';
-    } catch (\Exception $e) {
-        return 'Erreur lors de la migration : ' . $e->getMessage();
-    }
-});
-Route::get('/run-seeders', function () {
-    try {
-        // Le paramètre --force est obligatoire pour exécuter des seeders en production
+        // Exécute les seeders (données de test)
         Artisan::call('db:seed', ['--force' => true]);
-        return 'Les données de test ont été insérées avec succès 🎉 !';
+
+        return 'Migrations et Seeders exécutés avec succès 🎉 !';
     } catch (\Exception $e) {
-        return 'Erreur lors du seeding : ' . $e->getMessage();
+        return 'Erreur : ' . $e->getMessage();
     }
 });
 Route::get('/', function () {

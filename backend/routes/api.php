@@ -14,6 +14,8 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
+
 
 Route::post('login', [AuthController::class, 'login']);
 Route::post('auth/login', [AuthController::class, 'login']);
@@ -118,4 +120,16 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function () {
         Route::get('mon-bulletin', [EleveController::class, 'monBulletin']);
         Route::get('mon-emploi-du-temps', [EleveController::class, 'monEmploiDuTemps']);
     });
+});
+Route::get('/run-setup', function () {
+    try {
+        // Exécute les migrations
+        Artisan::call('migrate', ['--force' => true]);
+        // Exécute les seeders (données de test)
+        Artisan::call('db:seed', ['--force' => true]);
+
+        return 'Migrations et Seeders exécutés avec succès 🎉 !';
+    } catch (\Exception $e) {
+        return 'Erreur : ' . $e->getMessage();
+    }
 });
