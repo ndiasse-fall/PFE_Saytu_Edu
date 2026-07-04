@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Enums\NiveauClasseEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Classe;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
 
 class ClasseController extends Controller
@@ -14,15 +16,20 @@ class ClasseController extends Controller
         return Classe::all();
     }
 
+    public function niveaux()
+    {
+        return response()->json(NiveauClasseEnum::options());
+    }
+
     public function store(Request $request)
     {
-        $classe = Classe::create([
-            'nom_classe' => $request->nom_classe,
-            'niveau' => $request->niveau,
-            'annee_scolaire' => $request->annee_scolaire,
+        $validated = $request->validate([
+            'nom_classe' => ['required', 'string', 'max:255'],
+            'niveau' => ['required', Rule::in(NiveauClasseEnum::values())],
+            'annee_scolaire' => ['required', 'string', 'max:20'],
         ]);
 
-        return response()->json($classe, 201);
+        return response()->json(Classe::create($validated), 201);
     }
 
     public function show(string $id)
@@ -33,7 +40,13 @@ class ClasseController extends Controller
     public function update(Request $request, string $id)
     {
         $classe = Classe::findOrFail($id);
-        $classe->update($request->all());
+        $validated = $request->validate([
+            'nom_classe' => ['sometimes', 'required', 'string', 'max:255'],
+            'niveau' => ['sometimes', 'required', Rule::in(NiveauClasseEnum::values())],
+            'annee_scolaire' => ['sometimes', 'required', 'string', 'max:20'],
+        ]);
+
+        $classe->update($validated);
 
         return response()->json($classe);
     }

@@ -14,6 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->redirectGuestsTo(
+            fn (Request $request) => $request->is('api/*') ? null : '/login'
+        );
+
         $middleware->alias([
             'check.statut' => \App\Http\Middleware\CheckStatut::class,
             'check.role' => \App\Http\Middleware\CheckRole::class,

@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from "react";
-import { apiClient } from "../../../../../core/api/apiClient";
+import { useEffect, useState } from "react";
+import { getMesNotes } from "../../../../../services/notes/noteService";
 
 export default function MesNotes() {
   const [notes, setNotes] = useState([]);
 
   useEffect(() => {
-    fetchNotes();
+    void fetchNotes();
   }, []);
 
-  const fetchNotes = async () => {
+  async function fetchNotes() {
     try {
-      const data = await apiClient("/espace-eleve/notes");
+      const data = await getMesNotes();
       setNotes(data || []);
     } catch (err) {
       console.error(err);
     }
-  };
+  }
 
   return (
     <div>

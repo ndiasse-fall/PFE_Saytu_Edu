@@ -78,6 +78,7 @@ Route::middleware(['auth:sanctum', 'check.statut'])->group(function () {
         Route::get('users', [UserController::class, 'index']);
         Route::get('users/{user}', [UserController::class, 'show']);
 
+        Route::get('classes/niveaux', [ClasseController::class, 'niveaux']);
         Route::get('classes', [ClasseController::class, 'index']);
         Route::get('classes/{id}', [ClasseController::class, 'show']);
 

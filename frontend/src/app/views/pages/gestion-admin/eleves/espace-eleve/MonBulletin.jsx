@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { apiClient } from "../../../../../core/api/apiClient";
+import { useEffect, useState } from "react";
+import { getMonBulletin } from "../../../../../services/bulletins/bulletinService";
 
 export default function MonBulletin() {
   const [bulletin, setBulletin] = useState(null);
   const [erreur, setErreur] = useState(null);
 
   useEffect(() => {
-    chargerBulletin();
+    void chargerBulletin();
   }, []);
 
-  const chargerBulletin = async () => {
+  async function chargerBulletin() {
     try {
-      const data = await apiClient("/mon-bulletin", { method: "GET" });
+      const data = await getMonBulletin();
       setBulletin(data);
     } catch (error) {
       setErreur("Impossible de charger le bulletin.");
       console.error(error);
     }
-  };
+  }
 
   const getAppreciation = (moyenne) => {
     if (moyenne >= 16) return "Très Bien";

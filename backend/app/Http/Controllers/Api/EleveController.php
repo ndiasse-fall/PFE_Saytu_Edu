@@ -22,13 +22,13 @@ class EleveController extends Controller
         $notes = $eleve->notes()->with('matiere')->get();
         $toutesLesMatieres = Matieres::all();
 
-        // Regrouper les notes par matière
+        // Regrouper toutes les notes par matière, en gardant les clés historiques devoir/examen.
         $notesParMatiere = [];
         foreach ($notes as $note) {
             if (!$note->matiere) continue;
             $id = $note->id_matiere;
             if (!isset($notesParMatiere[$id])) {
-                $notesParMatiere[$id] = ['devoir' => null, 'examen' => null];
+                $notesParMatiere[$id] = ['devoir' => null, 'examen' => null, 'valeurs' => []];
             }
             if (str_contains($note->type_evaluation, 'Devoir') || str_contains($note->type_evaluation, 'Composition')) {
                 $notesParMatiere[$id]['devoir'] = $note->valeur;
@@ -36,6 +36,7 @@ class EleveController extends Controller
             if (str_contains($note->type_evaluation, 'Examen')) {
                 $notesParMatiere[$id]['examen'] = $note->valeur;
             }
+            $notesParMatiere[$id]['valeurs'][] = $note->valeur;
         }
 
         // Construire le tableau avec toutes les matières
@@ -46,7 +47,7 @@ class EleveController extends Controller
             $id = $matiere->id;
             $devoir = $notesParMatiere[$id]['devoir'] ?? null;
             $examen = $notesParMatiere[$id]['examen'] ?? null;
-            $valeurs = array_filter([$devoir, $examen], fn($v) => $v !== null);
+            $valeurs = $notesParMatiere[$id]['valeurs'] ?? [];
             $moyenne = count($valeurs) > 0 ? round(array_sum($valeurs) / count($valeurs), 2) : null;
 
             if ($moyenne !== null) {
@@ -79,6 +80,7 @@ class EleveController extends Controller
             ] : null,
             'moyenne_generale' => $moyenne,
             'total_coef'       => $totalCoef,
+            'notes'            => $notes->values(),
             'matieres'         => $matieres,
             'notes'            => $matieres,
             'periode'          => $notes->first()?->periode ?? '-',

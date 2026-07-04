@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import frLocale from '@fullcalendar/core/locales/fr';
 
-import { useAuth } from '../../../../../core/context/useAuth';
 import { listMonEmploiDuTemps, normalizeApiResponse } from '../../../../../services/emplois-du-temps/emploiDuTempsService';
 
 export function MonEmploiTemps() {
-  const { user } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 

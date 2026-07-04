@@ -33,15 +33,15 @@ class AbsenceController extends Controller
         }
 
         if ($request->filled('classe')) {
-            $query->whereHas('eleve.eleveClasses', function ($builder) use ($request): void {
-                $builder->where('classes.id', $request->integer('classe'));
+            $classeId = $request->integer('classe');
+            $query->whereHas('eleve.eleveClasses', function ($builder) use ($classeId): void {
+                $builder->where('classes.id', $classeId);
             });
         }
 
         if ($request->filled('date_absence') || $request->filled('date')) {
             $query->whereDate('date_absence', $request->date('date_absence') ?? $request->date('date'));
         }
-
         if ($request->filled('date_debut')) {
             $query->whereDate('date_absence', '>=', $request->date('date_debut'));
         }
@@ -55,7 +55,7 @@ class AbsenceController extends Controller
         }
 
         if ($request->filled('search')) {
-            $search = $request->string('search');
+            $search = trim((string) $request->input('search'));
             $query->whereHas('eleve', function ($builder) use ($search): void {
                 $builder
                     ->where('nom', 'like', "%{$search}%")

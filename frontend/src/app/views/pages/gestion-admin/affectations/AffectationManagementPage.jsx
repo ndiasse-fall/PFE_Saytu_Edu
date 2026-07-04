@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import TablePagination from "@mui/material/TablePagination";
 import { DrawerPanel } from "../../../../shared/components/ui/DrawerPanel";
 import { SelectField } from "../../../../shared/components/forms/SelectField";
 import { PrimaryButton } from "../../../../shared/components/ui/PrimaryButton";
@@ -22,19 +21,6 @@ export function AffectationManagementPage() {
   const [success, setSuccess] = useState(null);
   const [searchClasse, setSearchClasse] = useState("");
   const [searchEnseignant, setSearchEnseignant] = useState("");
-  const [pageClasse, setPageClasse] = useState(0);
-  const [rowsPerPageClasse, setRowsPerPageClasse] = useState(10);
-  const [pageEnseignant, setPageEnseignant] = useState(0);
-  const [rowsPerPageEnseignant, setRowsPerPageEnseignant] = useState(10);
-
-  useEffect(() => {
-    setPageClasse(0);
-  }, [searchClasse]);
-
-  useEffect(() => {
-    setPageEnseignant(0);
-  }, [searchEnseignant]);
-
   const [formData, setFormData] = useState({
     classe_id: "",
     matiere_id: "",
@@ -163,21 +149,11 @@ export function AffectationManagementPage() {
       aff.matiere_nom.toLowerCase().includes(searchEnseignant.toLowerCase())
     );
 
-  const paginatedAffectationsEnseignant = affectationsEnseignantFiltrees.slice(
-    pageEnseignant * rowsPerPageEnseignant,
-    (pageEnseignant + 1) * rowsPerPageEnseignant
-  );
-
-  const paginatedAffectationsClasse = affectationsClasseFiltrees.slice(
-    pageClasse * rowsPerPageClasse,
-    (pageClasse + 1) * rowsPerPageClasse
-  );
-
   return (
     <section className="page-section">
-      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header className="page-header legacy-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
         <h2>Gestion des affectations</h2>
-        <div className="header-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+        <div className="header-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', flexWrap: 'wrap' }}>
           <PrimaryButton onClick={() => openForm("matiere-classe")}>
             Affecter Matière à Classe
           </PrimaryButton>
@@ -190,7 +166,7 @@ export function AffectationManagementPage() {
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))", gap: "20px", marginTop: "20px" }}>
+      <div className="legacy-split-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 360px), 1fr))", gap: "20px", marginTop: "20px" }}>
         
         {/* Table 1: Enseignant à Matière */}
         <div className="panel">

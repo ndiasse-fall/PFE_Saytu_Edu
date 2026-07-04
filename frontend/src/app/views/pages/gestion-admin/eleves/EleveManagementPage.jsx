@@ -82,10 +82,8 @@ export function EleveManagementPage() {
   }, [filters, pagination?.currentPage, pagination?.perPage])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     loadData(initialFilters, 1, 15)
-    // On ne veut exécuter cela qu'au montage
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   function resetForm() {

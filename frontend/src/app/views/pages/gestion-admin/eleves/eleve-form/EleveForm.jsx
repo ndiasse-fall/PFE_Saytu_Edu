@@ -1,3 +1,5 @@
+import { PasswordField } from '../../../../../shared/components/forms/PasswordField'
+
 export function EleveForm({
   mode,
   form,
@@ -28,17 +30,14 @@ export function EleveForm({
         {fieldErrors.email ? <small>{fieldErrors.email[0]}</small> : null}
       </label>
       {isEditing ? (
-        <label>
-          <span>Mot de passe (optionnel)</span>
-          <input
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={onInputChange}
-            autoComplete="new-password"
-          />
-          {fieldErrors.password ? <small>{fieldErrors.password[0]}</small> : null}
-        </label>
+        <PasswordField
+          label="Mot de passe (optionnel)"
+          name="password"
+          value={form.password}
+          onChange={onInputChange}
+          autoComplete="new-password"
+          error={fieldErrors.password?.[0]}
+        />
       ) : (
         <div className="alert alert-info full-width">
           Un mot de passe temporaire sera généré automatiquement et envoyé par email.

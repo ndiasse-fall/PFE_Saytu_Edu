@@ -1,5 +1,3 @@
-import React from 'react'
-
 export function EmploiDuTempsDetails({ session, onEdit, onDelete, onClose, isAdmin }) {
   if (!session) return null
 

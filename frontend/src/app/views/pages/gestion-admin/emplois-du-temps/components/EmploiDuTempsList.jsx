@@ -1,4 +1,3 @@
-import React from 'react'
 import { ActionMenu } from '../../../../../shared/components/ui/ActionMenu'
 import { FilterToolbar } from '../../../../../shared/components/ui/FilterToolbar'
 

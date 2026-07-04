@@ -231,6 +231,50 @@ class UserService
             ->get();
     }
 
+    private function roleUsesTemporaryPassword(RoleEnum|string|null $role): bool
+    {
+        $roleValue = $role instanceof RoleEnum ? $role->value : (string) $role;
+
+        return in_array($roleValue, [
+            RoleEnum::ELEVE->value,
+            RoleEnum::ENSEIGNANT->value,
+        ], true);
+    }
+
+    private function generateTemporaryPassword(): string
+    {
+        return Str::password(12, true, true, false, false);
+    }
+
+    private function createUserWithMatriculeRetry(array $data, bool $hasExplicitMatricule): User
+    {
+        $attempts = $hasExplicitMatricule ? 1 : 5;
+
+        for ($attempt = 1; $attempt <= $attempts; $attempt++) {
+            try {
+                return User::create($data);
+            } catch (QueryException $exception) {
+                if ($hasExplicitMatricule || ! $this->isMatriculeUniqueConstraintError($exception)) {
+                    throw $exception;
+                }
+
+                unset($data['matricule_eleve'], $data['matricule_enseignant']);
+            }
+        }
+
+        throw ValidationException::withMessages([
+            'matricule' => 'Impossible de générer un matricule unique. Veuillez réessayer.',
+        ]);
+    }
+
+    private function isMatriculeUniqueConstraintError(QueryException $exception): bool
+    {
+        $message = $exception->getMessage();
+
+        return str_contains($message, 'matricule_eleve')
+            || str_contains($message, 'matricule_enseignant');
+    }
+
     private function syncLegacyFields(array $data, ?User $user = null): array
     {
         if (! Schema::hasColumn('users', 'name')) {
@@ -276,56 +320,4 @@ class UserService
         ]);
     }
 
-    private function roleUsesTemporaryPassword(RoleEnum|string|null $role): bool
-    {
-        if (blank($role)) {
-            return false;
-        }
-
-        $value = $role instanceof RoleEnum ? $role : RoleEnum::from($role);
-
-        return in_array($value, [RoleEnum::ENSEIGNANT, RoleEnum::ELEVE], true);
-    }
-
-    private function generateTemporaryPassword(): string
-    {
-        return Str::random(12);
-    }
-
-    private function createUserWithMatriculeRetry(array $data, bool $explicitMatricule): User
-    {
-        $attempt = 0;
-        $maxAttempts = 5;
-
-        do {
-            try {
-                return User::create($data);
-            } catch (QueryException $exception) {
-                $attempt++;
-
-                if ($explicitMatricule || $attempt >= $maxAttempts) {
-                    throw $exception;
-                }
-
-                $message = $exception->getMessage();
-                $isMatriculeDuplicate = str_contains($message, 'matricule_eleve') || str_contains($message, 'matricule_enseignant');
-
-                if (! $isMatriculeDuplicate) {
-                    throw $exception;
-                }
-
-                if (($data['role'] ?? null) === RoleEnum::ELEVE->value || $data['role'] === RoleEnum::ELEVE) {
-                    $data['matricule_eleve'] = User::generateMatriculeEleve();
-                } elseif (($data['role'] ?? null) === RoleEnum::ENSEIGNANT->value || $data['role'] === RoleEnum::ENSEIGNANT) {
-                    $data['matricule_enseignant'] = User::generateMatriculeEnseignant();
-                } else {
-                    throw $exception;
-                }
-            }
-        } while ($attempt < $maxAttempts);
-
-        throw ValidationException::withMessages([
-            'matricule' => 'Impossible de générer un matricule unique, veuillez réessayer.',
-        ]);
-    }
 }

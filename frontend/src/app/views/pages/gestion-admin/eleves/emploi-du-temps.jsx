@@ -1,5 +1,3 @@
-import React from 'react';
-
 function EmploiDuTemps() {
   // Exemple de données pour l'affichage
   const planning = [

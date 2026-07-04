@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import TablePagination from "@mui/material/TablePagination";
 import { DrawerPanel } from "../../../../shared/components/ui/DrawerPanel";
 import { TextField } from "../../../../shared/components/forms/TextField";
 import { PrimaryButton } from "../../../../shared/components/ui/PrimaryButton";
@@ -16,13 +15,6 @@ export function MatiereManagementPage() {
   const [search, setSearch] = useState("");
   const [matiereFilter, setMatiereFilter] = useState("Toutes");
   const [sortBy, setSortBy] = useState("nom");
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(15);
-  
-  useEffect(() => {
-    setPage(0);
-  }, [search, matiereFilter, sortBy]);
-
   const [formData, setFormData] = useState({
   nom_matiere: "",
   coefficient: 1,
@@ -44,7 +36,7 @@ export function MatiereManagementPage() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     fetchMatieres();
   }, []);
 
@@ -145,11 +137,6 @@ return recherche && filtreMatiere;
 
     return 0;
   });
-
-  const paginatedMatieres = filteredMatieres.slice(
-    page * rowsPerPage,
-    (page + 1) * rowsPerPage
-  );
 
   return (
     <section className="page-section">
