@@ -1,9 +1,10 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@mui/material";
 import { DrawerPanel } from "../../../../shared/components/ui/DrawerPanel";
-import { apiClient } from "../../../../core/api/apiClient";
 import { getStoredUser } from "../../../../core/storage/authStorage";
+import { listMatieres } from "../../../../services/matieres/matiereService";
+import { listEmplois } from "../../../../services/emplois-du-temps/emploiDuTempsService";
 import { createNote, deleteNote, getNotes, updateNote } from "../../../../services/notes/noteService";
 
 const EMPTY_FORM = {
@@ -22,13 +23,10 @@ export default function EleveNotesDetailPage() {
     const location = useLocation();
 
     const [notes, setNotes] = useState([]);
-    const [matieres, setMatieres] = useState([]);
     const [enseignantMatiere, setEnseignantMatiere] = useState(null);
     const [loading, setLoading] = useState(true);
     const [showDrawer, setShowDrawer] = useState(false);
     const [drawerMode, setDrawerMode] = useState("create");
-    const [selectedNote, setSelectedNote] = useState(null);
-    const [selectedSemester, setSelectedSemester] = useState("Semestre 1");
     const [form, setForm] = useState(EMPTY_FORM);
     const [saveError, setSaveError] = useState("");
     const [effectiveClasseId, setEffectiveClasseId] = useState(location.state?.classeId || "");
@@ -71,7 +69,7 @@ export default function EleveNotesDetailPage() {
 
     const resolveTeacherMatiere = async (availableMatieres = []) => {
         try {
-            const response = await apiClient("/emplois-du-temps");
+            const response = await listEmplois();
             const sessions = response?.data ?? response ?? [];
             const timetableMatiere = Array.isArray(sessions)
                 ? sessions.find((session) => session?.matiere)?.matiere || null
@@ -104,14 +102,12 @@ export default function EleveNotesDetailPage() {
 
     const loadMatieres = async () => {
         try {
-            const res = await apiClient("/matieres");
+            const res = await listMatieres();
             const data = res?.data || res;
             const normalized = Array.isArray(data) ? data : [];
-            setMatieres(normalized);
             return normalized;
         } catch (err) {
             console.error("Erreur loadMatieres detail :", err);
-            setMatieres([]);
             return [];
         }
     };
@@ -142,8 +138,6 @@ export default function EleveNotesDetailPage() {
 
     const openCreateDrawer = (semester) => {
         setDrawerMode("create");
-        setSelectedSemester(semester);
-        setSelectedNote(null);
         setSaveError("");
         setForm({
             ...EMPTY_FORM,
@@ -157,8 +151,6 @@ export default function EleveNotesDetailPage() {
 
     const openEditDrawer = (note) => {
         setDrawerMode("edit");
-        setSelectedSemester(note.periode || "Semestre 1");
-        setSelectedNote(note);
         setSaveError("");
         setForm({
             id_note: note.id || "",

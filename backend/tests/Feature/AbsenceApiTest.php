@@ -164,6 +164,45 @@ class AbsenceApiTest extends TestCase
             ->assertJsonPath('invalid_eleve_ids.0', $eleve->id);
     }
 
+    public function test_admin_can_filter_absences_and_update_status_partially(): void
+    {
+        $this->authenticateAsAdmin();
+
+        $classe = Classe::factory()->create();
+        $eleve = User::factory()->eleve()->create([
+            'nom' => 'Diop',
+            'prenom' => 'Awa',
+            'email' => 'awa.diop@saytu.test',
+            'actif' => true,
+        ]);
+        $autreEleve = User::factory()->eleve()->create(['actif' => true]);
+        $classe->eleves()->attach($eleve->id);
+
+        $absence = Absence::factory()->create([
+            'id_eleve' => $eleve->id,
+            'date_absence' => '2026-06-20',
+            'est_justifiee' => false,
+            'motif' => 'Ancien motif',
+        ]);
+        Absence::factory()->create([
+            'id_eleve' => $autreEleve->id,
+            'date_absence' => '2026-07-10',
+        ]);
+
+        $this->getJson("/api/absences?classe={$classe->id}&date_debut=2026-06-01&date_fin=2026-06-30&search=awa")
+            ->assertOk()
+            ->assertJsonPath('count', 1)
+            ->assertJsonPath('data.0.id', $absence->id);
+
+        $this->putJson("/api/absences/{$absence->id}", [
+            'motif' => 'Justificatif reçu',
+            'est_justifiee' => true,
+        ])
+            ->assertOk()
+            ->assertJsonPath('data.motif', 'Justificatif reçu')
+            ->assertJsonPath('data.est_justifiee', true);
+    }
+
     public function test_enseignant_cannot_manage_absence_outside_his_classes(): void
     {
         $enseignant = User::factory()->enseignant()->create([

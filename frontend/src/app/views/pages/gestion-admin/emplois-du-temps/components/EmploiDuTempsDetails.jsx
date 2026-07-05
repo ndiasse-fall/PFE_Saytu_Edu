@@ -1,5 +1,3 @@
-import React from 'react'
-
 export function EmploiDuTempsDetails({ session, onEdit, onDelete, onClose, isAdmin }) {
   if (!session) return null
 
@@ -10,7 +8,6 @@ export function EmploiDuTempsDetails({ session, onEdit, onDelete, onClose, isAdm
     return parts.slice(0, 2).join(':')
   }
 
-  // Helper cosmétique pour afficher le jour proprement (ex: "mercredi" -> "Mercredi")
   const capitalize = (s) => {
     if (!s) return ''
     const string = String(s).trim()
@@ -20,11 +17,7 @@ export function EmploiDuTempsDetails({ session, onEdit, onDelete, onClose, isAdm
   return (
     <div className="session-details-card" style={{ padding: '8px' }}>
       <div className="details-header" style={{ marginBottom: '24px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
-        <span className="badge badge-info" style={{ backgroundColor: 'var(--primary-soft)', color: 'var(--primary)', padding: '6px 12px', fontSize: '0.85rem', fontWeight: '600', borderRadius: '20px', display: 'inline-block', marginBottom: '8px' }}>
-          {session.classe?.nom_classe || 'Classe inconnue'}
-        </span>
         <h3 style={{ margin: '4px 0 0 0', fontSize: '1.4rem', color: 'var(--text-strong)', fontWeight: '600' }}>
-          {/* 🛠️ CORRECTION : Utilisation de nom_matiere au lieu de nom */}
           {session.matiere?.nom_matiere || session.matiere?.nom || 'Matière inconnue'}
         </h3>
       </div>
@@ -32,34 +25,12 @@ export function EmploiDuTempsDetails({ session, onEdit, onDelete, onClose, isAdm
       <div className="details-body" style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
-            <i className="bi bi-person-video3" style={{ fontSize: '1.2rem' }}></i>
-          </div>
-          <div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Enseignant</div>
-            <strong style={{ color: 'var(--text-strong)' }}>
-              {session.enseignant ? `${session.enseignant.prenom} ${session.enseignant.nom}` : 'Non assigné'}
-            </strong>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
             <i className="bi bi-calendar-week" style={{ fontSize: '1.2rem' }}></i>
-          </div>
-          <div>
-            <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Jour</div>
-            <strong style={{ color: 'var(--text-strong)' }}>{capitalize(session.jour)}</strong>
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: 'var(--bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--primary)' }}>
-            <i className="bi bi-clock" style={{ fontSize: '1.2rem' }}></i>
           </div>
           <div>
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Horaire</div>
             <strong style={{ color: 'var(--text-strong)' }}>
-              {formatTime(session.heure_debut)} - {formatTime(session.heure_fin)}
+              {capitalize(session.jour)} {formatTime(session.heure_debut)} - {formatTime(session.heure_fin)}
             </strong>
           </div>
         </div>

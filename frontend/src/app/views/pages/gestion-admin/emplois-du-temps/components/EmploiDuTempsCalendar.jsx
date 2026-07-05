@@ -50,11 +50,6 @@ export function EmploiDuTempsCalendar({
                 startTime: session.heure_debut,
                 endTime: session.heure_fin,
                 extendedProps: {
-                    classe: session.classe?.nom_classe || "N/A",
-                    // 🛠️ CORRECTION : Utilisation de prenom et nom à la place de name
-                    enseignant: session.enseignant
-                        ? `${session.enseignant.prenom} ${session.enseignant.nom}`
-                        : "N/A",
                     salle: session.salle || "N/A",
                     sessionOriginale: session,
                 },
@@ -437,20 +432,7 @@ export function EmploiDuTempsCalendar({
                                 {eventInfo.event.title}
                             </div>
                             <div className="calendar-custom-details">
-                                <span>
-                                    <i
-                                        className="bi bi-building"
-                                        style={{ marginRight: "6px" }}
-                                    ></i>
-                                    {eventInfo.event.extendedProps.classe}
-                                </span>
-                                <span>
-                                    <i
-                                        className="bi bi-person"
-                                        style={{ marginRight: "6px" }}
-                                    ></i>
-                                    {eventInfo.event.extendedProps.enseignant}
-                                </span>
+                                <span>{eventInfo.timeText || ""}</span>
                                 {eventInfo.event.extendedProps.salle && (
                                     <span>
                                         <i

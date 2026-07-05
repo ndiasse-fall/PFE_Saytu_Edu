@@ -67,6 +67,11 @@ class UpdateUserRequest extends FormRequest
             'matricule_eleve' => ['nullable', 'string', Rule::unique('users', 'matricule_eleve')->ignore($userId)],
             'date_naissance' => ['nullable', 'date'],
             'telephone_parent' => ['nullable', 'string', 'max:20'],
+            'classe_id' => ['nullable', 'integer', 'exists:classes,id'],
+            'classe_ids' => ['nullable', 'array'],
+            'classe_ids.*' => ['integer', 'exists:classes,id'],
+            'matiere_ids' => ['nullable', 'array'],
+            'matiere_ids.*' => ['integer', 'exists:matieres,id'],
             'statut' => ['nullable', 'string'],
         ];
     }

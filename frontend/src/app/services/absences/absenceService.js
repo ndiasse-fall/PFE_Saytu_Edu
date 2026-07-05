@@ -22,7 +22,7 @@ export function listMyAbsences() {
 }
 
 export function createAbsences(payload) {
-  return apiClient('/absences/enregistrer', {
+  return apiClient('/absences', {
     method: 'POST',
     data: payload,
   })

@@ -1,182 +1,287 @@
-import React, { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import TablePagination from "@mui/material/TablePagination";
 import { getBulletins } from "../../../../services/bulletins/bulletinService";
 import { apiClient } from "../../../../core/api/apiClient";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+
+function normalize(value) {
+  return String(value ?? "").toLowerCase().trim();
+}
+
+function studentName(item) {
+  return item.eleve?.nom_complet || item.eleve?.nom || item.nom || "Élève";
+}
+
+function getInitials(name) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
+function averageTone(value, scale = 20) {
+  const moyenne = Number(value || 0);
+  const normalized = scale > 0 ? (moyenne / scale) * 20 : moyenne;
+  if (normalized >= 14) return "success";
+  if (normalized >= 10) return "primary";
+  return "danger";
+}
+
+function displayAverage(value, scale = 20) {
+  const moyenne = Number(value || 0);
+  return `${moyenne.toFixed(2)}/${scale}`;
+}
+
+function normalizedAverage(value, scale = 20) {
+  const moyenne = Number(value || 0);
+  return scale > 0 ? (moyenne / scale) * 20 : moyenne;
+}
 
 export default function BulletinList() {
+  const navigate = useNavigate();
   const [bulletins, setBulletins] = useState([]);
   const [classes, setClasses] = useState([]);
-  const [periodes, setPeriodes] = useState([]);
-  const [niveaux, setNiveaux] = useState([]);
-  
-  const [filtreNiveau, setFiltreNiveau] = useState("tous");
-  const [filtreClasse, setFiltreClasse] = useState("toutes");
-  const [filtrePeriode, setFiltrePeriode] = useState("toutes");
-  const [page, setPage] = useState(1);
-  const parPage = 10;
-  const navigate = useNavigate();
+  const [filters, setFilters] = useState({
+    search: "",
+    niveau: "all",
+    classe: "all",
+    periode: "all",
+  });
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    loadData();
+    let mounted = true;
+
+    async function loadData() {
+      setLoading(true);
+      setError("");
+
+      try {
+        const [classesResponse, bulletinsResponse] = await Promise.all([
+          apiClient("/classes"),
+          getBulletins(),
+        ]);
+
+        if (!mounted) return;
+
+        setClasses(Array.isArray(classesResponse) ? classesResponse : classesResponse?.data ?? []);
+        setBulletins(bulletinsResponse?.data ?? bulletinsResponse ?? []);
+      } catch (err) {
+        if (mounted) setError(err.message || "Impossible de charger les bulletins.");
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    }
+
+    void loadData();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const loadData = async () => {
-    try {
-      const classesRes = await apiClient("/classes");
-      const classesData = Array.isArray(classesRes) ? classesRes : classesRes.data || [];
-      setClasses(classesData);
-      
-      const niveauxUniques = [...new Set(classesData.map(c => c.niveau).filter(Boolean))].sort();
-      setNiveaux(niveauxUniques);
+  const niveaux = useMemo(() => [...new Set(classes.map((classe) => classe.niveau).filter(Boolean))].sort(), [classes]);
+  const periodes = useMemo(() => [...new Set(bulletins.map((item) => item.periode).filter(Boolean))].sort(), [bulletins]);
+  const filteredClasses = filters.niveau === "all"
+    ? classes
+    : classes.filter((classe) => classe.niveau === filters.niveau);
 
-      const bulletinsRes = await getBulletins();
-      const bulletinsData = bulletinsRes.data ?? bulletinsRes ?? [];
-      setBulletins(bulletinsData);
+  const filteredBulletins = useMemo(() => {
+    return bulletins.filter((item) => {
+      const name = studentName(item);
+      const classeName = item.classe?.nom || item.classe?.nom_classe || item.classe || "";
+      const classeRecord = classes.find((classe) => classe.nom_classe === classeName);
+      const niveau = item.classe?.niveau || item.niveau || classeRecord?.niveau || "";
+      const periode = item.periode || "";
 
-      const periodesUniques = [...new Set(bulletinsData.map(b => b.periode).filter(p => p && p !== 'Toutes périodes'))].sort();
-      setPeriodes(periodesUniques);
-    } catch (error) {
-      console.error("Erreur chargement données:", error);
-    }
-  };
-
-  const normalize = (value) => (value ? String(value).toLowerCase().trim() : "");
-
-  // Filtrer dynamiquement les classes selon le niveau
-  const classesFiltrées = useMemo(() => {
-    return filtreNiveau === "tous" ? classes : classes.filter(c => c.niveau === filtreNiveau);
-  }, [filtreNiveau, classes]);
-
-  // Logique de filtrage des bulletins
-  const bulletinsFiltrés = useMemo(() => {
-    return bulletins.filter((b) => {
-      const classeNom = b.classe?.nom_classe || b.nom_classe || b.classe || "";
-      const classeNiveau = b.classe?.niveau || b.niveau || "";
-      const periode = b.periode || "";
-
-      const matchNiveau = filtreNiveau === "tous" || normalize(classeNiveau) === normalize(filtreNiveau);
-      const matchClasse = filtreClasse === "toutes" || normalize(classeNom) === normalize(filtreClasse);
-      const matchPeriode = filtrePeriode === "toutes" || normalize(periode) === normalize(filtrePeriode);
-      
-      return matchNiveau && matchClasse && matchPeriode;
+      return (
+        (!filters.search || normalize(name).includes(normalize(filters.search))) &&
+        (filters.niveau === "all" || normalize(niveau) === normalize(filters.niveau)) &&
+        (filters.classe === "all" || normalize(classeName) === normalize(filters.classe)) &&
+        (filters.periode === "all" || normalize(periode) === normalize(filters.periode))
+      );
     });
-  }, [bulletins, filtreNiveau, filtreClasse, filtrePeriode]);
+  }, [bulletins, classes, filters]);
 
-  const pagines = useMemo(() => {
-    return bulletinsFiltrés.slice((page - 1) * parPage, page * parPage);
-  }, [bulletinsFiltrés, page]);
+  const paginated = filteredBulletins.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+  const moyenneEcole = filteredBulletins.length
+    ? filteredBulletins.reduce(
+      (sum, item) => sum + normalizedAverage(item.moyenne, item.note_scale || 20),
+      0,
+    ) / filteredBulletins.length
+    : 0;
+  const admissibles = filteredBulletins.filter(
+    (item) => normalizedAverage(item.moyenne, item.note_scale || 20) >= 10,
+  ).length;
 
-  const total = bulletinsFiltrés.length;
-  const pages = Math.ceil(total / parPage);
-
-  const moyenneEcole = bulletins.length
-    ? (bulletins.reduce((s, b) => s + parseFloat(b.moyenne || 0), 0) / bulletins.length).toFixed(2)
-    : "0.00";
-  const sansNotes = bulletins.filter(b => !b.moyenne || b.moyenne === 0).length;
-
-  const getInitiales = (nom) => {
-    const parts = nom?.split(" ") ?? [];
-    return parts.map(p => p[0]).join("").toUpperCase().slice(0, 2);
-  };
-
-  const getMoyenneColor = (moy) => {
-    const m = parseFloat(moy);
-    if (m >= 14) return "#28a745";
-    if (m >= 10) return "#1a3c8f";
-    return "#dc3545";
-  };
-
-  const telechargerBulletin = async (eleveId, eleveNom) => {
-    navigate(`/admin/bulletins/${eleveId}`);
-    setTimeout(async () => {
-      const element = document.getElementById("bulletin-print");
-      if (!element) return;
-      const canvas = await html2canvas(element, { scale: 2 });
-      const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const width = pdf.internal.pageSize.getWidth();
-      const height = (canvas.height * width) / canvas.width;
-      pdf.addImage(imgData, "PNG", 0, 0, width, height);
-      pdf.save(`bulletin_${eleveNom}.pdf`);
-    }, 2000);
-  };
+  function updateFilters(next) {
+    setFilters(next);
+    setPage(0);
+  }
 
   return (
-    <div style={{ padding: "24px", fontFamily: "Arial, sans-serif" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "20px" }}>
+    <section className="bulletin-list-page">
+      <header className="page-header-inline">
         <div>
-          <h2 style={{ margin: 0, fontSize: "22px" }}>Gestion des Bulletins</h2>
-          <p style={{ color: "#666", margin: "4px 0 0" }}>Gérez, consultez et téléchargez les résultats académiques.</p>
+          <h2>Bulletins scolaires</h2>
+          <p>Consultez les résultats, contrôlez les moyennes et préparez les impressions.</p>
         </div>
+      </header>
+
+      {error ? <div className="alert alert-error">{error}</div> : null}
+
+      <div className="bulletin-kpi-grid">
+        <article className="panel bulletin-kpi-card">
+          <span>Bulletins</span>
+          <strong>{filteredBulletins.length}</strong>
+          <small>Résultats visibles selon les filtres</small>
+        </article>
+        <article className="panel bulletin-kpi-card">
+          <span>Moyenne école</span>
+          <strong>{moyenneEcole.toFixed(2)}/20</strong>
+          <small>Sur les bulletins filtrés</small>
+        </article>
+        <article className="panel bulletin-kpi-card">
+          <span>Admis</span>
+          <strong>{admissibles}</strong>
+          <small>Moyenne supérieure ou égale à 10</small>
+        </article>
+        <article className="panel bulletin-kpi-card">
+          <span>À surveiller</span>
+          <strong>{filteredBulletins.length - admissibles}</strong>
+          <small>Besoin d’accompagnement</small>
+        </article>
       </div>
 
-      {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "16px", marginBottom: "20px" }}>
-        {[
-          { label: "BULLETINS GÉNÉRÉS", value: bulletins.length, color: "#1a3c8f", icon: "📄" },
-          { label: "EN ATTENTE", value: sansNotes, color: "#ff9800", icon: "⏳" },
-          { label: "MOYENNE ÉCOLE", value: `${moyenneEcole}/20`, color: "#28a745", icon: "📈" },
-          { label: "SANS NOTES", value: sansNotes, color: "#dc3545", icon: "⚠️" },
-        ].map((stat, i) => (
-          <div key={i} style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "16px", backgroundColor: "#fff" }}>
-            <div style={{ fontSize: "11px", color: "#666", marginBottom: "8px" }}>{stat.icon} {stat.label}</div>
-            <div style={{ fontSize: "24px", fontWeight: "bold", color: stat.color }}>{stat.value}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Filtres */}
-      <div style={{ border: "1px solid #e0e0e0", borderRadius: "8px", padding: "16px", marginBottom: "20px", backgroundColor: "#fff" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "12px" }}>
-          <div>
-            <label style={{ fontSize: "11px", color: "#666" }}>NIVEAU</label>
-            <select value={filtreNiveau} onChange={e => { setFiltreNiveau(e.target.value); setFiltreClasse("toutes"); setPage(1); }} style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}>
-              <option value="tous">Tous les niveaux</option>
-              {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize: "11px", color: "#666" }}>CLASSE</label>
-            <select value={filtreClasse} onChange={e => { setFiltreClasse(e.target.value); setPage(1); }} style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}>
-              <option value="toutes">Toutes les classes</option>
-              {classesFiltrées.map(c => <option key={c.id} value={c.nom_classe}>{c.nom_classe}</option>)}
-            </select>
-          </div>
-          <div>
-            <label style={{ fontSize: "11px", color: "#666" }}>PÉRIODE</label>
-            <select value={filtrePeriode} onChange={e => { setFiltrePeriode(e.target.value); setPage(1); }} style={{ width: "100%", padding: "6px", border: "1px solid #ccc", borderRadius: "4px" }}>
-              <option value="toutes">Toutes les périodes</option>
-              {periodes.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-          </div>
-          <button onClick={() => { setFiltreNiveau("tous"); setFiltreClasse("toutes"); setFiltrePeriode("toutes"); setPage(1); }} style={{ marginTop: "16px", backgroundColor: "#3964d1", color: "white", border: "none", padding: "6px", borderRadius: "4px" }}>
-            Réinitialiser
-          </button>
-        </div>
-      </div>
-
-      {/* Tableau */}
-      <div style={{ border: "1px solid #e0e0e0", borderRadius: "8px", backgroundColor: "#fff" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead><tr style={{ backgroundColor: "#f5f5f5" }}><th>ÉLÈVE</th><th>CLASSE</th><th>MOYENNE</th><th>PÉRIODE</th><th>ACTIONS</th></tr></thead>
-          <tbody>
-            {pagines.map((item) => (
-              <tr key={item.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
-                <td style={{ padding: "12px" }}>{item.eleve?.nom || item.nom}</td>
-                <td style={{ padding: "12px" }}>{item.classe?.nom_classe || item.classe || "-"}</td>
-                <td style={{ padding: "12px", color: getMoyenneColor(item.moyenne), fontWeight: "bold" }}>{item.moyenne || "-"}</td>
-                <td style={{ padding: "12px" }}>{item.periode || "-"}</td>
-                <td style={{ padding: "12px" }}>
-                  <button onClick={() => navigate(`/admin/bulletins/${item.eleve?.id || item.id}`)} title="Voir">👁</button>
-                  <button onClick={() => telechargerBulletin(item.eleve?.id || item.id, item.eleve?.nom || item.nom)} title="Télécharger">⬇</button>
-                </td>
-              </tr>
+      <section className="panel bulletin-filter-panel">
+        <label className="field">
+          <span className="field-label">Recherche élève</span>
+          <input
+            className="field-input"
+            value={filters.search}
+            onChange={(event) => updateFilters({ ...filters, search: event.target.value })}
+            placeholder="Nom, prénom ou matricule"
+            type="search"
+          />
+        </label>
+        <label className="field">
+          <span className="field-label">Niveau</span>
+          <select
+            className="field-input"
+            value={filters.niveau}
+            onChange={(event) => updateFilters({ ...filters, niveau: event.target.value, classe: "all" })}
+          >
+            <option value="all">Tous les niveaux</option>
+            {niveaux.map((niveau) => <option key={niveau} value={niveau}>{niveau}</option>)}
+          </select>
+        </label>
+        <label className="field">
+          <span className="field-label">Classe</span>
+          <select
+            className="field-input"
+            value={filters.classe}
+            onChange={(event) => updateFilters({ ...filters, classe: event.target.value })}
+          >
+            <option value="all">Toutes les classes</option>
+            {filteredClasses.map((classe) => (
+              <option key={classe.id} value={classe.nom_classe}>{classe.nom_classe}</option>
             ))}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </select>
+        </label>
+        <label className="field">
+          <span className="field-label">Période</span>
+          <select
+            className="field-input"
+            value={filters.periode}
+            onChange={(event) => updateFilters({ ...filters, periode: event.target.value })}
+          >
+            <option value="all">Toutes les périodes</option>
+            {periodes.map((periode) => <option key={periode} value={periode}>{periode}</option>)}
+          </select>
+        </label>
+      </section>
+
+      <section className="panel users-table-panel">
+        {loading ? (
+          <div className="screen-state">Chargement des bulletins...</div>
+        ) : filteredBulletins.length === 0 ? (
+          <div className="screen-state">Aucun bulletin ne correspond aux filtres.</div>
+        ) : (
+          <>
+            <div className="table-wrapper">
+              <table className="users-table bulletin-table">
+                <thead>
+                  <tr>
+                    <th>Élève</th>
+                    <th>Classe</th>
+                    <th>Période</th>
+                    <th>Moyenne</th>
+                    <th>Rang</th>
+                    <th>Appréciation</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {paginated.map((item) => {
+                    const name = studentName(item);
+                    const eleveId = item.eleve?.id || item.id;
+                    return (
+                      <tr key={`${eleveId}-${item.periode}`}>
+                        <td>
+                          <div className="bulletin-student-cell">
+                            <span className="bulletin-avatar">{getInitials(name)}</span>
+                            <div>
+                              <strong>{name}</strong>
+                              <small>{item.eleve?.matricule || "Matricule non renseigné"}</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td>{item.classe?.nom || item.classe?.nom_classe || item.classe || "-"}</td>
+                        <td>{item.periode || "-"}</td>
+                        <td>
+                          <span className={`status-pill ${averageTone(item.moyenne, item.note_scale || 20)}`}>
+                            {displayAverage(item.moyenne, item.note_scale || 20)}
+                          </span>
+                        </td>
+                        <td>{item.rang ? `${item.rang}e` : "-"}</td>
+                        <td>{item.appreciation || "-"}</td>
+                        <td>
+                          <div className="table-actions-inline">
+                            <button type="button" className="ghost-button" onClick={() => navigate(`/admin/bulletins/${eleveId}`)}>
+                              Voir
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <TablePagination
+              className="users-table-pagination"
+              component="div"
+              count={filteredBulletins.length}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              rowsPerPageOptions={[10, 25, 50]}
+              onPageChange={(event, nextPage) => setPage(nextPage)}
+              onRowsPerPageChange={(event) => {
+                setRowsPerPage(Number(event.target.value));
+                setPage(0);
+              }}
+              labelRowsPerPage="Lignes par page"
+              labelDisplayedRows={({ from, to, count }) => `${from}-${to} sur ${count}`}
+            />
+          </>
+        )}
+      </section>
+    </section>
   );
 }

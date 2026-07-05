@@ -2,59 +2,107 @@
 
 namespace Database\Seeders;
 
-use App\Models\EmploiDuTemps;
 use App\Models\Classe;
-use App\Models\User;
+use App\Models\EmploiDuTemps;
 use App\Models\Matieres;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class EmploiDuTempsSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        // On récupère des données existantes ou on en crée
-        $classes = Classe::all();
-        $enseignants = User::where('role', 'ENSEIGNANT')->get();
-        $matieres = Matieres::all();
-
-        if ($classes->isEmpty() || $enseignants->isEmpty() || $matieres->isEmpty()) {
-            // Si pas assez de données, on utilise les factories
-            EmploiDuTemps::factory()->count(10)->create();
-            return;
-        }
-
         $jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
         $creneaux = [
-            ['08:00', '10:00'],
-            ['10:00', '12:00'],
-            ['12:00', '14:00'],
-            ['14:00', '16:00'],
-            ['15:00', '17:00'],
+            ['08:00:00', '10:00:00'],
+            ['10:00:00', '12:00:00'],
+            ['14:00:00', '16:00:00'],
+            ['16:00:00', '18:00:00'],
         ];
 
-        foreach ($classes as $classe) {
-            foreach ($jours as $jour) {
-                // On crée 1 à 2 cours par jour par classe sur des créneaux 2h.
-                $nbCours = rand(1, 2);
-                shuffle($creneaux);
+        $teacherBusy = [];
+        $roomBusy = [];
+        $classes = Classe::query()->with('matieres')->orderBy('id')->get();
+        $teachersBySubject = User::query()
+            ->where('role', 'ENSEIGNANT')
+            ->with('matieres')
+            ->get()
+            ->flatMap(function (User $teacher) {
+                return $teacher->matieres->map(fn (Matieres $matiere): array => [
+                    'matiere' => $matiere->nom_matiere,
+                    'teacher' => $teacher,
+                ]);
+            })
+            ->groupBy('matiere')
+            ->map(fn ($rows) => $rows->pluck('teacher'));
 
-                for ($i = 0; $i < $nbCours; $i++) {
-                    [$heureDebut, $heureFin] = $creneaux[$i];
+        foreach ($classes as $classIndex => $classe) {
+            $room = 'Salle ' . str_pad((string) ($classIndex + 1), 2, '0', STR_PAD_LEFT);
+            $matieres = $classe->matieres->take(8)->values();
 
-                    EmploiDuTemps::create([
+            foreach ($matieres as $matiereIndex => $matiere) {
+                $slotIndex = $matiereIndex % count($creneaux);
+                $dayIndex = intdiv($matiereIndex, count($creneaux)) % count($jours);
+                $enseignant = $this->availableTeacher(
+                    $teachersBySubject[$matiere->nom_matiere] ?? collect(),
+                    $jours,
+                    $creneaux,
+                    $teacherBusy,
+                    $roomBusy,
+                    $dayIndex,
+                    $slotIndex,
+                    $room
+                );
+
+                if (! $enseignant) {
+                    continue;
+                }
+
+                [$heureDebut, $heureFin] = $creneaux[$slotIndex];
+                $jour = $jours[$dayIndex];
+                $busyKey = "{$jour}|{$heureDebut}|{$heureFin}";
+                $teacherBusy[$enseignant->id][$busyKey] = true;
+                $roomBusy[$room][$busyKey] = true;
+
+                EmploiDuTemps::query()->updateOrCreate(
+                    [
                         'jour' => $jour,
                         'heure_debut' => $heureDebut,
                         'heure_fin' => $heureFin,
-                        'salle' => 'Salle ' . rand(1, 20),
                         'id_classe' => $classe->id,
-                        'id_enseignant' => $enseignants->random()->id,
-                        'id_matiere' => $matieres->random()->id,
-                    ]);
-                }
+                    ],
+                    [
+                        'salle' => $room,
+                        'id_enseignant' => $enseignant->id,
+                        'id_matiere' => $matiere->id,
+                        'est_publie' => true,
+                    ]
+                );
             }
         }
+    }
+
+    private function availableTeacher($teachers, array &$jours, array &$creneaux, array $teacherBusy, array $roomBusy, int &$dayIndex, int &$slotIndex, string $room): ?User
+    {
+        for ($attempt = 0; $attempt < count($jours) * count($creneaux); $attempt++) {
+            [$heureDebut, $heureFin] = $creneaux[$slotIndex];
+            $jour = $jours[$dayIndex];
+            $busyKey = "{$jour}|{$heureDebut}|{$heureFin}";
+
+            if (! isset($roomBusy[$room][$busyKey])) {
+                foreach ($teachers as $teacher) {
+                    if (! isset($teacherBusy[$teacher->id][$busyKey])) {
+                        return $teacher;
+                    }
+                }
+            }
+
+            $slotIndex = ($slotIndex + 1) % count($creneaux);
+            if ($slotIndex === 0) {
+                $dayIndex = ($dayIndex + 1) % count($jours);
+            }
+        }
+
+        return null;
     }
 }

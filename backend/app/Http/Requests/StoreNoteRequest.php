@@ -48,7 +48,8 @@ class StoreNoteRequest extends FormRequest
             'periode.required' => 'La période est obligatoire.',
             'notes.required' => 'Au moins une note doit être fournie.',
             'notes.*.id_eleve.exists' => 'Un élève sélectionné est introuvable.',
-            'notes.*.valeur.max' => 'La note ne peut pas dépasser 20.',
+            'notes.*.valeur.max' => 'La note dépasse le maximum autorisé pour cette classe.',
         ];
     }
+
 }

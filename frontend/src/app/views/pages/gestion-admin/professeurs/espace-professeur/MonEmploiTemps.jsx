@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import frLocale from '@fullcalendar/core/locales/fr';
 
-import { useAuth } from '../../../../../core/context/useAuth';
 import { listEmplois, normalizeApiResponse } from '../../../../../services/emplois-du-temps/emploiDuTempsService';
 
 export function MonEmploiTemps() {
-  const { user } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -42,8 +40,6 @@ export function MonEmploiTemps() {
     return sessions.map(session => {
       const jourNormalise = String(session.jour || '').toLowerCase().trim();
       const dayIndex = joursMap[jourNormalise] !== undefined ? joursMap[jourNormalise] : 1;
-      const classeNom = session.classe?.nom_classe || 'N/A';
-
       return {
         id: String(session.id),
         title: session.matiere?.nom_matiere || session.nom_matiere || 'Cours',
@@ -51,7 +47,6 @@ export function MonEmploiTemps() {
         startTime: session.heure_debut,
         endTime: session.heure_fin,
         extendedProps: {
-          classe: classeNom,
           salle: session.salle || 'N/A'
         }
       };
@@ -171,10 +166,7 @@ export function MonEmploiTemps() {
                 <div className="calendar-custom-card">
                   <div className="fc-event-title">{eventInfo.event.title}</div>
                   <div className="calendar-custom-details">
-                    <span>
-                      <i className="bi bi-building" style={{ marginRight: '5px' }}></i>
-                      {eventInfo.event.extendedProps.classe}
-                    </span>
+                    <span>{eventInfo.timeText || ''}</span>
                     {eventInfo.event.extendedProps.salle && (
                       <span>
                         <i className="bi bi-geo-alt" style={{ marginRight: '5px' }}></i>

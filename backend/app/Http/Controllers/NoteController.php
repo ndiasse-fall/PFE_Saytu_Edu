@@ -89,6 +89,22 @@ class NoteController extends Controller
             ], 403);
         }
 
+        if ($classe->matieres()->exists() && ! $classe->matieres()->where('matieres.id', $validated['id_matiere'])->exists()) {
+            return response()->json([
+                'message' => "La matière sélectionnée n'est pas rattachée à cette classe.",
+            ], 422);
+        }
+
+        if (
+            $role === 'ENSEIGNANT'
+            && $user->matieres()->exists()
+            && ! $user->matieres()->where('matieres.id', $validated['id_matiere'])->exists()
+        ) {
+            return response()->json([
+                'message' => "Vous n'êtes pas affecté à cette matière.",
+            ], 403);
+        }
+
         $invalidEleves = collect($validated['notes'])
             ->pluck('id_eleve')
             ->diff($classe->eleves->pluck('id'));

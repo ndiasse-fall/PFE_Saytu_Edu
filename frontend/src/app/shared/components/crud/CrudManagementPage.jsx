@@ -6,7 +6,10 @@ import { CrudTable } from './CrudTable'
 function buildForm(fields, item = null) {
   return Object.fromEntries(fields.map((field) => {
     if (!item) {
-      return [field.name, field.defaultValue ?? (field.type === 'checkbox' ? false : '')]
+      return [
+        field.name,
+        field.defaultValue ?? (field.type === 'checkbox' ? false : field.type === 'multiselect' ? [] : ''),
+      ]
     }
 
     const sourceValue = field.fromItem
@@ -15,7 +18,7 @@ function buildForm(fields, item = null) {
 
     return [
       field.name,
-      sourceValue ?? field.defaultValue ?? (field.type === 'checkbox' ? false : ''),
+      sourceValue ?? field.defaultValue ?? (field.type === 'checkbox' ? false : field.type === 'multiselect' ? [] : ''),
     ]
   }))
 }

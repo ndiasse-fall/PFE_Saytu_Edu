@@ -13,6 +13,12 @@ export const getNoteById = (id) => {
     });
 };
 
+export const getMesNotes = () => {
+    return apiClient("/espace-eleve/notes", {
+        method: "GET",
+    });
+};
+
 export const createNote = async (data) => {
     try {
         return await apiClient("/notes/saisir", {
