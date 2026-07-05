@@ -24,6 +24,7 @@ const emptyForm = {
   date_naissance: '',
   telephone_parent: '',
   adresse: '',
+  classe_id: '',
   actif: true,
 }
 
@@ -82,7 +83,10 @@ export function EleveManagementPage() {
   }, [filters, pagination?.currentPage, pagination?.perPage])
 
   useEffect(() => {
-     
+    void listClasses()
+      .then((data) => setClasses(data || []))
+      .catch(() => setClasses([]))
+
     loadData(initialFilters, 1, 15)
   }, [])
 
@@ -132,6 +136,7 @@ export function EleveManagementPage() {
       telephone_parent: form.telephone_parent || null,
       adresse: form.adresse || null,
       actif: form.actif,
+      classe_id: form.classe_id ? Number(form.classe_id) : null,
     }
 
     if (form.password) {
@@ -168,7 +173,7 @@ export function EleveManagementPage() {
     setFormMode('edit')
     setEditingEleveId(eleve.id)
     setSelectedEleve(null)
-    setForm({
+      setForm({
       nom: eleve.nom ?? '',
       prenom: eleve.prenom ?? '',
       email: eleve.email ?? '',
@@ -178,6 +183,7 @@ export function EleveManagementPage() {
       telephone_parent: eleve.telephone_parent ?? '',
       adresse: eleve.adresse ?? '',
       actif: Boolean(eleve.actif),
+      classe_id: eleve.classes?.[0]?.id ?? eleve.eleveClasses?.[0]?.id ?? '',
     })
     setFieldErrors({})
     setSuccess('')
@@ -326,6 +332,7 @@ export function EleveManagementPage() {
         <EleveForm
           mode={formMode}
           form={form}
+          classes={classes}
           fieldErrors={fieldErrors}
           submitting={submitting}
           onInputChange={handleInputChange}

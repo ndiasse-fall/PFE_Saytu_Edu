@@ -12,6 +12,13 @@ const roleLabels = {
   ELEVE: 'Élève',
 }
 
+const permissionsByRole = {
+  SUPER_ADMIN: ['Gestion complète', 'Création administrateurs', 'Supervision des modules'],
+  ADMIN: ['Gestion des élèves', 'Gestion pédagogique', 'Suivi administratif'],
+  ENSEIGNANT: ['Saisie des notes', 'Suivi des absences', 'Consultation emploi du temps'],
+  ELEVE: ['Consultation notes', 'Consultation absences', 'Bulletin et emploi du temps'],
+}
+
 function buildProfileForm(user) {
   return {
     nom: user?.nom ?? '',
@@ -56,6 +63,7 @@ export function SettingsPage() {
   const displayName = fullName || user?.email || 'Compte utilisateur'
   const initials = getUserInitials(user)
   const roleLabel = roleLabels[user?.role] ?? user?.role ?? 'Non renseigné'
+  const permissions = permissionsByRole[user?.role] ?? ['Accès standard']
   const dashboardPath = useMemo(() => getDashboardPath(user?.role), [user?.role])
 
   function handleProfileChange(event) {
@@ -180,35 +188,60 @@ export function SettingsPage() {
                 <p>Résumé des informations rattachées à votre compte Saytu Edu.</p>
               </div>
 
-              <div className="profile-details-grid">
-                <div className="profile-details-item">
-                  <span>Nom complet</span>
-                  <strong>{fullName || 'Non renseigné'}</strong>
-                </div>
-                <div className="profile-details-item">
-                  <span>Rôle</span>
-                  <strong>{roleLabel}</strong>
-                </div>
-                <div className="profile-details-item">
-                  <span>Email</span>
-                  <strong>{user?.email || 'Non renseigné'}</strong>
-                </div>
-                <div className="profile-details-item">
-                  <span>Téléphone</span>
-                  <strong>{user?.telephone || 'Non renseigné'}</strong>
-                </div>
-                <div className="profile-details-item settings-field-full">
-                  <span>Adresse</span>
-                  <strong>{user?.adresse || 'Non renseignée'}</strong>
-                </div>
-                <div className="profile-details-item">
-                  <span>Statut du compte</span>
-                  <strong>{user?.actif ? 'Actif' : 'Inactif'}</strong>
-                </div>
-                <div className="profile-details-item">
-                  <span>Sécurité</span>
-                  <strong>{user?.must_change_password ? 'Mot de passe à changer' : 'Mot de passe à jour'}</strong>
-                </div>
+              <div className="profile-details-grid profile-details-grid-rich">
+                <article className="profile-details-card profile-details-card-primary">
+                  <div className="profile-details-card-head">
+                    <span>Informations personnelles</span>
+                    <i className="bi bi-person-vcard" aria-hidden="true" />
+                  </div>
+                  <dl className="profile-detail-list">
+                    <div><dt>Nom complet</dt><dd>{fullName || 'Non renseigné'}</dd></div>
+                    <div><dt>Email</dt><dd>{user?.email || 'Non renseigné'}</dd></div>
+                    <div><dt>Téléphone</dt><dd>{user?.telephone || 'Non renseigné'}</dd></div>
+                    <div><dt>Adresse</dt><dd>{user?.adresse || 'Non renseignée'}</dd></div>
+                  </dl>
+                </article>
+
+                <article className="profile-details-card">
+                  <div className="profile-details-card-head">
+                    <span>Accès et rôle</span>
+                    <i className="bi bi-shield-check" aria-hidden="true" />
+                  </div>
+                  <dl className="profile-detail-list">
+                    <div><dt>Rôle</dt><dd>{roleLabel}</dd></div>
+                    <div><dt>Statut</dt><dd>{user?.actif ? 'Compte actif' : 'Compte inactif'}</dd></div>
+                    <div><dt>Sécurité</dt><dd>{user?.must_change_password ? 'Mot de passe à changer' : 'Mot de passe à jour'}</dd></div>
+                  </dl>
+                  <div className="profile-permission-list">
+                    {permissions.map((permission) => (
+                      <span key={permission}>{permission}</span>
+                    ))}
+                  </div>
+                </article>
+
+                <article className="profile-details-card">
+                  <div className="profile-details-card-head">
+                    <span>Activité récente</span>
+                    <i className="bi bi-clock-history" aria-hidden="true" />
+                  </div>
+                  <div className="profile-timeline">
+                    <div><strong>Session active</strong><span>Connecté actuellement</span></div>
+                    <div><strong>Dernière modification</strong><span>À partir de cette page profil</span></div>
+                    <div><strong>Historique</strong><span>Les journaux détaillés seront visibles quand le backend les exposera.</span></div>
+                  </div>
+                </article>
+
+                <article className="profile-details-card">
+                  <div className="profile-details-card-head">
+                    <span>Documents</span>
+                    <i className="bi bi-folder2-open" aria-hidden="true" />
+                  </div>
+                  <div className="profile-document-list">
+                    <span>Pièce d’identité <b>Non jointe</b></span>
+                    <span>Justificatif <b>Non joint</b></span>
+                    <span>Photo de profil <b>Initiales utilisées</b></span>
+                  </div>
+                </article>
               </div>
             </section>
           ) : null}

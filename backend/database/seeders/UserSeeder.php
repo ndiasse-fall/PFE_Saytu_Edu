@@ -3,10 +3,8 @@
 namespace Database\Seeders;
 
 use App\Enums\RoleEnum;
-use App\Models\Absence;
 use App\Models\Classe;
 use App\Models\Matieres;
-use App\Models\Note;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -53,7 +51,7 @@ class UserSeeder extends Seeder
         $eleves = $this->seedEleves($password, $superAdmin->id);
 
         $this->attachTeachersToSubjectsAndClasses($enseignants);
-        $this->attachStudentsToClassesAndCreateAcademicData($eleves);
+        $this->attachStudentsToClasses($eleves);
     }
 
     /**
@@ -147,23 +145,37 @@ class UserSeeder extends Seeder
      */
     private function attachTeachersToSubjectsAndClasses(array $enseignants): void
     {
-        $classes = Classe::query()->get();
+        $classes = Classe::query()->with('matieres')->get();
 
         foreach ($enseignants as $enseignant) {
-            $matiere = Matieres::query()->where('nom_matiere', $enseignant->specialite)->first();
+            $matiere = $this->resolveMatiereForSpecialite($enseignant->specialite);
+
+            if (! $matiere) {
+                $matiere = Matieres::query()->orderBy('id')->first();
+            }
 
             if ($matiere) {
                 $enseignant->matieres()->sync([$matiere->id]);
             }
 
-            $enseignant->enseignantClasses()->syncWithoutDetaching($classes->pluck('id')->all());
+            $classIds = $classes
+                ->filter(fn (Classe $classe): bool => $classe->matieres->pluck('id')->contains($matiere?->id))
+                ->pluck('id')
+                ->values()
+                ->all();
+
+            if (empty($classIds)) {
+                $classIds = $classes->take(1)->pluck('id')->all();
+            }
+
+            $enseignant->enseignantClasses()->sync($classIds);
         }
     }
 
     /**
      * @param array<int, array{user: User, classe: string}> $eleves
      */
-    private function attachStudentsToClassesAndCreateAcademicData(array $eleves): void
+    private function attachStudentsToClasses(array $eleves): void
     {
         foreach ($eleves as $index => $entry) {
             $eleve = $entry['user'];
@@ -174,37 +186,64 @@ class UserSeeder extends Seeder
             }
 
             $eleve->eleveClasses()->sync([$classe->id]);
-            $matieres = $classe->matieres()->get();
+        }
+    }
 
-            foreach ($matieres as $matiereIndex => $matiere) {
-                foreach (['Devoir 1', 'Composition'] as $typeIndex => $type) {
-                    $value = 9 + (($index + $matiereIndex + $typeIndex) % 10);
-                    Note::query()->updateOrCreate(
-                        [
-                            'id_eleve' => $eleve->id,
-                            'id_classe' => $classe->id,
-                            'id_matiere' => $matiere->id,
-                            'type_evaluation' => $type,
-                            'periode' => 'Semestre 1',
-                        ],
-                        ['valeur' => min(20, $value)]
-                    );
+    private function resolveMatiereForSpecialite(?string $specialite): ?Matieres
+    {
+        if (blank($specialite)) {
+            return Matieres::query()->orderBy('id')->first();
+        }
+
+        $normalizedSpecialite = Str::lower(Str::ascii($specialite));
+
+        $matiere = Matieres::query()->get()->first(function (Matieres $matiere) use ($normalizedSpecialite): bool {
+            $normalizedMatiere = Str::lower(Str::ascii($matiere->nom_matiere));
+
+            return Str::contains($normalizedMatiere, $normalizedSpecialite)
+                || Str::contains($normalizedSpecialite, $normalizedMatiere);
+        });
+
+        if ($matiere) {
+            return $matiere;
+        }
+
+        $fallbackMap = [
+            'mathematiques' => 'Mathématiques',
+            'francais' => 'Français',
+            'histoire' => 'Histoire-Géographie',
+            'geographie' => 'Histoire-Géographie',
+            'svt' => 'SVT',
+            'physique' => 'Physique-Chimie',
+            'chimie' => 'Physique-Chimie',
+            'anglais' => 'Anglais',
+            'espagnol' => 'Espagnol',
+            'arabe' => 'Arabe',
+            'informatique' => 'Informatique',
+            'philosophie' => 'Philosophie',
+            'economie' => 'Économie',
+            'eps' => 'EPS',
+            'lecture' => 'Lecture',
+            'ecriture' => 'Écriture',
+            'langage' => 'Langage',
+            'civique' => 'Éducation civique',
+            'graphisme' => 'Graphisme',
+            'numeriques' => 'Activités numériques',
+            'monde' => 'Découverte du monde',
+            'sciences' => 'Sciences',
+        ];
+
+        foreach ($fallbackMap as $needle => $expectedName) {
+            if (Str::contains($normalizedSpecialite, $needle)) {
+                $candidate = Matieres::query()->where('nom_matiere', $expectedName)->first();
+
+                if ($candidate) {
+                    return $candidate;
                 }
             }
-
-            if ($index % 3 === 0) {
-                Absence::query()->updateOrCreate(
-                    [
-                        'id_eleve' => $eleve->id,
-                        'date_absence' => now()->subDays(10 + $index)->format('Y-m-d'),
-                    ],
-                    [
-                        'motif' => $index % 2 === 0 ? 'Maladie signalée par le parent' : 'Absence non justifiée',
-                        'est_justifiee' => $index % 2 === 0,
-                    ]
-                );
-            }
         }
+
+        return Matieres::query()->orderBy('id')->first();
     }
 
     /**

@@ -3,6 +3,7 @@ import { PasswordField } from '../../../../../shared/components/forms/PasswordFi
 export function EleveForm({
   mode,
   form,
+  classes = [],
   fieldErrors,
   submitting,
   onInputChange,
@@ -28,6 +29,18 @@ export function EleveForm({
         <span>Email</span>
         <input name="email" type="email" value={form.email} onChange={onInputChange} autoComplete="email" required />
         {fieldErrors.email ? <small>{fieldErrors.email[0]}</small> : null}
+      </label>
+      <label className="full-width">
+        <span>Classe</span>
+        <select name="classe_id" value={form.classe_id} onChange={onInputChange} required>
+          <option value="">Sélectionner la classe</option>
+          {classes.map((classe) => (
+            <option key={classe.id} value={classe.id}>
+              {classe.nom_classe} - {classe.niveau} ({classe.annee_scolaire})
+            </option>
+          ))}
+        </select>
+        {fieldErrors.classe_id ? <small>{fieldErrors.classe_id[0]}</small> : null}
       </label>
       {isEditing ? (
         <PasswordField

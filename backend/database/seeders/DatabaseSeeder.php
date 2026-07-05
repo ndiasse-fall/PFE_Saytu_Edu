@@ -14,6 +14,7 @@ class DatabaseSeeder extends Seeder
             ClasseMatiereSeeder::class,
             UserSeeder::class,
             UserMatiereSeeder::class,
+            AcademicDataSeeder::class,
             EmploiDuTempsSeeder::class,
         ]);
     }

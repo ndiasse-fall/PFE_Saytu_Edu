@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\RoleEnum;
+use App\Models\Matieres;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
@@ -58,9 +59,9 @@ class UserService
         if ($role === RoleEnum::ELEVE) {
             $query->with('eleveClasses');
         } elseif ($role === RoleEnum::ENSEIGNANT) {
-            $query->with('enseignantClasses');
+            $query->with(['enseignantClasses', 'matieres']);
         } else {
-            $query->with(['eleveClasses', 'enseignantClasses']);
+            $query->with(['eleveClasses', 'enseignantClasses', 'matieres']);
         }
 
         if (isset($filters['affecte']) && $filters['affecte'] !== null && $filters['affecte'] !== '') {
@@ -118,6 +119,7 @@ class UserService
             $data,
             $explicitStudentMatricule || $explicitTeacherMatricule
         );
+        $this->syncAssignments($user, $data);
         $user->setAttribute('temporary_password', $generatedPassword ? $plainPassword : null);
 
         event(new \App\Events\UserCreated($user, $plainPassword));
@@ -154,7 +156,7 @@ class UserService
         if ($user->role === RoleEnum::ELEVE || $user->statut === 'ELEVE') {
             $user->load('eleveClasses');
         } elseif ($user->role === RoleEnum::ENSEIGNANT || $user->statut === 'ENSEIGNANT') {
-            $user->load('enseignantClasses');
+            $user->load(['enseignantClasses', 'matieres']);
         }
 
         return $user;
@@ -172,6 +174,7 @@ class UserService
 
         $data = $this->syncLegacyFields($data, $user);
         $user->update($data);
+        $this->syncAssignments($user->fresh(), $data);
 
         return $user->fresh();
     }
@@ -305,6 +308,80 @@ class UserService
         }
 
         return $data;
+    }
+
+    private function syncAssignments(User $user, array $data): void
+    {
+        $role = $this->normalizeRoleValue($data['role'] ?? $user->resolvedRole());
+
+        if ($role === RoleEnum::ELEVE->value) {
+            $user->enseignantClasses()->detach();
+            $user->matieres()->detach();
+
+            $hasClasseField = array_key_exists('classe_id', $data) || array_key_exists('classe_ids', $data);
+            $classeIds = $this->normalizeIdList($data['classe_ids'] ?? ($data['classe_id'] ?? null));
+            if ($hasClasseField) {
+                $user->eleveClasses()->sync($classeIds);
+            }
+
+            return;
+        }
+
+        if ($role === RoleEnum::ENSEIGNANT->value) {
+            $user->eleveClasses()->detach();
+
+            $hasClasseField = array_key_exists('classe_ids', $data);
+            $classeIds = $this->normalizeIdList($data['classe_ids'] ?? null);
+            if ($hasClasseField) {
+                $user->enseignantClasses()->sync($classeIds);
+            }
+
+            $hasMatiereField = array_key_exists('matiere_ids', $data);
+            $matiereIds = $this->normalizeIdList($data['matiere_ids'] ?? null);
+            if ($matiereIds === [] && filled($data['specialite'] ?? null)) {
+                $matiere = Matieres::query()
+                    ->where('nom_matiere', $data['specialite'])
+                    ->first();
+
+                if ($matiere) {
+                    $matiereIds = [$matiere->id];
+                }
+            }
+
+            if ($hasMatiereField || filled($data['specialite'] ?? null)) {
+                $user->matieres()->sync($matiereIds);
+            }
+        }
+    }
+
+    /**
+     * @param mixed $value
+     * @return array<int, int>
+     */
+    private function normalizeIdList(mixed $value): array
+    {
+        if ($value === null || $value === '') {
+            return [];
+        }
+
+        $values = is_array($value) ? $value : [$value];
+
+        return collect($values)
+            ->filter(fn ($item): bool => $item !== null && $item !== '')
+            ->map(fn ($item): int => (int) $item)
+            ->filter(fn (int $item): bool => $item > 0)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+    private function normalizeRoleValue(RoleEnum|string|null $role): string
+    {
+        if ($role instanceof RoleEnum) {
+            return $role->value;
+        }
+
+        return (string) $role;
     }
 
     private function assertSuperAdminRoleIsNotManagedHere(array $data): void

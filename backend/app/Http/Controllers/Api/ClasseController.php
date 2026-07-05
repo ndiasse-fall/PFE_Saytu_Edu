@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Enums\NiveauClasseEnum;
 use App\Http\Controllers\Controller;
 use App\Models\Classe;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Log;
@@ -24,12 +25,28 @@ class ClasseController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nom_classe' => ['required', 'string', 'max:255'],
             'niveau' => ['required', Rule::in(NiveauClasseEnum::values())],
             'annee_scolaire' => ['required', 'string', 'max:20'],
+            'nom_classe' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('classes', 'nom_classe')
+                    ->where(fn ($query) => $query->where('annee_scolaire', $request->input('annee_scolaire'))),
+            ],
         ]);
 
-        return response()->json(Classe::create($validated), 201);
+        try {
+            return response()->json(Classe::create($validated), 201);
+        } catch (QueryException $exception) {
+            if ($this->isDuplicateClassConstraint($exception)) {
+                return response()->json([
+                    'message' => 'Cette classe existe déjà pour cette année scolaire.',
+                ], 422);
+            }
+
+            throw $exception;
+        }
     }
 
     public function show(string $id)
@@ -41,12 +58,30 @@ class ClasseController extends Controller
     {
         $classe = Classe::findOrFail($id);
         $validated = $request->validate([
-            'nom_classe' => ['sometimes', 'required', 'string', 'max:255'],
+            'nom_classe' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('classes', 'nom_classe')
+                    ->where(fn ($query) => $query->where('annee_scolaire', $request->input('annee_scolaire', $classe->annee_scolaire)))
+                    ->ignore($classe->id),
+            ],
             'niveau' => ['sometimes', 'required', Rule::in(NiveauClasseEnum::values())],
             'annee_scolaire' => ['sometimes', 'required', 'string', 'max:20'],
         ]);
 
-        $classe->update($validated);
+        try {
+            $classe->update($validated);
+        } catch (QueryException $exception) {
+            if ($this->isDuplicateClassConstraint($exception)) {
+                return response()->json([
+                    'message' => 'Cette classe existe déjà pour cette année scolaire.',
+                ], 422);
+            }
+
+            throw $exception;
+        }
 
         return response()->json($classe);
     }
@@ -122,5 +157,10 @@ class ClasseController extends Controller
             ->get();
 
         return response()->json($eleves);
+    }
+
+    private function isDuplicateClassConstraint(QueryException $exception): bool
+    {
+        return str_contains($exception->getMessage(), 'classes_nom_classe_annee_scolaire_unique');
     }
 }
