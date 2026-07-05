@@ -6,7 +6,7 @@ import { PrimaryButton } from "../../../../shared/components/ui/PrimaryButton";
 import { listClasses } from "../../../../services/classes/ClasseServices";
 import { listMatieres } from "../../../../services/matieres/matiereService";
 import { listUsers } from "../../../../services/user/userService";
-import { affecterMatiereClasse, affecterEnseignantMatiere, listAffectations ,
+import { affecterMatiereClasse, affecterMatiereClasses, affecterEnseignantMatiere, listAffectations ,
   deleteAffectation,} from "../../../../services/affectations/affectionServices";
 import { ActionMenu } from "../../../../shared/components/ui/ActionMenu";
 
@@ -22,6 +22,7 @@ export function AffectationManagementPage() {
   const [success, setSuccess] = useState(null);
   const [searchClasse, setSearchClasse] = useState("");
   const [searchEnseignant, setSearchEnseignant] = useState("");
+  const [niveauFiltre, setNiveauFiltre] = useState("");
   const [pageClasse, setPageClasse] = useState(0);
   const [rowsPerPageClasse, setRowsPerPageClasse] = useState(10);
   const [pageEnseignant, setPageEnseignant] = useState(0);
@@ -37,6 +38,7 @@ export function AffectationManagementPage() {
 
   const [formData, setFormData] = useState({
     classe_id: "",
+    classe_ids: [],
     matiere_id: "",
     enseignant_id: "",
   });
@@ -74,6 +76,20 @@ export function AffectationManagementPage() {
     });
   };
 
+  const toggleClasseSelection = (classeId) => {
+    setFormData((current) => {
+      const selected = current.classe_ids || [];
+      const nextSelection = selected.includes(classeId)
+        ? selected.filter((id) => id !== classeId)
+        : [...selected, classeId];
+
+      return {
+        ...current,
+        classe_ids: nextSelection,
+      };
+    });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -82,7 +98,15 @@ export function AffectationManagementPage() {
     setSuccess(null);
     try {
       if (type === "matiere-classe") {
-        await affecterMatiereClasse(formData.classe_id, formData.matiere_id);
+        const selectedClasseIds = formData.classe_ids?.length
+          ? formData.classe_ids
+          : (formData.classe_id ? [formData.classe_id] : []);
+
+        if (selectedClasseIds.length === 0) {
+          throw new Error("Veuillez sélectionner au moins une classe.");
+        }
+
+        await affecterMatiereClasses(selectedClasseIds, formData.matiere_id);
       } else {
         await affecterEnseignantMatiere(formData.enseignant_id, formData.matiere_id);
       }
@@ -143,7 +167,7 @@ export function AffectationManagementPage() {
 
   const openForm = (newType) => {
     setType(newType);
-    setFormData({ classe_id: "", matiere_id: "", enseignant_id: "" });
+    setFormData({ classe_id: "", classe_ids: [], matiere_id: "", enseignant_id: "" });
     setError(null);
     setSuccess(null);
     setIsOpen(true);
@@ -172,6 +196,9 @@ export function AffectationManagementPage() {
     pageClasse * rowsPerPageClasse,
     (pageClasse + 1) * rowsPerPageClasse
   );
+
+  const niveauxDisponibles = [...new Set(classes.map((classe) => classe.niveau).filter(Boolean))];
+  const classesFiltrees = niveauFiltre ? classes.filter((classe) => classe.niveau === niveauFiltre) : classes;
 
   return (
     <section className="page-section">
@@ -311,36 +338,90 @@ export function AffectationManagementPage() {
       >
         <form onSubmit={handleSubmit} className="auth-form">
           {type === "matiere-classe" ? (
-            <SelectField
-              label="Classe"
-              name="classe_id"
-              value={formData.classe_id}
-              onChange={handleChange}
-              options={classes.map(c => ({ value: c.id, label: c.nom_classe }))}
-              placeholder="Sélectionner une classe"
-              required
-            />
-          ) : (
-            <SelectField
-              label="Enseignant"
-              name="enseignant_id"
-              value={formData.enseignant_id}
-              onChange={handleChange}
-              options={enseignants.map(e => ({ value: e.id, label: `${e.prenom} ${e.nom}` }))}
-              placeholder="Sélectionner un enseignant"
-              required
-            />
-          )}
+            <>
+              <div style={{ marginBottom: "16px" }}>
+                <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", textAlign: "left" }}>
+                  Filtrer par niveau
+                </label>
+                <select
+                  value={niveauFiltre}
+                  onChange={(e) => setNiveauFiltre(e.target.value)}
+                  style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #ccc" }}
+                >
+                  <option value="">Tous les niveaux</option>
+                  {niveauxDisponibles.map((niveau) => (
+                    <option key={niveau} value={niveau}>{niveau}</option>
+                  ))}
+                </select>
+              </div>
 
-          <SelectField
-            label="Matière"
-            name="matiere_id"
-            value={formData.matiere_id}
-            onChange={handleChange}
-            options={matieres.map(m => ({ value: m.id, label: m.nom_matiere }))}
-            placeholder="Sélectionner une matière"
-            required
-          />
+              <SelectField
+                label="Matière"
+                name="matiere_id"
+                value={formData.matiere_id}
+                onChange={handleChange}
+                options={matieres.map(m => ({ value: m.id, label: m.nom_matiere }))}
+                placeholder="Sélectionner une matière"
+                required
+              />
+
+              <div style={{ marginBottom: "16px", textAlign: "left" }}>
+                <label style={{ display: "block", fontWeight: 600, marginBottom: "8px" }}>
+                  Classes
+                </label>
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxHeight: "260px", overflowY: "auto" }}>
+                  {classesFiltrees.map((classe) => {
+                    const checked = (formData.classe_ids || []).includes(classe.id);
+                    return (
+                      <label
+                        key={classe.id}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "12px",
+                          cursor: "pointer",
+                          padding: "8px 0",
+                          borderBottom: "1px solid #f0f0f0",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleClasseSelection(classe.id)}
+                          style={{ width: "18px", height: "18px" }}
+                        />
+                        <span style={{ fontSize: "14px", color: "#333" }}>
+                          {classe.nom_classe} ({classe.niveau || "Niveau non défini"})
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          ) : (
+            <>
+              <SelectField
+                label="Enseignant"
+                name="enseignant_id"
+                value={formData.enseignant_id}
+                onChange={handleChange}
+                options={enseignants.map(e => ({ value: e.id, label: `${e.prenom} ${e.nom}` }))}
+                placeholder="Sélectionner un enseignant"
+                required
+              />
+
+              <SelectField
+                label="Matière"
+                name="matiere_id"
+                value={formData.matiere_id}
+                onChange={handleChange}
+                options={matieres.map(m => ({ value: m.id, label: m.nom_matiere }))}
+                placeholder="Sélectionner une matière"
+                required
+              />
+            </>
+          )}
 
           <div className="mt-6">
             <PrimaryButton type="submit" disabled={loading} block>

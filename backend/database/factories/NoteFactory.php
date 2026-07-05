@@ -15,12 +15,24 @@ class NoteFactory extends Factory
     public function definition(): array
     {
         return [
-            'valeur' => fake()->randomFloat(2, 0, 20),
-            'type_evaluation' => fake()->randomElement(['Devoir', 'Examen', 'Interrogation']),
-            'periode' => fake()->randomElement(['Trimestre 1', 'Trimestre 2', 'Trimestre 3']),
+            'valeur' => fake()->randomFloat(1, 0, 20),
+            'type_evaluation' => fake()->randomElement([
+                'Devoir 1',
+                'Devoir 2',
+                'Composition',
+            ]),
+            'periode' => fake()->randomElement(['Semestre 1', 'Semestre 2']),
             'id_eleve' => User::factory()->eleve(),
-            'id_matiere' => Matieres::factory(),
-            'id_classe' => Classe::factory(),
+            'id_matiere' => Matieres::query()->inRandomOrder()->value('id')
+                ?? Matieres::query()->firstOrCreate(
+                    ['nom_matiere' => 'Mathématiques'],
+                    ['coefficient' => 6, 'description' => 'Algèbre, géométrie et raisonnement mathématique.']
+                )->id,
+            'id_classe' => Classe::query()->inRandomOrder()->value('id')
+                ?? Classe::query()->firstOrCreate(
+                    ['nom_classe' => '2nde L A', 'annee_scolaire' => '2025-2026'],
+                    ['niveau' => 'Seconde']
+                )->id,
         ];
     }
 }

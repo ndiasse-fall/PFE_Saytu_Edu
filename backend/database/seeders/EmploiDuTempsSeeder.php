@@ -27,22 +27,28 @@ class EmploiDuTempsSeeder extends Seeder
         }
 
         $jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi'];
-        $heures = [
+        $creneaux = [
             ['08:00', '10:00'],
             ['10:00', '12:00'],
+            ['12:00', '14:00'],
+            ['14:00', '16:00'],
             ['15:00', '17:00'],
         ];
 
         foreach ($classes as $classe) {
             foreach ($jours as $jour) {
-                // On crée 1 à 2 cours par jour par classe
+                // On crée 1 à 2 cours par jour par classe sur des créneaux 2h.
                 $nbCours = rand(1, 2);
+                shuffle($creneaux);
+
                 for ($i = 0; $i < $nbCours; $i++) {
+                    [$heureDebut, $heureFin] = $creneaux[$i];
+
                     EmploiDuTemps::create([
                         'jour' => $jour,
-                        'heure_debut' => $heures[$i][0],
-                        'heure_fin' => $heures[$i][1],
-                        'salle' => 'Salle ' . rand(101, 205),
+                        'heure_debut' => $heureDebut,
+                        'heure_fin' => $heureFin,
+                        'salle' => 'Salle ' . rand(1, 20),
                         'id_classe' => $classe->id,
                         'id_enseignant' => $enseignants->random()->id,
                         'id_matiere' => $matieres->random()->id,

@@ -125,6 +125,15 @@ class AffectationController extends Controller
             ], 422);
         }
 
+        $matiere = Matieres::findOrFail($request->matiere_id);
+
+        if ($user->specialite !== $matiere->nom_matiere) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La spécialité de l\'enseignant doit être égale à la matière affectée.'
+            ], 422);
+        }
+
         $user->matieres()->syncWithoutDetaching([$request->matiere_id]);
 
         return response()->json([

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateNoteRequest extends FormRequest
 {
@@ -18,8 +19,12 @@ class UpdateNoteRequest extends FormRequest
     {
         return [
             'valeur' => ['sometimes', 'required', 'numeric', 'min:0', 'max:20'],
-            'type_evaluation' => ['sometimes', 'required', 'string', 'max:100'],
-            'periode' => ['sometimes', 'required', 'string', 'max:100'],
+            'type_evaluation' => ['sometimes', 'required', 'string', 'max:100', Rule::in([
+                'Devoir 1',
+                'Devoir 2',
+                'Composition',
+            ])],
+            'periode' => ['sometimes', 'required', 'string', 'max:100', Rule::in(['Semestre 1', 'Semestre 2'])],
             'id_matiere' => ['sometimes', 'required', 'integer', 'exists:matieres,id'],
         ];
     }

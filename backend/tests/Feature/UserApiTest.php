@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\RoleEnum;
 use App\Models\User;
+use Database\Seeders\MatiereSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\Sanctum;
@@ -12,6 +13,13 @@ use Tests\TestCase;
 class UserApiTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->seed(MatiereSeeder::class);
+    }
 
     private function authenticate(): void
     {
@@ -273,7 +281,7 @@ class UserApiTest extends TestCase
         $response->assertCreated();
 
         $user = User::where('email', 'babacar.sene@example.com')->firstOrFail();
-        
+
         $year = date('Y');
         $this->assertNotNull($user->matricule_eleve);
         $this->assertStringStartsWith("ELV-{$year}", $user->matricule_eleve);

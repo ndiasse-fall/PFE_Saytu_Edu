@@ -18,6 +18,7 @@ class MatiereSeeder extends Seeder
             ['nom_matiere' => 'Anglais', 'coefficient' => 3, 'description' => 'Communication et compréhension anglaise.'],
             ['nom_matiere' => 'EPS', 'coefficient' => 2, 'description' => 'Éducation physique et sportive.'],
             ['nom_matiere' => 'Philosophie', 'coefficient' => 3, 'description' => 'Analyse, argumentation et réflexion.'],
+            ['nom_matiere' => 'Informatique', 'coefficient' => 2, 'description' => 'Initiation aux outils numériques et aux algorithmes.'],
         ];
 
         foreach ($matieres as $matiere) {

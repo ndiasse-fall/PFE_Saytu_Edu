@@ -10,7 +10,7 @@ export const menuItems = [
             },
             {
                 label: "Élèves",
-                path: "/admin/eleves",
+                path: "/admin/gestion-admin/eleves",
                 icon: "bi-mortarboard-fill",
             },
             {
