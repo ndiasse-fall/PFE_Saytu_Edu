@@ -208,9 +208,7 @@ export function AppRouter() {
                                 />
                                 <Route
                                     path="/admin/classes"
-                                    element={
-                                        <ModulePlaceholderPage title="Classes" />
-                                    }
+                                    element={<ClasseManagementPage />}
                                 />
                                 <Route
                                     path="/admin/emploi-du-temps"

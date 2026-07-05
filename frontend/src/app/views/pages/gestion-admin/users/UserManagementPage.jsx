@@ -8,6 +8,8 @@ import {
   toggleUserStatus,
   updateUser,
 } from '../../../../services/user/userService'
+import { listClasses } from '../../../../services/classes/ClasseServices'
+import { listMatieres } from '../../../../services/professeurs/teacherService'
 import { DrawerPanel } from '../../../../shared/components/ui/DrawerPanel'
 import { KpiCard } from '../../../../shared/components/ui/KpiCard'
 import { ListeUsers } from './liste-users/ListeUsers'
@@ -21,6 +23,10 @@ const emptyForm = {
   telephone: '',
   adresse: '',
   role: 'ELEVE',
+  classe_id: '',
+  classe_ids: [],
+  matiere_ids: [],
+  specialite: '',
   actif: true,
 }
 
@@ -35,6 +41,8 @@ export function UserManagementPage() {
   const [formMode, setFormMode] = useState('closed')
   const [editingUserId, setEditingUserId] = useState(null)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [classes, setClasses] = useState([])
+  const [matieres, setMatieres] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -86,6 +94,15 @@ export function UserManagementPage() {
       void Promise.all([loadData(initialFilters), loadSummary()])
     }, 0)
 
+    void Promise.all([
+      listClasses()
+        .then((data) => setClasses(data || []))
+        .catch(() => setClasses([])),
+      listMatieres()
+        .then((data) => setMatieres(data?.data ?? data ?? []))
+        .catch(() => setMatieres([])),
+    ])
+
     return () => window.clearTimeout(timer)
   }, [loadData, loadSummary])
 
@@ -111,6 +128,14 @@ export function UserManagementPage() {
     setForm((current) => ({
       ...current,
       [name]: type === 'checkbox' ? checked : value,
+      ...(name === 'role'
+        ? {
+            classe_id: value === 'ELEVE' ? current.classe_id : '',
+            classe_ids: value === 'ENSEIGNANT' ? current.classe_ids : [],
+            matiere_ids: value === 'ENSEIGNANT' ? current.matiere_ids : [],
+            specialite: value === 'ENSEIGNANT' ? current.specialite : '',
+          }
+        : {}),
     }))
   }
 
@@ -134,6 +159,10 @@ export function UserManagementPage() {
       adresse: form.adresse || null,
       role: form.role,
       actif: form.actif,
+      classe_id: form.classe_id ? Number(form.classe_id) : null,
+      classe_ids: Array.isArray(form.classe_ids) ? form.classe_ids.map(Number).filter(Boolean) : [],
+      matiere_ids: Array.isArray(form.matiere_ids) ? form.matiere_ids.map(Number).filter(Boolean) : [],
+      specialite: form.specialite || null,
     }
 
     if (form.password) {
@@ -181,7 +210,7 @@ export function UserManagementPage() {
     setFormMode('edit')
     setEditingUserId(user.id)
     setSelectedUser(null)
-    setForm({
+      setForm({
       nom: user.nom ?? '',
       prenom: user.prenom ?? '',
       email: user.email ?? '',
@@ -189,6 +218,10 @@ export function UserManagementPage() {
       telephone: user.telephone ?? '',
       adresse: user.adresse ?? '',
       role: user.role ?? 'ELEVE',
+      classe_id: user.classes?.[0]?.id ?? user.eleveClasses?.[0]?.id ?? '',
+      classe_ids: (user.enseignantClasses ?? user.classes ?? []).map((classe) => String(classe.id)),
+      matiere_ids: (user.matieres ?? []).map((matiere) => String(matiere.id)),
+      specialite: user.specialite ?? user.matieres?.[0]?.nom_matiere ?? '',
       actif: Boolean(user.actif),
     })
     setFieldErrors({})
@@ -310,6 +343,8 @@ export function UserManagementPage() {
         <UserForm
           mode={formMode}
           form={form}
+          classes={classes}
+          matieres={matieres}
           fieldErrors={fieldErrors}
           submitting={submitting}
           onInputChange={handleInputChange}
@@ -338,6 +373,12 @@ export function UserManagementPage() {
             <div><span className="detail-label">Adresse</span><strong>{selectedUser.adresse || 'Non renseignée'}</strong></div>
             <div><span className="detail-label">Rôle</span><strong>{selectedUser.role}</strong></div>
             <div><span className="detail-label">Statut</span><strong>{selectedUser.actif ? 'Actif' : 'Inactif'}</strong></div>
+            {selectedUser.classe || selectedUser.classes?.length ? (
+              <div><span className="detail-label">Classes</span><strong>{(selectedUser.classes ?? selectedUser.classe ?? []).map((classe) => classe.nom_classe).join(', ') || 'Aucune'}</strong></div>
+            ) : null}
+            {selectedUser.matieres?.length ? (
+              <div><span className="detail-label">Matières</span><strong>{selectedUser.matieres.map((matiere) => matiere.nom_matiere).join(', ')}</strong></div>
+            ) : null}
           </div>
         ) : null}
       </DrawerPanel>

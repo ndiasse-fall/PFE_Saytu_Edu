@@ -1,6 +1,9 @@
+import { PasswordField } from '../../../../../shared/components/forms/PasswordField'
+
 export function EleveForm({
   mode,
   form,
+  classes = [],
   fieldErrors,
   submitting,
   onInputChange,
@@ -27,18 +30,27 @@ export function EleveForm({
         <input name="email" type="email" value={form.email} onChange={onInputChange} autoComplete="email" required />
         {fieldErrors.email ? <small>{fieldErrors.email[0]}</small> : null}
       </label>
+      <label className="full-width">
+        <span>Classe</span>
+        <select name="classe_id" value={form.classe_id} onChange={onInputChange} required>
+          <option value="">Sélectionner la classe</option>
+          {classes.map((classe) => (
+            <option key={classe.id} value={classe.id}>
+              {classe.nom_classe} - {classe.niveau} ({classe.annee_scolaire})
+            </option>
+          ))}
+        </select>
+        {fieldErrors.classe_id ? <small>{fieldErrors.classe_id[0]}</small> : null}
+      </label>
       {isEditing ? (
-        <label>
-          <span>Mot de passe (optionnel)</span>
-          <input
-            name="password"
-            type="password"
-            value={form.password}
-            onChange={onInputChange}
-            autoComplete="new-password"
-          />
-          {fieldErrors.password ? <small>{fieldErrors.password[0]}</small> : null}
-        </label>
+        <PasswordField
+          label="Mot de passe (optionnel)"
+          name="password"
+          value={form.password}
+          onChange={onInputChange}
+          autoComplete="new-password"
+          error={fieldErrors.password?.[0]}
+        />
       ) : (
         <div className="alert alert-info full-width">
           Un mot de passe temporaire sera généré automatiquement et envoyé par email.

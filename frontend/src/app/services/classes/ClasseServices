@@ -5,6 +5,11 @@ export const listClasses = async () => {
   return Array.isArray(response) ? response : (response?.data || [])
 }
 
+export const listClasseNiveaux = async () => {
+  const response = await apiClient('/classes/niveaux')
+  return Array.isArray(response) ? response : (response?.data || [])
+}
+
 export const createClasse = (data) =>
   apiClient('/classes', { method: 'POST', data })
 
