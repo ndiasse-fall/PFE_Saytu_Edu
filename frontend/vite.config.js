@@ -11,7 +11,7 @@ export default defineConfig({
         proxy: {
             // Redirige toutes les requêtes commençant par /api vers Laravel
             "/api": {
-                target: "https://pfe-saytu-edu.onrender.com",
+                target: "http://127.0.0.1:8000",
                 changeOrigin: true,
                 secure: false,
             },
