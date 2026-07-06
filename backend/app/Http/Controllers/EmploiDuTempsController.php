@@ -113,6 +113,19 @@ class EmploiDuTempsController extends Controller
             }
         }
 
+        if (!empty($data['id_enseignant']) && !empty($data['id_matiere'])) {
+            $teacherHasSubjects = User::whereKey($data['id_enseignant'])
+                ->whereHas('matieres')
+                ->exists();
+            $teachesSubject = User::whereKey($data['id_enseignant'])
+                ->whereHas('matieres', fn ($query) => $query->where('matieres.id', $data['id_matiere']))
+                ->exists();
+
+            if ($teacherHasSubjects && ! $teachesSubject) {
+                $errors['id_matiere'] = ['Cette matière ne correspond pas à la spécialité de l\'enseignant sélectionné.'];
+            }
+        }
+
         if (!empty($data['jour']) && !empty($data['heure_debut']) && !empty($data['heure_fin']) && !empty($data['id_classe'])) {
             $jour = $this->normalizeDay($data['jour']);
             $debut = $data['heure_debut'];
@@ -126,6 +139,32 @@ class EmploiDuTempsController extends Controller
 
             if ($query->exists()) {
                 $errors['id_classe'] = ['Cette classe possède déjà un cours sur ce créneau horaire.'];
+            }
+
+            if (!empty($data['id_enseignant'])) {
+                $teacherConflict = EmploiDuTemps::where('jour', $jour)
+                    ->where('id_enseignant', $data['id_enseignant'])
+                    ->when($ignoreId !== null, fn ($query) => $query->where('id', '!=', $ignoreId))
+                    ->where('heure_debut', '<', $fin)
+                    ->where('heure_fin', '>', $debut)
+                    ->exists();
+
+                if ($teacherConflict) {
+                    $errors['id_enseignant'] = ['Cet enseignant a déjà un cours sur ce créneau horaire.'];
+                }
+            }
+
+            if (!empty($data['salle'])) {
+                $roomConflict = EmploiDuTemps::where('jour', $jour)
+                    ->where('salle', $data['salle'])
+                    ->when($ignoreId !== null, fn ($query) => $query->where('id', '!=', $ignoreId))
+                    ->where('heure_debut', '<', $fin)
+                    ->where('heure_fin', '>', $debut)
+                    ->exists();
+
+                if ($roomConflict) {
+                    $errors['salle'] = ['Cette salle est déjà occupée sur ce créneau horaire.'];
+                }
             }
         }
 

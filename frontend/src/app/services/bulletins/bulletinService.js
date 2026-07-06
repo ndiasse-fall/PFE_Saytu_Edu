@@ -8,6 +8,10 @@ export const getBulletinById = async (id) => {
   return await apiClient(`/bulletins/${id}`, { method: "GET" });
 };
 
+export const getMonBulletin = async () => {
+  return await apiClient("/mon-bulletin", { method: "GET" });
+};
+
 export const getBulletinByEleve = async (eleveId) => {
   return await apiClient(`/bulletins/eleve/${eleveId}`, { method: "GET" });
 };

@@ -1,3 +1,5 @@
+import { PasswordField } from './PasswordField'
+
 export function TextField({
   label,
   name,
@@ -9,6 +11,21 @@ export function TextField({
   required = false,
   ...props
 }) {
+  if (type === 'password') {
+    return (
+      <PasswordField
+        label={label}
+        name={name}
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        error={error}
+        required={required}
+        {...props}
+      />
+    )
+  }
+
   return (
     <label className="field">
       <span className="field-label">{label}</span>

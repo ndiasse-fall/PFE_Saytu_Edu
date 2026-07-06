@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import frLocale from '@fullcalendar/core/locales/fr';
 
-import { useAuth } from '../../../../../core/context/useAuth';
 import { listMonEmploiDuTemps, normalizeApiResponse } from '../../../../../services/emplois-du-temps/emploiDuTempsService';
 
 export function MonEmploiTemps() {
-  const { user } = useAuth();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -43,10 +41,6 @@ export function MonEmploiTemps() {
       const jourNormalise = String(session.jour || '').toLowerCase().trim();
       const dayIndex = joursMap[jourNormalise] !== undefined ? joursMap[jourNormalise] : 1;
       
-      const enseignantNom = session.enseignant
-        ? `${session.enseignant.prenom} ${session.enseignant.nom}`
-        : 'Non assigné';
-
       // Élimine le doublon "SalleSalle"
       let salleClean = session.salle || 'N/A';
       if (salleClean.toLowerCase().startsWith('salle')) {
@@ -60,7 +54,6 @@ export function MonEmploiTemps() {
         startTime: session.heure_debut,
         endTime: session.heure_fin,
         extendedProps: {
-          enseignant: enseignantNom,
           salle: salleClean
         }
       };
@@ -213,10 +206,7 @@ export function MonEmploiTemps() {
                 <div className="calendar-custom-card">
                   <div className="fc-event-title">{eventInfo.event.title}</div>
                   <div className="calendar-custom-details">
-                    <span>
-                      <i className="bi bi-person"></i>
-                      {eventInfo.event.extendedProps.enseignant}
-                    </span>
+                    <span>{eventInfo.timeText || ''}</span>
                     {eventInfo.event.extendedProps.salle && (
                       <span>
                         <i className="bi bi-geo-alt"></i>

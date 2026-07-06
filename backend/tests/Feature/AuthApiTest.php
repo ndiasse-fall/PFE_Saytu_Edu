@@ -178,6 +178,13 @@ class AuthApiTest extends TestCase
             ->assertUnauthorized();
     }
 
+    public function test_api_requires_authentication_without_json_accept_header(): void
+    {
+        $this->get('/api/users')
+            ->assertUnauthorized()
+            ->assertJsonPath('message', 'Non authentifié.');
+    }
+
     public function test_inactive_authenticated_user_is_blocked_from_protected_routes(): void
     {
         $user = User::factory()->create([

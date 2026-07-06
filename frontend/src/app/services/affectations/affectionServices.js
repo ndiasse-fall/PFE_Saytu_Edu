@@ -1,8 +1,19 @@
-import { apiClient } from '../../core/api/apiClient';
+import { apiClient } from '../../core/api/apiClient.js';
 
 export const listAffectations = async () => {
   const response = await apiClient('/affectations');
   return Array.isArray(response) ? response : (response?.data || []);
+};
+
+export const buildMatiereClasseAssignments = (classeIds, matiereId) => {
+  if (!Array.isArray(classeIds) || classeIds.length === 0) {
+    throw new Error('Veuillez sélectionner au moins une classe.');
+  }
+
+  return classeIds.map((classeId) => ({
+    classe_id: Number(classeId),
+    matiere_id: Number(matiereId),
+  }));
 };
 
 export const affecterMatiereClasse = (classeId, matiereId) =>
@@ -13,6 +24,19 @@ export const affecterMatiereClasse = (classeId, matiereId) =>
       matiere_id: matiereId,
     },
   });
+
+export const affecterMatiereClasses = async (classeIds, matiereId) => {
+  const payloads = buildMatiereClasseAssignments(classeIds, matiereId);
+
+  await Promise.all(
+    payloads.map((payload) =>
+      apiClient('/affectations/matiere-classe', {
+        method: 'POST',
+        data: payload,
+      })
+    )
+  );
+};
 
 export const deleteAffectation = async (compositeId) => {
   if (!compositeId) {

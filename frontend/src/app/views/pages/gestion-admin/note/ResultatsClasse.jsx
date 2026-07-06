@@ -1,7 +1,7 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { getResultatsClasse } from '../../../../services/note/noteService';
-import { apiClient } from '../../../../core/api/apiClient';
+import { listClasses } from '../../../../services/classes/ClasseServices';
 
 function formatNumber(value) {
   if (value === null || value === undefined || value === '') {
@@ -27,7 +27,7 @@ export default function ResultatsClasse() {
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await apiClient('/classes');
+        const response = await listClasses();
         const data = Array.isArray(response?.data) ? response.data : Array.isArray(response) ? response : [];
         setClasses(data);
 

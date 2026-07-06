@@ -1,13 +1,15 @@
 import { useEffect, useState } from "react";
-import TablePagination from "@mui/material/TablePagination";
 import { DrawerPanel } from "../../../../shared/components/ui/DrawerPanel";
 import { TextField } from "../../../../shared/components/forms/TextField";
+import { SelectField } from "../../../../shared/components/forms/SelectField";
 import { PrimaryButton } from "../../../../shared/components/ui/PrimaryButton";
-import { listClasses, createClasse, updateClasse, deleteClasse } from "../../../../services/classes/ClasseServices";
+import { listClasses, listClasseNiveaux, createClasse, updateClasse, deleteClasse } from "../../../../services/classes/ClasseServices";
 import { ActionMenu } from "../../../../shared/components/ui/ActionMenu";
+import TablePagination from "@mui/material/TablePagination";
 
 export function ClasseManagementPage() {
   const [classes, setClasses] = useState([]);
+  const [niveauOptions, setNiveauOptions] = useState([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [selectedClasse, setSelectedClasse] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -17,16 +19,12 @@ export function ClasseManagementPage() {
   const [niveauFilter, setNiveauFilter] = useState("Tous");
   const [sortBy, setSortBy] = useState("nom");
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(15);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [formData, setFormData] = useState({
     nom_classe: "",
     niveau: "",
     annee_scolaire: "",
   });
-
-  useEffect(() => {
-    setPage(0);
-  }, [search, niveauFilter, sortBy]);
 
   const fetchClasses = async () => {
     setLoading(true);
@@ -41,9 +39,19 @@ export function ClasseManagementPage() {
     }
   };
 
+  const fetchNiveaux = async () => {
+    try {
+      const response = await listClasseNiveaux();
+      setNiveauOptions(response);
+    } catch (err) {
+      console.error(err);
+      setNiveauOptions([]);
+    }
+  };
+
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchClasses();
+    fetchNiveaux();
   }, []);
 
   const handleChange = (e) => {
@@ -110,7 +118,13 @@ export function ClasseManagementPage() {
       }
     }
   };
-const niveaux = ["Tous", ...new Set(classes.map((c) => c.niveau))];
+const normalizedNiveauOptions = niveauOptions;
+
+const niveaux = ["Tous", ...normalizedNiveauOptions.map((option) => option.value)];
+
+const getNiveauLabel = (value) => {
+  return normalizedNiveauOptions.find((option) => option.value === value)?.label || value;
+};
 
 const filteredClasses = classes
   .filter((classe) => {
@@ -139,16 +153,16 @@ const filteredClasses = classes
     return 0;
   });
 
-  const paginatedClasses = filteredClasses.slice(
-    page * rowsPerPage,
-    (page + 1) * rowsPerPage
-  );
+const paginatedClasses = filteredClasses.slice(
+  page * rowsPerPage,
+  page * rowsPerPage + rowsPerPage,
+);
 
   return (
     <section className="page-section">
-      <header className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <header className="page-header legacy-page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
         <h2>Gestion des classes</h2>
-        <div className="header-actions" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <div className="header-actions" style={{ display: 'flex', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
           <PrimaryButton onClick={openAddForm}>
             Ajouter une classe
           </PrimaryButton>
@@ -158,7 +172,7 @@ const filteredClasses = classes
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
 <div
-  className="panel"
+  className="panel legacy-filter-panel"
   style={{
     marginTop: "20px",
     marginBottom: "20px",
@@ -192,7 +206,7 @@ const filteredClasses = classes
       gap: "15px",
     }}
   >
-    <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+    <div className="legacy-chip-row" style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
       {niveaux.map((niveau) => (
         <button
           key={niveau}
@@ -209,7 +223,7 @@ const filteredClasses = classes
               niveauFilter === niveau ? "#fff" : "#333",
           }}
         >
-          {niveau}
+          {niveau === "Tous" ? "Tous" : getNiveauLabel(niveau)}
         </button>
       ))}
     </div>
@@ -256,7 +270,7 @@ const filteredClasses = classes
                   {paginatedClasses.map((classe) => (
                     <tr key={classe.id}>
                       <td><strong>{classe.nom_classe}</strong></td>
-                      <td>{classe.niveau}</td>
+                      <td>{getNiveauLabel(classe.niveau)}</td>
                       <td>{classe.annee_scolaire}</td>
                       <td>
                         <ActionMenu
@@ -314,12 +328,13 @@ const filteredClasses = classes
             required
           />
 
-          <TextField
+          <SelectField
             label="Niveau"
             name="niveau"
             value={formData.niveau}
             onChange={handleChange}
-            placeholder="Ex: Moyen"
+            options={normalizedNiveauOptions}
+            placeholder="Sélectionner un niveau"
             required
           />
 

@@ -9,6 +9,7 @@ import {
     updateTeacher,
     listMatieres,
 } from "../../../../services/professeurs/teacherService";
+import { listClasses } from "../../../../services/classes/ClasseServices";
 import { AssignClassesDrawer } from "./AssignClassesDrawer";
 
 const service = {
@@ -24,6 +25,7 @@ const service = {
 export function TeacherManagementPage() {
     const [assignTeacher, setAssignTeacher] = useState(null);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [classesOptions, setClassesOptions] = useState([]);
 
     // 1. Création d'un état pour stocker la liste des matières formatées
     const [matieresOptions, setMatieresOptions] = useState([]);
@@ -32,19 +34,25 @@ export function TeacherManagementPage() {
     useEffect(() => {
         async function fetchOptions() {
             try {
-                const response = await listMatieres();
-                const data = response?.data ?? response ?? [];
+                const [matieresResponse, classesResponse] = await Promise.all([
+                    listMatieres(),
+                    listClasses(),
+                ]);
+                const data = matieresResponse?.data ?? matieresResponse ?? [];
+                const classesData = classesResponse?.data ?? classesResponse ?? [];
 
                 const formatted = data.map((matiere) => ({
-                    // IMPORTANT : On utilise le nom_matiere (string) comme value
-                    // pour correspondre au type string du champ specialite de l'user
                     value: matiere.nom_matiere,
-
-                    // Ce qui est affiché à l'écran (ex: SVT)
                     label: matiere.nom_matiere,
                 }));
 
                 setMatieresOptions(formatted);
+                setClassesOptions(
+                    classesData.map((classe) => ({
+                        value: classe.id,
+                        label: `${classe.nom_classe} - ${classe.niveau}`,
+                    })),
+                );
             } catch (error) {
                 console.error(
                     "Erreur lors de la récupération des matières :",
@@ -82,22 +90,38 @@ export function TeacherManagementPage() {
                 ],
             },
         ],
-        fields: [
-            { name: "nom", label: "Nom", required: true },
-            { name: "prenom", label: "Prénom", required: true },
-            { name: "email", label: "Email", type: "email", required: true },
-            // Le champ matricule reste commenté ici pour ne pas apparaître dans le formulaire
-            {
-                name: "specialite",
-                label: "Spécialité",
-                required: true,
-                type: "select",
-                placeholder: "Sélectionnez une spécialité...",
-                options: matieresOptions, // 3. On utilise ici l'état local dynamique
-            },
-            {
-                name: "date_embauche",
-                label: "Date embauche",
+            fields: [
+                { name: "nom", label: "Nom", required: true },
+                { name: "prenom", label: "Prénom", required: true },
+                { name: "email", label: "Email", type: "email", required: true },
+                {
+                    name: "specialite",
+                    label: "Spécialité",
+                    required: true,
+                    type: "select",
+                    placeholder: "Sélectionnez une spécialité...",
+                    options: matieresOptions, // 3. On utilise ici l'état local dynamique
+                },
+                {
+                    name: "classe_ids",
+                    label: "Classes attribuées",
+                    type: "multiselect",
+                    options: classesOptions,
+                    required: true,
+                    defaultValue: [],
+                    fromItem: (item) => (item.enseignantClasses ?? item.classes ?? []).map((classe) => String(classe.id)),
+                },
+                {
+                    name: "matiere_ids",
+                    label: "Matières enseignées",
+                    type: "multiselect",
+                    options: matieresOptions,
+                    defaultValue: [],
+                    fromItem: (item) => (item.matieres ?? []).map((matiere) => String(matiere.id)),
+                },
+                {
+                    name: "date_embauche",
+                    label: "Date embauche",
                 type: "date",
                 required: true,
             },
@@ -119,11 +143,21 @@ export function TeacherManagementPage() {
             { key: "matricule_enseignant", label: "Matricule" },
             { key: "prenom", label: "Prénom" },
             { key: "nom", label: "Nom" },
-            { key: "email", label: "Email" },
-            { key: "specialite", label: "Spécialité" },
-            {
-                key: "actif",
-                label: "Statut",
+                { key: "email", label: "Email" },
+                { key: "specialite", label: "Spécialité" },
+                {
+                    key: "enseignantClasses",
+                    label: "Classes",
+                    render: (value) => (value?.length ? value.map((classe) => classe.nom_classe).join(", ") : "Aucune"),
+                },
+                {
+                    key: "matieres",
+                    label: "Matières",
+                    render: (value) => (value?.length ? value.map((matiere) => matiere.nom_matiere).join(", ") : "Aucune"),
+                },
+                {
+                    key: "actif",
+                    label: "Statut",
                 render: (value) => (value ? "Actif" : "Inactif"),
             },
         ],

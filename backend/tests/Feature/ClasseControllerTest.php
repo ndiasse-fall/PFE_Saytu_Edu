@@ -31,7 +31,7 @@ class ClasseControllerTest extends TestCase
     {
         $data = [
             'nom_classe' => '6ème A',
-            'niveau' => '6ème',
+            'niveau' => 'Collège',
             'annee_scolaire' => '2025-2026',
         ];
 
@@ -110,8 +110,8 @@ class ClasseControllerTest extends TestCase
         $superAdmin = User::factory()->superAdmin()->create();
         $this->actingAs($superAdmin);
 
-        $classeA = Classe::factory()->create(['niveau' => '6ème', 'nom_classe' => '6A']);
-        $classeB = Classe::factory()->create(['niveau' => '5ème', 'nom_classe' => '5B']);
+        $classeA = Classe::factory()->create(['niveau' => 'Collège', 'nom_classe' => '6A']);
+        $classeB = Classe::factory()->create(['niveau' => 'Collège', 'nom_classe' => '5B']);
         $eleve = User::factory()->eleve()->create(['prenom' => 'Amina', 'nom' => 'Diallo']);
         $classeA->eleves()->attach($eleve->id);
 

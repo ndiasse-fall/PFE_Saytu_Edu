@@ -1,4 +1,3 @@
-import React from 'react'
 import { ActionMenu } from '../../../../../shared/components/ui/ActionMenu'
 import { FilterToolbar } from '../../../../../shared/components/ui/FilterToolbar'
 
@@ -141,20 +140,14 @@ export function EmploiDuTempsList({
         <div className="table-wrapper users-table-wrapper">
           <table className="users-table">
             <colgroup>
-              <col style={{ width: '18%' }} />
-              <col style={{ width: '18%' }} />
+              <col style={{ width: '34%' }} />
+              <col style={{ width: '28%' }} />
               <col style={{ width: '22%' }} />
-              <col style={{ width: '12%' }} />
-              <col style={{ width: '15%' }} />
-              <col style={{ width: '10%' }} />
-              <col style={{ width: '5%' }} />
+              <col style={{ width: '16%' }} />
             </colgroup>
             <thead>
               <tr>
                 <th scope="col">Matière</th>
-                <th scope="col">Classe</th>
-                <th scope="col">Enseignant</th>
-                <th scope="col">Jour</th>
                 <th scope="col">Horaire</th>
                 <th scope="col">Salle</th>
                 <th scope="col">Actions</th>
@@ -169,30 +162,8 @@ export function EmploiDuTempsList({
                     </strong>
                   </td>
                   <td>
-                    <span
-                      className="badge badge-info"
-                      style={{
-                        backgroundColor: 'var(--primary-soft)',
-                        color: 'var(--primary)',
-                        fontWeight: '600',
-                      }}
-                    >
-                      {session.classe?.nom_classe || '-'}
-                    </span>
-                  </td>
-                  <td>
-                    <span>
-                      {session.enseignant
-                        ? `${session.enseignant.prenom} ${session.enseignant.nom}`
-                        : '-'}
-                    </span>
-                  </td>
-                  <td>
-                    <span style={{ fontWeight: '500' }}>{session.jour}</span>
-                  </td>
-                  <td>
                     <span style={{ fontFamily: 'monospace', fontSize: '0.95rem' }}>
-                      {formatTime(session.heure_debut)} - {formatTime(session.heure_fin)}
+                      {session.jour} {formatTime(session.heure_debut)} - {formatTime(session.heure_fin)}
                     </span>
                   </td>
                   <td>

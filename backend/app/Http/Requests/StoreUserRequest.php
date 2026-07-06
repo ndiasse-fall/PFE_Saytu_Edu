@@ -66,6 +66,11 @@ class StoreUserRequest extends FormRequest
             'matricule_eleve' => ['nullable', 'string', 'unique:users,matricule_eleve'],
             'date_naissance' => ['nullable', 'date'],
             'telephone_parent' => ['nullable', 'string', 'max:20'],
+            'classe_id' => ['nullable', 'integer', 'exists:classes,id'],
+            'classe_ids' => ['nullable', 'array'],
+            'classe_ids.*' => ['integer', 'exists:classes,id'],
+            'matiere_ids' => ['nullable', 'array'],
+            'matiere_ids.*' => ['integer', 'exists:matieres,id'],
             'statut' => ['nullable', 'string'],
         ];
     }
@@ -79,7 +84,6 @@ class StoreUserRequest extends FormRequest
             'email.unique' => 'Cette adresse email est déjà utilisée.',
             'password.required' => 'Le mot de passe est obligatoire pour un administrateur.',
             'role.required' => 'Le rôle est obligatoire.',
-            'specialite.required' => 'La spécialité est obligatoire pour un enseignant.',
             'specialite.exists' => 'La spécialité doit correspondre à une matière existante.',
         ];
     }
