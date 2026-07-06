@@ -33,7 +33,7 @@ export function PasswordField({
           type="button"
           className="password-toggle-button"
           onClick={() => setVisible((current) => !current)}
-          aria-label={visible ? 'Masquer la valeur' : 'Afficher la valeur'}
+          aria-label={visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
           title={visible ? 'Masquer' : 'Afficher'}
         >
           <i className={`bi ${visible ? 'bi-eye-slash' : 'bi-eye'}`} aria-hidden="true" />

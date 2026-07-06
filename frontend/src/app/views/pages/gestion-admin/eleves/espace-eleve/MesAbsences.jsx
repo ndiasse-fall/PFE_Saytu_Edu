@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiClient } from "../../../../../core/api/apiClient";
+import { listMyAbsences } from "../../../../../services/absences/absenceService";
 
 function normalizeAbsences(response) {
   const data = response?.data ?? response ?? [];
@@ -20,7 +20,7 @@ export default function MesAbsences() {
     setError("");
 
     try {
-      const response = await apiClient("/absences");
+      const response = await listMyAbsences();
       setAbsences(normalizeAbsences(response));
     } catch (err) {
       setError(err.message || "Impossible de charger vos absences.");

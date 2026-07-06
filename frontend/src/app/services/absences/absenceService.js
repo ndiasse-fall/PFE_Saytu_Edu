@@ -17,6 +17,10 @@ export function listAbsences(params = {}) {
   return apiClient(`/absences${buildQuery(params)}`)
 }
 
+export function listMyAbsences() {
+  return apiClient('/absences')
+}
+
 export function createAbsences(payload) {
   return apiClient('/absences', {
     method: 'POST',
