@@ -1,5 +1,9 @@
 import { apiClient } from '../../core/api/apiClient.js';
 
+const toIntegerList = (values) => Array.isArray(values)
+  ? values.map((value) => Number(value)).filter((value) => Number.isInteger(value) && value > 0)
+  : [];
+
 export const listAffectations = async () => {
   const response = await apiClient('/affectations');
   return Array.isArray(response) ? response : (response?.data || []);
@@ -10,9 +14,11 @@ export const buildMatiereClasseAssignments = (classeIds, matiereId) => {
     throw new Error('Veuillez sélectionner au moins une classe.');
   }
 
-  return classeIds.map((classeId) => ({
-    classe_id: Number(classeId),
-    matiere_id: Number(matiereId),
+  const normalizedMatiereId = Number(matiereId);
+
+  return toIntegerList(classeIds).map((classeId) => ({
+    classe_id: classeId,
+    matiere_id: normalizedMatiereId,
   }));
 };
 
@@ -20,8 +26,8 @@ export const affecterMatiereClasse = (classeId, matiereId) =>
   apiClient('/affectations/matiere-classe', {
     method: 'POST',
     data: {
-      classe_id: classeId,
-      matiere_id: matiereId,
+      classe_id: Number(classeId),
+      matiere_id: Number(matiereId),
     },
   });
 
@@ -60,7 +66,7 @@ export const affecterEnseignantMatiere = (enseignantId, matiereId) =>
   apiClient('/affectations/enseignant-matiere', {
     method: 'POST',
     data: {
-      enseignant_id: enseignantId,
-      matiere_id: matiereId
+      enseignant_id: Number(enseignantId),
+      matiere_id: Number(matiereId)
     }
   });

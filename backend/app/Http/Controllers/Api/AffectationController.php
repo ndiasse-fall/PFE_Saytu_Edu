@@ -20,8 +20,12 @@ class AffectationController extends Controller
                 return [
                     // On garde cet ID composite unique pour le frontend (React key et suppression)
                     'id' => "cm-{$classe->id}-{$matiere->id}", 
+                    'classe_id' => $classe->id,
+                    'enseignant_id' => null,
+                    'matiere_id' => $matiere->id,
                     'target_name' => $classe->nom_classe,
                     'matiere_nom' => $matiere->nom_matiere,
+                    'target_label' => $classe->nom_classe,
                     'type' => 'Matière à Classe'
                 ];
             });
@@ -32,8 +36,12 @@ class AffectationController extends Controller
                 return [
                     // On garde cet ID composite unique pour le frontend
                     'id' => "em-{$user->id}-{$matiere->id}",
+                    'classe_id' => null,
+                    'enseignant_id' => $user->id,
+                    'matiere_id' => $matiere->id,
                     'target_name' => "{$user->prenom} {$user->nom}",
                     'matiere_nom' => $matiere->nom_matiere,
+                    'target_label' => "{$user->prenom} {$user->nom}",
                     'type' => 'Enseignant à Matière'
                 ];
             });

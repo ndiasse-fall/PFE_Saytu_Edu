@@ -1,4 +1,5 @@
 import { PasswordField } from '../../../../../shared/components/forms/PasswordField'
+import { MultiSelectField } from '../../../../../shared/components/forms/MultiSelectField'
 
 const roles = ['ADMIN', 'ENSEIGNANT', 'ELEVE']
 
@@ -94,47 +95,41 @@ export function UserForm({
               </select>
               {fieldErrors.specialite ? <small>{fieldErrors.specialite[0]}</small> : null}
             </label>
-            <label className="full-width">
-              <span>Classes attribuées</span>
-              <select
-                name="classe_ids"
-                multiple
-                value={Array.isArray(form.classe_ids) ? form.classe_ids : []}
-                onChange={(event) => {
-                  const selected = Array.from(event.target.selectedOptions).map((option) => option.value)
-                  onInputChange({ target: { name: 'classe_ids', value: selected, type: 'multiselect' } })
-                }}
-                size={4}
-                required
-              >
-                {teacherClasses.map((classe) => (
-                  <option key={classe.id} value={String(classe.id)}>
-                    {classe.nom_classe} - {classe.niveau}
-                  </option>
-                ))}
-              </select>
-              {fieldErrors.classe_ids ? <small>{fieldErrors.classe_ids[0]}</small> : null}
-            </label>
-            <label className="full-width">
-              <span>Matières enseignées</span>
-              <select
-                name="matiere_ids"
-                multiple
-                value={Array.isArray(form.matiere_ids) ? form.matiere_ids : []}
-                onChange={(event) => {
-                  const selected = Array.from(event.target.selectedOptions).map((option) => option.value)
-                  onInputChange({ target: { name: 'matiere_ids', value: selected, type: 'multiselect' } })
-                }}
-                size={4}
-              >
-                {teacherMatieres.map((matiere) => (
-                  <option key={matiere.id} value={String(matiere.id)}>
-                    {matiere.nom_matiere}
-                  </option>
-                ))}
-              </select>
-              {fieldErrors.matiere_ids ? <small>{fieldErrors.matiere_ids[0]}</small> : null}
-            </label>
+            <div className="full-width" style={{ display: 'grid', gap: '14px' }}>
+              <div>
+                <MultiSelectField
+                  label="Classes attribuées"
+                  name="classe_ids"
+                  value={Array.isArray(form.classe_ids) ? form.classe_ids : []}
+                  onChange={onInputChange}
+                  options={teacherClasses.map((classe) => ({
+                    value: classe.id,
+                    label: classe.nom_classe,
+                    hint: `${classe.niveau} ${classe.annee_scolaire ? `• ${classe.annee_scolaire}` : ''}`,
+                  }))}
+                  placeholder="Sélectionner une ou plusieurs classes"
+                  searchPlaceholder="Rechercher une classe..."
+                  required
+                />
+                {fieldErrors.classe_ids ? <small>{fieldErrors.classe_ids[0]}</small> : null}
+              </div>
+
+              <div>
+                <MultiSelectField
+                  label="Matières enseignées"
+                  name="matiere_ids"
+                  value={Array.isArray(form.matiere_ids) ? form.matiere_ids : []}
+                  onChange={onInputChange}
+                  options={teacherMatieres.map((matiere) => ({
+                    value: matiere.id,
+                    label: matiere.nom_matiere,
+                  }))}
+                  placeholder="Sélectionner une ou plusieurs matières"
+                  searchPlaceholder="Rechercher une matière..."
+                />
+                {fieldErrors.matiere_ids ? <small>{fieldErrors.matiere_ids[0]}</small> : null}
+              </div>
+            </div>
           </>
         ) : null}
         <label className="full-width">

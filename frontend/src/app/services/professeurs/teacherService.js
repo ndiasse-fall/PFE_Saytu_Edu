@@ -6,6 +6,22 @@ function withTeacherRole(filters = {}) {
   return { ...filters, role: 'ENSEIGNANT' }
 }
 
+function normalizeIntegerList(value) {
+  return Array.isArray(value)
+    ? value
+        .map((item) => Number(item))
+        .filter((item) => Number.isInteger(item) && item > 0)
+    : []
+}
+
+function normalizeTeacherPayload(payload = {}) {
+  return {
+    ...payload,
+    classe_ids: normalizeIntegerList(payload.classe_ids),
+    matiere_ids: normalizeIntegerList(payload.matiere_ids),
+  }
+}
+
 export async function listTeachers(filters = {}) {
   const params = new URLSearchParams()
   Object.entries(withTeacherRole(filters)).forEach(([key, value]) => {
@@ -24,14 +40,14 @@ export async function showTeacher(id) {
 export async function createTeacher(payload) {
   return apiClient(BASE_URL, {
     method: 'POST',
-    data: { ...payload, role: 'ENSEIGNANT' },
+    data: normalizeTeacherPayload({ ...payload, role: 'ENSEIGNANT' }),
   })
 }
 
 export async function updateTeacher(id, payload) {
   return apiClient(`${BASE_URL}/${id}`, {
     method: 'PUT',
-    data: { ...payload, role: 'ENSEIGNANT' },
+    data: normalizeTeacherPayload({ ...payload, role: 'ENSEIGNANT' }),
   })
 }
 
@@ -50,7 +66,7 @@ export async function toggleTeacherActive(id) {
 export async function assignClassesToTeacher(id, classeIds) {
   return apiClient(`${BASE_URL}/${id}/classes`, {
     method: 'PUT',
-    data: { classe_ids: classeIds },
+    data: { classe_ids: normalizeIntegerList(classeIds) },
   })
 }
 

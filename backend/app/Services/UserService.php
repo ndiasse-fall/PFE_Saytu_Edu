@@ -89,12 +89,26 @@ class UserService
             }
         }
 
-        return $query->withoutTrashed()
+        $users = $query->withoutTrashed()
             ->search($filters['search'] ?? null)
             ->byRole($role)
             ->active($filters['actif'] ?? null)
             ->latest('id')
             ->paginate($perPage);
+
+        $users->getCollection()->transform(function (User $user): User {
+            if ($user->isEleve()) {
+                $user->loadMissing('eleveClasses');
+                $user->setRelation('classes', $user->eleveClasses);
+            } elseif ($user->isEnseignant()) {
+                $user->loadMissing(['enseignantClasses', 'matieres']);
+                $user->setRelation('classes', $user->enseignantClasses);
+            }
+
+            return $user;
+        });
+
+        return $users;
     }
 
     public function createUser(array $data): User
@@ -154,9 +168,11 @@ class UserService
     public function showUser(User $user): User
     {
         if ($user->role === RoleEnum::ELEVE || $user->statut === 'ELEVE') {
-            $user->load('eleveClasses');
+            $user->loadMissing('eleveClasses');
+            $user->setRelation('classes', $user->eleveClasses);
         } elseif ($user->role === RoleEnum::ENSEIGNANT || $user->statut === 'ENSEIGNANT') {
-            $user->load(['enseignantClasses', 'matieres']);
+            $user->loadMissing(['enseignantClasses', 'matieres']);
+            $user->setRelation('classes', $user->enseignantClasses);
         }
 
         return $user;
