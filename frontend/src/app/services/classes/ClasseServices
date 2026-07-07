@@ -10,6 +10,11 @@ export const listClasseNiveaux = async () => {
   return Array.isArray(response) ? response : (response?.data || [])
 }
 
+export const listClasseEleves = async (classeId) => {
+  const response = await apiClient(`/mes-classes/${classeId}/eleves`)
+  return Array.isArray(response) ? response : (response?.data || [])
+}
+
 export const createClasse = (data) =>
   apiClient('/classes', { method: 'POST', data })
 

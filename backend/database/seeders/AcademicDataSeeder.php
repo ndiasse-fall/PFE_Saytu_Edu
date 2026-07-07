@@ -86,7 +86,7 @@ class AcademicDataSeeder extends Seeder
 
     private function noteScaleForClasse(Classe $classe): int
     {
-        return $classe->niveau === 'Primaire' ? 10 : 20;
+        return 20;
     }
 
     private function generateNoteValue(
@@ -97,13 +97,9 @@ class AcademicDataSeeder extends Seeder
         int $evaluationIndex,
         string $periode
     ): float {
-        $base = $scale === 10 ? 5 : 10;
-        $variance = ($studentIndex + $matiereIndex + $evaluationIndex + ($periode === 'Semestre 2' ? 2 : 0)) % ($scale === 10 ? 6 : 11);
+        $base = 10;
+        $variance = ($studentIndex + $matiereIndex + $evaluationIndex + ($periode === 'Semestre 2' ? 2 : 0)) % 11;
         $raw = min($scale, $base + $variance);
-
-        if ($niveau === 'Préscolaire') {
-            return round(min(10, 6 + $variance * 0.5), 2);
-        }
 
         return round($raw, 2);
     }

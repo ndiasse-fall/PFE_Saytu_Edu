@@ -93,6 +93,39 @@ class AffectationTest extends TestCase
         }
     }
 
+    public function test_classe_matiere_seeder_applies_series_specific_coefficients(): void
+    {
+        $secondeS = Classe::factory()->create([
+            'nom_classe' => 'Seconde S A',
+            'niveau' => 'Seconde',
+        ]);
+        $premiereL = Classe::factory()->create([
+            'nom_classe' => 'Première L A',
+            'niveau' => 'Première',
+        ]);
+
+        $this->seed(ClasseMatiereSeeder::class);
+
+        $mathS = $secondeS->fresh()->matieres()->where('nom_matiere', 'Mathématiques')->first();
+        $mathL = $premiereL->fresh()->matieres()->where('nom_matiere', 'Mathématiques')->first();
+        $francaisS = $secondeS->fresh()->matieres()->where('nom_matiere', 'Français')->first();
+        $francaisL = $premiereL->fresh()->matieres()->where('nom_matiere', 'Français')->first();
+
+        $this->assertNotNull($mathS);
+        $this->assertNotNull($mathL);
+        $this->assertNotNull($francaisS);
+        $this->assertNotNull($francaisL);
+
+        $this->assertGreaterThan(
+            (int) $mathL->pivot->coefficient,
+            (int) $mathS->pivot->coefficient
+        );
+        $this->assertGreaterThan(
+            (int) $francaisS->pivot->coefficient,
+            (int) $francaisL->pivot->coefficient
+        );
+    }
+
     /**
      * Test listing affectations.
      */

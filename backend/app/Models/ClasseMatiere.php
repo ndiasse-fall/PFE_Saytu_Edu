@@ -16,6 +16,7 @@ class ClasseMatiere extends Pivot
     protected $fillable = [
         'id_classe',
         'id_matiere',
+        'coefficient',
     ];
 
     public function classe()

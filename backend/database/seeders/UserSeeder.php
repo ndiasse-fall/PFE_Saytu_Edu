@@ -108,7 +108,7 @@ class UserSeeder extends Seeder
         $result = [];
 
         foreach ($names as $index => [$prenom, $nom]) {
-            $classeName = $classes[$index % max(1, count($classes))] ?? 'CI A';
+            $classeName = $classes[$index % max(1, count($classes))] ?? 'Seconde S A';
             $emailName = Str::of("{$prenom}.{$nom}.{$index}")
                 ->ascii()
                 ->lower()

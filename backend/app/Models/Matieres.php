@@ -23,7 +23,9 @@ class Matieres extends Model
 
     public function classes()
     {
-        return $this->belongsToMany(Classe::class, 'classe_matiere', 'id_matiere', 'id_classe');
+        return $this->belongsToMany(Classe::class, 'classe_matiere', 'id_matiere', 'id_classe')
+            ->withPivot('coefficient')
+            ->withTimestamps();
     }
 
     public function enseignants()

@@ -30,17 +30,17 @@ class ClasseControllerTest extends TestCase
     public function test_can_create_classe()
     {
         $data = [
-            'nom_classe' => '6ème A',
-            'niveau' => 'Collège',
+            'nom_classe' => 'Seconde S A',
+            'niveau' => 'Seconde',
             'annee_scolaire' => '2025-2026',
         ];
 
         $response = $this->postJson('/api/classes', $data);
 
         $response->assertStatus(201)
-                 ->assertJsonPath('nom_classe', '6ème A');
-        
-        $this->assertDatabaseHas('classes', ['nom_classe' => '6ème A']);
+                 ->assertJsonPath('nom_classe', 'Seconde S A');
+
+        $this->assertDatabaseHas('classes', ['nom_classe' => 'Seconde S A']);
     }
 
     public function test_can_show_classe()
@@ -110,8 +110,8 @@ class ClasseControllerTest extends TestCase
         $superAdmin = User::factory()->superAdmin()->create();
         $this->actingAs($superAdmin);
 
-        $classeA = Classe::factory()->create(['niveau' => 'Collège', 'nom_classe' => '6A']);
-        $classeB = Classe::factory()->create(['niveau' => 'Collège', 'nom_classe' => '5B']);
+        $classeA = Classe::factory()->create(['niveau' => 'Seconde', 'nom_classe' => 'Seconde S A']);
+        $classeB = Classe::factory()->create(['niveau' => 'Première', 'nom_classe' => 'Première L A']);
         $eleve = User::factory()->eleve()->create(['prenom' => 'Amina', 'nom' => 'Diallo']);
         $classeA->eleves()->attach($eleve->id);
 

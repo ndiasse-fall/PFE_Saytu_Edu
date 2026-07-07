@@ -4,10 +4,9 @@ namespace App\Enums;
 
 enum NiveauClasseEnum: string
 {
-    case PRESCOLAIRE = 'Préscolaire';
-    case PRIMAIRE = 'Primaire';
-    case COLLEGE = 'Collège';
-    case LYCEE = 'Lycée';
+    case SECONDE = 'Seconde';
+    case PREMIERE = 'Première';
+    case TERMINALE = 'Terminale';
 
     /**
      * @return array<int, array{value: string, label: string}>
@@ -34,10 +33,9 @@ enum NiveauClasseEnum: string
     public function label(): string
     {
         return match ($this) {
-            self::PRESCOLAIRE => 'Préscolaire',
-            self::PRIMAIRE => 'Primaire',
-            self::COLLEGE => 'Collège',
-            self::LYCEE => 'Lycée',
+            self::SECONDE => 'Seconde',
+            self::PREMIERE => 'Première',
+            self::TERMINALE => 'Terminale',
         };
     }
 }

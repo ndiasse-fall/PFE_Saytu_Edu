@@ -119,6 +119,9 @@ export function BulletinReport({ bulletin, onBack, backLabel = "Retour" }) {
             <strong>Classe :</strong> {classe?.nom ?? classe?.nom_classe ?? "-"}
           </div>
           <div>
+            <strong>Effectif :</strong> {classe?.effectif ?? "-"}
+          </div>
+          <div>
             <strong>Prénoms :</strong> {eleve?.prenom ?? "-"}
           </div>
           <div>

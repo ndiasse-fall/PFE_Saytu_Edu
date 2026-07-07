@@ -32,6 +32,8 @@ class Classe extends Model
     public function matieres(): BelongsToMany
     {
         // Le contrôleur d'affectation a besoin de cette relation pour fonctionner.
-        return $this->belongsToMany(Matieres::class, 'classe_matiere', 'id_classe', 'id_matiere');
+        return $this->belongsToMany(Matieres::class, 'classe_matiere', 'id_classe', 'id_matiere')
+            ->withPivot('coefficient')
+            ->withTimestamps();
     }
 }
