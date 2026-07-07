@@ -76,7 +76,7 @@ class BulletinService
             $matiereNotes = $notes->get($matiere->id, collect());
             $valeurs = $matiereNotes->pluck('valeur')->map(fn ($value): float => (float) $value);
             $moyenne = $valeurs->isNotEmpty() ? round($valeurs->avg(), 2) : null;
-            $coef = (int) $matiere->coefficient;
+            $coef = $this->coefficientForMatiere($matiere);
 
             return [
                 'id_matiere' => $matiere->id,
@@ -133,6 +133,7 @@ class BulletinService
                 'nom' => $classe->nom_classe,
                 'niveau' => $classe->niveau,
                 'annee_scolaire' => $classe->annee_scolaire,
+                'effectif' => $classe->eleves()->count(),
             ] : null,
             'periode' => $periodeFilter ?? 'Toutes les périodes',
             'note_scale' => $noteScale,
@@ -170,7 +171,7 @@ class BulletinService
 
     private function noteScaleForClasse(?Classe $classe): int
     {
-        return $classe?->niveau === 'Primaire' ? 10 : 20;
+        return 20;
     }
 
     private function firstEvaluationValue(Collection $notes, array $keywords): ?float
@@ -285,7 +286,7 @@ class BulletinService
                 }
 
                 $moyenne = round($matiereNotes->pluck('valeur')->avg(), 2);
-                $coef = (int) $matiere->coefficient;
+                $coef = $this->coefficientForMatiere($matiere);
 
                 $totalPoints += $moyenne * $coef;
                 $totalCoef += $coef;
@@ -301,12 +302,21 @@ class BulletinService
 
             $moyenne = round($matiereNotes->pluck('valeur')->avg(), 2);
             $matiere = $matiereNotes->first()->matiere;
-            $coef = (int) ($matiere->coefficient ?? 1);
+            $coef = $matiere ? $this->coefficientForMatiere($matiere) : 1;
 
             $totalPoints += $moyenne * $coef;
             $totalCoef += $coef;
         }
 
         return [$totalPoints, $totalCoef];
+    }
+
+    private function coefficientForMatiere(Matieres $matiere): int
+    {
+        if (isset($matiere->pivot->coefficient)) {
+            return (int) $matiere->pivot->coefficient;
+        }
+
+        return (int) ($matiere->coefficient ?? 1);
     }
 }

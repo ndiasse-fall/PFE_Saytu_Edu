@@ -20,7 +20,7 @@ class BulletinApiTest extends TestCase
         $admin = User::factory()->admin()->create(['actif' => true]);
         Sanctum::actingAs($admin);
 
-        $classe = Classe::factory()->create(['nom_classe' => 'CM2 A', 'niveau' => 'Primaire']);
+        $classe = Classe::factory()->create(['nom_classe' => 'Seconde S A', 'niveau' => 'Seconde']);
         $eleve = User::factory()->eleve()->create([
             'nom' => 'Ndiaye',
             'prenom' => 'Abdoulaye',
@@ -57,11 +57,11 @@ class BulletinApiTest extends TestCase
         $this->getJson("/api/bulletins/{$eleve->id}?periode=Semestre%201")
             ->assertOk()
             ->assertJsonPath('eleve.nom', 'Ndiaye')
-            ->assertJsonPath('classe.nom', 'CM2 A')
+            ->assertJsonPath('classe.nom', 'Seconde S A')
             ->assertJsonPath('matieres.0.nom_matiere', 'Français')
             ->assertJsonCount(1, 'matieres')
             ->assertJsonPath('moyenne_generale', 14)
-            ->assertJsonPath('total_coef', 4)
+            ->assertJsonPath('total_coef', 1)
             ->assertJsonPath('absences.total', 1)
             ->assertJsonPath('absences.justifiees', 1);
     }

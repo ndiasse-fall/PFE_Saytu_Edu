@@ -9,74 +9,31 @@ class ClasseFactory extends Factory
 {
     protected $model = Classe::class;
 
-    protected static array $classNames = [
-        'PS A' => 'Préscolaire',
-        'MS A' => 'Préscolaire',
-        'GS A' => 'Préscolaire',
-        'CI A' => 'Primaire',
-        'CI B' => 'Primaire',
-        'CP A' => 'Primaire',
-        'CP B' => 'Primaire',
-        'CE1 A' => 'Primaire',
-        'CE1 B' => 'Primaire',
-        'CE2 A' => 'Primaire',
-        'CE2 B' => 'Primaire',
-        'CM1 A' => 'Primaire',
-        'CM1 B' => 'Primaire',
-        'CM2 A' => 'Primaire',
-        'CM2 B' => 'Primaire',
-        '6ème A' => 'Collège',
-        '6ème B' => 'Collège',
-        '5ème A' => 'Collège',
-        '5ème B' => 'Collège',
-        '4ème A' => 'Collège',
-        '4ème B' => 'Collège',
-        '3ème A' => 'Collège',
-        '3ème B' => 'Collège',
-        'Seconde S A' => 'Lycée',
-        'Seconde L A' => 'Lycée',
-        'Seconde G A' => 'Lycée',
-        'Première S A' => 'Lycée',
-        'Première L A' => 'Lycée',
-        'Première G A' => 'Lycée',
-        'Terminale S A' => 'Lycée',
-        'Terminale L A' => 'Lycée',
-        'Terminale G A' => 'Lycée',
-    ];
+    protected static int $sequence = 0;
 
-    protected static array $availableClassNames = [];
+    protected static array $classNames = [
+        'Seconde S A' => 'Seconde',
+        'Seconde L A' => 'Seconde',
+        'Seconde G A' => 'Seconde',
+        'Première S A' => 'Première',
+        'Première L A' => 'Première',
+        'Première G A' => 'Première',
+        'Terminale S A' => 'Terminale',
+        'Terminale L A' => 'Terminale',
+        'Terminale G A' => 'Terminale',
+    ];
 
     protected function getDefaultAnneeScolaire(): string
     {
         return '2025-2026';
     }
 
-    protected function resetAvailableClassNames(string $anneeScolaire): void
-    {
-        $usedClassNames = Classe::query()
-            ->where('annee_scolaire', $anneeScolaire)
-            ->pluck('nom_classe')
-            ->all();
-
-        static::$availableClassNames = array_values(array_diff(array_keys(self::$classNames), $usedClassNames));
-    }
-
     public function definition(): array
     {
         $anneeScolaire = $this->getDefaultAnneeScolaire();
-
-        if (empty(static::$availableClassNames)) {
-            $this->resetAvailableClassNames($anneeScolaire);
-        }
-
-        if (empty(static::$availableClassNames)) {
-            static::$availableClassNames = array_keys(self::$classNames);
-        }
-
-        $index = array_rand(static::$availableClassNames);
-        $nom_classe = static::$availableClassNames[$index];
-        unset(static::$availableClassNames[$index]);
-        static::$availableClassNames = array_values(static::$availableClassNames);
+        $classNames = array_keys(self::$classNames);
+        $nom_classe = $classNames[static::$sequence % count($classNames)];
+        static::$sequence++;
 
         return [
             'nom_classe' => $nom_classe,

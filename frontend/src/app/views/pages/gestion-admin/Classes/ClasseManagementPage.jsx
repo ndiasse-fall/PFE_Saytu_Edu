@@ -3,7 +3,7 @@ import { DrawerPanel } from "../../../../shared/components/ui/DrawerPanel";
 import { TextField } from "../../../../shared/components/forms/TextField";
 import { SelectField } from "../../../../shared/components/forms/SelectField";
 import { PrimaryButton } from "../../../../shared/components/ui/PrimaryButton";
-import { listClasses, listClasseNiveaux, createClasse, updateClasse, deleteClasse } from "../../../../services/classes/ClasseServices";
+import { listClasses, listClasseNiveaux, listClasseEleves, createClasse, updateClasse, deleteClasse } from "../../../../services/classes/ClasseServices";
 import { ActionMenu } from "../../../../shared/components/ui/ActionMenu";
 import TablePagination from "@mui/material/TablePagination";
 
@@ -20,6 +20,11 @@ export function ClasseManagementPage() {
   const [sortBy, setSortBy] = useState("nom");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [selectedClasseDetails, setSelectedClasseDetails] = useState(null);
+  const [classeEleves, setClasseEleves] = useState([]);
+  const [classeElevesLoading, setClasseElevesLoading] = useState(false);
+  const [classeElevesError, setClasseElevesError] = useState(null);
+  const [isElevesDrawerOpen, setIsElevesDrawerOpen] = useState(false);
   const [formData, setFormData] = useState({
     nom_classe: "",
     niveau: "",
@@ -118,6 +123,25 @@ export function ClasseManagementPage() {
       }
     }
   };
+
+  const handleViewEleves = async (classe) => {
+    setSelectedClasseDetails(classe);
+    setIsElevesDrawerOpen(true);
+    setClasseEleves([]);
+    setClasseElevesError(null);
+    setClasseElevesLoading(true);
+
+    try {
+      const response = await listClasseEleves(classe.id);
+      setClasseEleves(response);
+    } catch (err) {
+      console.error(err);
+      setClasseElevesError(err.response?.data?.message || err.message || "Impossible de charger les élèves");
+    } finally {
+      setClasseElevesLoading(false);
+    }
+  };
+
 const normalizedNiveauOptions = niveauOptions;
 
 const niveaux = ["Tous", ...normalizedNiveauOptions.map((option) => option.value)];
@@ -275,6 +299,7 @@ const paginatedClasses = filteredClasses.slice(
                       <td>
                         <ActionMenu
                           items={[
+                            { label: 'Voir les élèves', onClick: () => handleViewEleves(classe) },
                             { label: 'Modifier', onClick: () => openEditForm(classe) },
                             { label: 'Supprimer', onClick: () => handleDelete(classe.id), danger: true },
                           ]}
@@ -303,7 +328,7 @@ const paginatedClasses = filteredClasses.slice(
         )}
       </div>
 
-     <DrawerPanel
+      <DrawerPanel
   open={isFormOpen}
   onClose={() => setIsFormOpen(false)}
   title={selectedClasse ? "Modifier la classe" : "Ajouter une classe"}
@@ -324,7 +349,7 @@ const paginatedClasses = filteredClasses.slice(
             name="nom_classe"
             value={formData.nom_classe}
             onChange={handleChange}
-            placeholder="Ex: 6ème A"
+                placeholder="Ex: Seconde S A"
             required
           />
 
@@ -353,6 +378,54 @@ const paginatedClasses = filteredClasses.slice(
             </PrimaryButton>
           </div>
         </form>
+      </DrawerPanel>
+
+      <DrawerPanel
+        open={isElevesDrawerOpen}
+        onClose={() => setIsElevesDrawerOpen(false)}
+        title={selectedClasseDetails ? `Élèves de ${selectedClasseDetails.nom_classe}` : "Élèves de la classe"}
+        width={620}
+        subtitle={selectedClasseDetails ? `${selectedClasseDetails.niveau} • ${selectedClasseDetails.annee_scolaire}` : ""}
+        headerAction={
+          <button
+            type="button"
+            className="ghost-button"
+            onClick={() => setIsElevesDrawerOpen(false)}
+          >
+            Fermer
+          </button>
+        }
+      >
+        {classeElevesError ? (
+          <div className="alert alert-error">{classeElevesError}</div>
+        ) : null}
+
+        {classeElevesLoading ? (
+          <div className="screen-state">Chargement des élèves...</div>
+        ) : classeEleves.length === 0 ? (
+          <div className="screen-state">Aucun élève inscrit dans cette classe.</div>
+        ) : (
+          <div className="table-wrapper">
+            <table className="users-table">
+              <thead>
+                <tr>
+                  <th>Élève</th>
+                  <th>Email</th>
+                </tr>
+              </thead>
+              <tbody>
+                {classeEleves.map((eleve) => (
+                  <tr key={eleve.id}>
+                    <td>
+                      <strong>{eleve.prenom} {eleve.nom}</strong>
+                    </td>
+                    <td>{eleve.email}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </DrawerPanel>
     </section>
   );

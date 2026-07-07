@@ -25,7 +25,7 @@ class NoteApiTest extends TestCase
 
         $classe = Classe::query()->create([
             'nom_classe' => '6e A',
-            'niveau' => 'Collège',
+            'niveau' => 'Seconde',
             'annee_scolaire' => '2026-2027',
         ]);
         $matiere = Matieres::query()->create([
@@ -131,7 +131,7 @@ class NoteApiTest extends TestCase
 
         $classe = Classe::query()->create([
             'nom_classe' => '5e B',
-            'niveau' => 'Collège',
+            'niveau' => 'Première',
             'annee_scolaire' => '2026-2027',
         ]);
         $matiere = Matieres::query()->create([
@@ -199,7 +199,7 @@ class NoteApiTest extends TestCase
 
         $classe = Classe::query()->create([
             'nom_classe' => '4e C',
-            'niveau' => 'Collège',
+            'niveau' => 'Terminale',
             'annee_scolaire' => '2026-2027',
         ]);
         $matiere = Matieres::query()->create([

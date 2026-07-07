@@ -16,6 +16,7 @@ class ClasseMatiereFactory extends Factory
         return [
             'id_classe' => Classe::factory(),
             'id_matiere' => Matieres::factory(),
+            'coefficient' => 1,
         ];
     }
 }
