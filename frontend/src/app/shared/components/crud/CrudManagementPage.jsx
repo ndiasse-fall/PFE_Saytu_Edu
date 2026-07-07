@@ -16,9 +16,13 @@ function buildForm(fields, item = null) {
       ? field.fromItem(item)
       : item[field.name]
 
+    const normalizedValue = field.type === 'multiselect' && Array.isArray(sourceValue)
+      ? sourceValue.map((itemValue) => String(itemValue))
+      : sourceValue
+
     return [
       field.name,
-      sourceValue ?? field.defaultValue ?? (field.type === 'checkbox' ? false : field.type === 'multiselect' ? [] : ''),
+      normalizedValue ?? field.defaultValue ?? (field.type === 'checkbox' ? false : field.type === 'multiselect' ? [] : ''),
     ]
   }))
 }
@@ -29,9 +33,17 @@ function buildPayload(fields, form, isEditing) {
       return []
     }
 
-    const value = field.toPayload
+    const rawValue = field.toPayload
       ? field.toPayload(form[field.name], form)
       : form[field.name]
+
+    const value = field.type === 'multiselect'
+      ? (Array.isArray(rawValue)
+        ? rawValue
+            .map((item) => Number(item))
+            .filter((item) => Number.isInteger(item) && item > 0)
+        : [])
+      : rawValue
 
     return [[field.payloadKey ?? field.name, value]]
   }))
@@ -161,7 +173,11 @@ export function CrudManagementPage({
     const { name, value, type, checked } = event.target
     setForm((current) => ({
       ...current,
-      [name]: type === 'checkbox' ? checked : value,
+      [name]: type === 'checkbox'
+        ? checked
+        : type === 'multiselect'
+          ? (Array.isArray(value) ? value.map((item) => Number(item)).filter((item) => Number.isInteger(item) && item > 0) : [])
+          : value,
     }))
   }
 

@@ -41,7 +41,14 @@ export function CrudTable({
             <thead>
               <tr>
                 {columns.map((column) => (
-                  <th key={column.key} scope="col">{column.label}</th>
+                  <th
+                    key={column.key}
+                    scope="col"
+                    className={column.headerClassName}
+                    style={column.width ? { width: column.width } : undefined}
+                  >
+                    {column.label}
+                  </th>
                 ))}
                 {getActions ? <th scope="col">Actions</th> : null}
               </tr>
@@ -53,7 +60,11 @@ export function CrudTable({
                     const value = readValue(item, column.key)
 
                     return (
-                      <td key={column.key}>
+                      <td
+                        key={column.key}
+                        className={column.className}
+                        style={column.width ? { width: column.width } : undefined}
+                      >
                         {column.render
                           ? column.render(value, item)
                           : value ?? column.emptyValue ?? 'Non renseigné'}

@@ -73,16 +73,15 @@ export function AssignClassesDrawer({ teacher, open, onClose, onSuccess }) {
         <p>Chargement des classes...</p>
       ) : (
         <form onSubmit={handleSubmit} className="drawer-form">
-          {/* Section Filtre stylisée */}
-          <div className="filter-section" style={{ marginBottom: '20px' }}>
-            <label className="field-label" style={{ fontWeight: 'bold', display: 'block', marginBottom: '8px' }}>
+          <div style={{ marginBottom: '18px' }}>
+            <label className="field-label" style={{ fontWeight: '600', display: 'block', marginBottom: '8px' }}>
               Filtrer par niveau
             </label>
-            <select 
-              className="field-input" 
-              value={niveauFiltre} 
+            <select
+              className="field-input"
+              value={niveauFiltre}
               onChange={(e) => setNiveauFiltre(e.target.value)}
-              style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
+              style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #d1d5db' }}
             >
               <option value="">Tous les niveaux</option>
               {niveauxDisponibles.map((niveau) => (
@@ -91,33 +90,43 @@ export function AssignClassesDrawer({ teacher, open, onClose, onSuccess }) {
             </select>
           </div>
 
-          {/* Liste des classes avec flex pour l'alignement */}
-          <div className="checkbox-list" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div style={{ display: 'grid', gap: '10px', maxHeight: '320px', overflowY: 'auto' }}>
             {classesFiltrees.map((classe) => (
-              <label key={classe.id} className="checkbox-item" style={{ 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: '12px', 
-                cursor: 'pointer',
-                padding: '8px 0',
-                borderBottom: '1px solid #f0f0f0' 
-              }}>
+              <label
+                key={classe.id}
+                className="checkbox-item"
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '12px',
+                  cursor: 'pointer',
+                  padding: '10px 12px',
+                  border: '1px solid #e5e7eb',
+                  borderRadius: '12px',
+                  background: selectedIds.includes(classe.id) ? 'rgba(37, 99, 235, 0.04)' : '#fff',
+                }}
+              >
                 <input
                   type="checkbox"
                   checked={selectedIds.includes(classe.id)}
                   onChange={() => toggleClasse(classe.id)}
-                  style={{ width: '18px', height: '18px' }}
+                  style={{ width: '18px', height: '18px', marginTop: '3px' }}
                 />
-                <span style={{ fontSize: '14px', color: '#333' }}>
-                  {classe.nom_classe} ({classe.niveau})
-                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: '#111827' }}>
+                    {classe.nom_classe}
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#6b7280' }}>
+                    {classe.niveau} {classe.annee_scolaire ? `• ${classe.annee_scolaire}` : ''}
+                  </span>
+                </div>
               </label>
             ))}
           </div>
 
-          <div className="form-actions" style={{ marginTop: '30px', display: 'flex', gap: '10px' }}>
-            <button type="button" onClick={onClose} className="btn-secondary" style={{ flex: 1, padding: '10px' }}>Annuler</button>
-            <button type="submit" disabled={submitting} className="btn-primary" style={{ flex: 1, padding: '10px' }}>
+          <div className="form-actions" style={{ marginTop: '24px', display: 'flex', gap: '10px' }}>
+            <button type="button" onClick={onClose} className="btn-secondary" style={{ flex: 1, padding: '10px 12px' }}>Annuler</button>
+            <button type="submit" disabled={submitting} className="btn-primary" style={{ flex: 1, padding: '10px 12px' }}>
               {submitting ? 'Enregistrement...' : 'Enregistrer'}
             </button>
           </div>

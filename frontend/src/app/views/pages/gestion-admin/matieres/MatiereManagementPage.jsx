@@ -13,7 +13,6 @@ export function MatiereManagementPage() {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [search, setSearch] = useState("");
-  const [matiereFilter, setMatiereFilter] = useState("Toutes");
   const [sortBy, setSortBy] = useState("nom");
   const [formData, setFormData] = useState({
   nom_matiere: "",
@@ -107,11 +106,6 @@ export function MatiereManagementPage() {
       }
     }
   };
-const matiereFilters = [
-  "Toutes",
-  ...new Set(matieres.map((m) => m.nom_matiere)),
-];
-
 const filteredMatieres = matieres
   .filter((matiere) => {
     const recherche =
@@ -122,11 +116,7 @@ const filteredMatieres = matieres
         .toLowerCase()
         .includes(search.toLowerCase());
 
-    const filtreMatiere =
-  matiereFilter === "Toutes" ||
-  matiere.nom_matiere === matiereFilter;
-
-return recherche && filtreMatiere;
+    return recherche;
   })
   .sort((a, b) => {
     if (sortBy === "nom")
@@ -151,86 +141,67 @@ return recherche && filtreMatiere;
 
       {error && <div className="alert alert-error">{error}</div>}
       {success && <div className="alert alert-success">{success}</div>}
-<div
-  className="panel"
-  style={{
-    marginTop: 20,
-    marginBottom: 20,
-    padding: 25,
-    borderRadius: 18,
-  }}
->
-  <input
-    type="text"
-    placeholder="🔍 Rechercher par nom ou description..."
-    value={search}
-    onChange={(e) => setSearch(e.target.value)}
-    style={{
-      width: "100%",
-      padding: 15,
-      borderRadius: 14,
-      border: "1px solid #ddd",
-      marginBottom: 20,
-      fontSize: 16,
-    }}
-  />
-
-  <div
-    style={{
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      flexWrap: "wrap",
-      gap: 20,
-    }}
-  >
-    <div
-      style={{
-        display: "flex",
-        gap: 10,
-        flexWrap: "wrap",
-      }}
-    >
-      {matiereFilters.map((nom) => (
-       <button
-  key={nom}
-  onClick={() => setMatiereFilter(nom)}
-  style={{
-    padding: "10px 18px",
-    borderRadius: 30,
-    border: "1px solid #ddd",
-    cursor: "pointer",
-    background: matiereFilter === nom ? "#1d4ed8" : "#fff",
-    color: matiereFilter === nom ? "#fff" : "#333",
-    fontWeight: 600,
-  }}
->
-  {nom}
-</button>
-      ))}
-    </div>
-
-    <div>
-      <label style={{ marginRight: 10 }}>
-        Trier :
-      </label>
-
-      <select
-        value={sortBy}
-        onChange={(e) => setSortBy(e.target.value)}
+      <div
+        className="panel"
         style={{
-          padding: 10,
-          borderRadius: 10,
+          marginTop: 20,
+          marginBottom: 20,
+          padding: 20,
+          borderRadius: 18,
         }}
       >
-        <option value="nom">Nom (A-Z)</option>
-        <option value="coefficient">
-          Coefficient
-        </option>
-      </select>
-    </div>
-  </div>
-</div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 16,
+            flexWrap: "wrap",
+          }}
+        >
+          <input
+            type="text"
+            placeholder="🔍 Rechercher par nom ou description..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{
+              flex: "1 1 360px",
+              minWidth: 0,
+              padding: 14,
+              borderRadius: 14,
+              border: "1px solid #ddd",
+              fontSize: 15,
+            }}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            <label style={{ fontSize: 14, color: "#475569", fontWeight: 600 }}>
+              Trier
+            </label>
+
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              style={{
+                minWidth: 180,
+                padding: 10,
+                borderRadius: 10,
+                border: "1px solid #cbd5e1",
+              }}
+            >
+              <option value="nom">Nom (A-Z)</option>
+              <option value="coefficient">Coefficient</option>
+            </select>
+          </div>
+        </div>
+      </div>
       <div className="panel mt-4">
         {loading && matieres.length === 0 ? (
           <div className="screen-state">Chargement...</div>

@@ -1,4 +1,5 @@
 import { PasswordField } from '../forms/PasswordField'
+import { MultiSelectField } from '../forms/MultiSelectField'
 
 function FieldError({ errors }) {
   return errors?.length ? <small>{errors[0]}</small> : null
@@ -74,40 +75,20 @@ export function CrudForm({
 
         if (field.type === 'multiselect') {
           return (
-            <label key={field.name} className={className}>
-              <span>{label}</span>
-              <select
-                name={field.name}
-                multiple
-                value={Array.isArray(value) ? value : []}
-                onChange={(event) => {
-                  const nextValue = Array.from(event.target.selectedOptions).map((option) => option.value)
-                  onChange({
-                    target: {
-                      name: field.name,
-                      value: nextValue,
-                      type: 'multiselect',
-                    },
-                  })
-                }}
-                required={required}
-                disabled={field.disabled}
-                size={field.size ?? 4}
-              >
-                {(field.options ?? []).map((option) => {
-                  const normalized = typeof option === 'object'
-                    ? option
-                    : { value: option, label: option }
-
-                  return (
-                    <option key={normalized.value} value={normalized.value}>
-                      {normalized.label}
-                    </option>
-                  )
-                })}
-              </select>
-              <FieldError errors={fieldErrors[field.name]} />
-            </label>
+            <MultiSelectField
+              key={field.name}
+              className={className}
+              label={label}
+              name={field.name}
+              value={value}
+              onChange={onChange}
+              options={field.options}
+              placeholder={field.placeholder}
+              searchPlaceholder={field.searchPlaceholder}
+              required={required}
+              disabled={field.disabled}
+              error={fieldErrors[field.name]?.[0]}
+            />
           )
         }
 

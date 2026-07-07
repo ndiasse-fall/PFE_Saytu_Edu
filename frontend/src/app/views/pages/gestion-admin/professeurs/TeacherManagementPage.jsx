@@ -28,7 +28,8 @@ export function TeacherManagementPage() {
     const [classesOptions, setClassesOptions] = useState([]);
 
     // 1. Création d'un état pour stocker la liste des matières formatées
-    const [matieresOptions, setMatieresOptions] = useState([]);
+    const [specialiteOptions, setSpecialiteOptions] = useState([]);
+    const [matiereIdsOptions, setMatiereIdsOptions] = useState([]);
 
     // 2. Chargement asynchrone des matières au chargement du composant
     useEffect(() => {
@@ -41,12 +42,18 @@ export function TeacherManagementPage() {
                 const data = matieresResponse?.data ?? matieresResponse ?? [];
                 const classesData = classesResponse?.data ?? classesResponse ?? [];
 
-                const formatted = data.map((matiere) => ({
+                const formattedSpecialites = data.map((matiere) => ({
                     value: matiere.nom_matiere,
                     label: matiere.nom_matiere,
                 }));
 
-                setMatieresOptions(formatted);
+                const formattedMatieres = data.map((matiere) => ({
+                    value: matiere.id,
+                    label: matiere.nom_matiere,
+                }));
+
+                setSpecialiteOptions(formattedSpecialites);
+                setMatiereIdsOptions(formattedMatieres);
                 setClassesOptions(
                     classesData.map((classe) => ({
                         value: classe.id,
@@ -90,38 +97,42 @@ export function TeacherManagementPage() {
                 ],
             },
         ],
-            fields: [
-                { name: "nom", label: "Nom", required: true },
-                { name: "prenom", label: "Prénom", required: true },
-                { name: "email", label: "Email", type: "email", required: true },
-                {
-                    name: "specialite",
-                    label: "Spécialité",
-                    required: true,
-                    type: "select",
-                    placeholder: "Sélectionnez une spécialité...",
-                    options: matieresOptions, // 3. On utilise ici l'état local dynamique
-                },
-                {
-                    name: "classe_ids",
-                    label: "Classes attribuées",
-                    type: "multiselect",
-                    options: classesOptions,
-                    required: true,
-                    defaultValue: [],
-                    fromItem: (item) => (item.enseignantClasses ?? item.classes ?? []).map((classe) => String(classe.id)),
-                },
-                {
-                    name: "matiere_ids",
-                    label: "Matières enseignées",
-                    type: "multiselect",
-                    options: matieresOptions,
-                    defaultValue: [],
-                    fromItem: (item) => (item.matieres ?? []).map((matiere) => String(matiere.id)),
-                },
-                {
-                    name: "date_embauche",
-                    label: "Date embauche",
+        fields: [
+            { name: "nom", label: "Nom", required: true },
+            { name: "prenom", label: "Prénom", required: true },
+            { name: "email", label: "Email", type: "email", required: true },
+            {
+                name: "specialite",
+                label: "Spécialité",
+                required: true,
+                type: "select",
+                placeholder: "Sélectionnez une spécialité...",
+                options: specialiteOptions,
+            },
+            {
+                name: "classe_ids",
+                label: "Classes attribuées",
+                type: "multiselect",
+                options: classesOptions,
+                required: true,
+                defaultValue: [],
+                placeholder: "Sélectionner une ou plusieurs classes",
+                searchPlaceholder: "Rechercher une classe...",
+                fromItem: (item) => (item.enseignantClasses ?? item.classes ?? []).map((classe) => String(classe.id)),
+            },
+            {
+                name: "matiere_ids",
+                label: "Matières enseignées",
+                type: "multiselect",
+                options: matiereIdsOptions,
+                defaultValue: [],
+                placeholder: "Sélectionner une ou plusieurs matières",
+                searchPlaceholder: "Rechercher une matière...",
+                fromItem: (item) => (item.matieres ?? []).map((matiere) => String(matiere.id)),
+            },
+            {
+                name: "date_embauche",
+                label: "Date embauche",
                 type: "date",
                 required: true,
             },
@@ -140,24 +151,64 @@ export function TeacherManagementPage() {
             },
         ],
         columns: [
+            { key: "matricule_enseignant", label: "Matricule", width: "15%" },
+            {
+                key: "nom",
+                label: "Nom complet",
+                width: "38%",
+                render: (_value, item) => `${item?.prenom ?? ""} ${item?.nom ?? ""}`.trim() || "Non renseigné",
+            },
+            { key: "specialite", label: "Spécialité", width: "17%" },
+            {
+                key: "actif",
+                label: "Statut",
+                width: "12%",
+                render: (value) => (value ? "Actif" : "Inactif"),
+            },
+        ],
+        details: [
             { key: "matricule_enseignant", label: "Matricule" },
-            { key: "prenom", label: "Prénom" },
-            { key: "nom", label: "Nom" },
-                { key: "email", label: "Email" },
-                { key: "specialite", label: "Spécialité" },
-                {
-                    key: "enseignantClasses",
-                    label: "Classes",
-                    render: (value) => (value?.length ? value.map((classe) => classe.nom_classe).join(", ") : "Aucune"),
+            {
+                key: "nom_complet",
+                label: "Nom complet",
+                render: (_value, item) => `${item?.prenom ?? ""} ${item?.nom ?? ""}`.trim() || "Non renseigné",
+            },
+            { key: "email", label: "Email" },
+            { key: "telephone", label: "Téléphone" },
+            { key: "adresse", label: "Adresse" },
+            { key: "specialite", label: "Spécialité" },
+            {
+                key: "enseignantClasses",
+                label: "Classes",
+                render: (value, item) => {
+                    const classes = value?.length ? value : (item?.classes ?? item?.enseignantClasses ?? [])
+                    return classes.length ? (
+                        <div className="teacher-badges">
+                            {classes.map((classe) => (
+                                <span key={classe.id} className="badge badge-role teacher-badge">
+                                    {classe.nom_classe}
+                                </span>
+                            ))}
+                        </div>
+                    ) : "Aucune"
                 },
-                {
-                    key: "matieres",
-                    label: "Matières",
-                    render: (value) => (value?.length ? value.map((matiere) => matiere.nom_matiere).join(", ") : "Aucune"),
-                },
-                {
-                    key: "actif",
-                    label: "Statut",
+            },
+            {
+                key: "matieres",
+                label: "Matières",
+                render: (value) => (value?.length ? (
+                    <div className="teacher-badges">
+                        {value.map((matiere) => (
+                            <span key={matiere.id} className="badge badge-role teacher-badge teacher-badge-alt">
+                                {matiere.nom_matiere}
+                            </span>
+                        ))}
+                    </div>
+                ) : "Aucune"),
+            },
+            {
+                key: "actif",
+                label: "Statut",
                 render: (value) => (value ? "Actif" : "Inactif"),
             },
         ],
